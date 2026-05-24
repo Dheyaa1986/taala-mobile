@@ -55,7 +55,7 @@
    "pleaseFillYourCredentials": "يرجى ادخال البيانات الخاصة بك",
    "pleaseFillYourPasswords": "يرجى ادخال كلمات المرور",
    "passwordMatchValidation": "كلمات المرور غير متطابقة",
-   "passwordLengthValidation": "كلمة المرور يجب ان تكون على الاقل 9 حروف",
+   "passwordLengthValidation": "كلمة المرور يجب ان تكون على الاقل 8 حروف",
    "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
    "confirmYourPassword": "يرجى تاكيد كلمة المرور",
   "settings": "الاعدادات",
@@ -99,6 +99,7 @@
   "im_provider": "أنا مزود خدمة",
   "provider_description": "ساعد العملاء في السحب والمساعدة على الطريق",
   "im_client": "أنا عميل",
-  "client_description": "اطلب خدمة سحب أو مساعدة للسيارة في أي وقت ومن أي مكان"
+  "client_description": "اطلب خدمة سحب أو مساعدة للسيارة في أي وقت ومن أي مكان",
+  "password_invalid_length": "يجب أن تتكون كلمة المرور من 8 خانات على الأقل"
 
 }

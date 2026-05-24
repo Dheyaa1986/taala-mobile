@@ -115,6 +115,11 @@ class _LoginFormState extends State<LoginForm> {
                           if (password == null || password.isEmpty) {
                             return AppStrings.pleaseEnterYourPassword.tr();
                           }
+
+                          // 🎯 التعديل السحري: استدعاء النص المترجم تلقائياً بناءً على لغة الجهاز
+                          if (password.length < 8) {
+                            return AppStrings.passwordLengthValidation.tr();
+                          }
                           return null;
                         },
                       ),

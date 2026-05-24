@@ -100,5 +100,6 @@
   "services": "Services",
   "portfolio": "Portfolio",
   "mapLink": "Google Maps Link",
-  "invalid_google_map_link": "Please enter a valid Google Maps link."
+  "invalid_google_map_link": "Please enter a valid Google Maps link.",
+  "password_invalid_length": "Password must be at least 8 characters long"
 }

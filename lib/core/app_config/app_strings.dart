@@ -147,4 +147,5 @@ class AppStrings {
   static const services = 'services';
   static const portfolio = 'portfolio';
   static const enterDescription = 'enterDescription';
+  static const String passwordInvalidLength = 'password_invalid_length';
 }
