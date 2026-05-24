@@ -1,0 +1,150 @@
+class AppStrings {
+  //login screen
+  static const String login = 'login';
+  static const String signUp = 'signUp';
+  static const String loginHeaderSubtitle = 'loginHeaderSubtitle';
+  static const String email = 'email';
+  static const String password = 'password';
+  static const String dontHaveAccount = 'dontHaveAccount';
+  static const String register = 'register';
+  static const String signupHeaderSubtitle = 'signupHeaderSubtitle';
+  static const String enterPassword = 'enterPassword';
+  static const String enterEmail = 'enterEmail';
+  static const String name = 'name';
+  static const String enterName = 'enterName';
+  static const String pleaseEnterName = 'pleaseEnterName';
+  static const String confirmPassword = 'confirmPassword';
+  static const String enterConfirmPassword = 'enterConfirmPassword';
+  static const String alreadyHaveAccount = 'alreadyHaveAccount';
+  static const String phone = 'phone';
+  static const String enterPhone = 'enterPhone';
+  static const String enterOldPassword = 'enterOldPassword';
+  static const String oldPassword = 'oldPassword';
+  static const String newPassword = 'newPassword';
+  static const String enterNewPassword = 'enterNewPassword';
+  static const String pleaseEnterPhone = 'pleaseEnterPhone';
+  static const String address = 'address';
+  static const String enterAddress = 'enterAddress';
+  static const String pleaseEnterAddress = 'pleaseEnterAddress';
+  static const String pleaseSelectAnImage = 'pleaseSelectAnImage';
+  static const String arabic = 'arabic';
+  static const String english = 'english';
+  static const String kurdish = 'kurdish';
+  static const String locations = 'locations';
+  static const String viewOnMap = 'viewOnMap';
+  static const String addNewLocation = 'addNewLocation';
+  static const String editLocation = 'editLocation';
+
+  //select role
+  static const String whoAreYou = 'who_are_you';
+  static const String chooseAccountType = 'choose_account_type';
+  static const String imProvider = 'im_provider';
+  static const String providerDescription = 'provider_description';
+  static const String imClient = 'im_client';
+  static const String clientDescription = 'client_description';
+  //Global
+
+  static const String noItemsAvailable = 'noItemsAvailable';
+
+  static const String notAValidId = 'notAValidId';
+
+  static const String continueKey = 'continueKey';
+  static const String skipKey = 'skipKey';
+  static const String requiredField = "requiredField";
+  static const String notAValidValue = "notAValidValue";
+  static const String pleaseEnterYourPassword = 'pleaseEnterYourPassword';
+  static const String pleaseFillYourCredentials = 'pleaseFillYourCredentials';
+  static const String pleaseFillYourPasswords = 'pleaseFillYourPasswords';
+  static const String passwordMatchValidation = 'passwordMatchValidation';
+  static const String passwordLengthValidation = 'passwordLengthValidation';
+  static const String passwordsDoNotMatch = 'passwordsDoNotMatch';
+  static const String confirmYourPassword = "confirmYourPassword";
+
+  static const String search = "search";
+
+  static const String next = "next";
+
+  static const String addPhoto = "addPhoto";
+  static const String camera = "camera";
+  static const String gallery = "gallery";
+  static const String createAcc = "createAcc";
+  static const String client = "client";
+  static const String provider = "provider";
+
+  static const String emailNotValid = "emailNotValid";
+  static const String egp = "egp";
+  static const String today = "today";
+  static const String yesterday = "yesterday";
+  static const String days = "days";
+  static const String ago = "ago";
+  static const String months = "months";
+  static const String month = "months";
+  static const String year = "months";
+  static const String years = "years";
+  static String exitTheApp = "exitTheApp";
+  static String exitConfirmMessage = "exitConfirmMessage";
+  static String noThankYou = "noThankYou";
+  static String yesPlease = "yesPlease";
+  static String updateIsRequiredTitle = 'updateIsRequiredTitle';
+  static String updateIsRequiredSubtitle = 'updateIsRequiredSubtitle';
+  static String update = 'update';
+  static String exit = 'exit';
+  static String seeAll = 'seeAll';
+
+  static const String call = "call";
+
+  static const String notifications = "notifications";
+
+  static const String verificationRequestUploadedTitle =
+      "verificationRequestUploadedTitle";
+  static const String verificationRequestUploadedSubTitle =
+      "verificationRequestUploadedSubTitle";
+
+  // settings screen
+  static const String menu = "menu";
+
+  static const String home = 'home';
+  static const String rating = 'rating';
+
+  // welcome
+  static String addPhotos = "addPhotos";
+  static String addPhotosMessage = "addPhotosMessage";
+
+  static const String delete = "delete";
+  static const String governance = "governance";
+  static const String city = "city";
+  static const String region = "region";
+  static const String mapLink = "mapLink";
+  static const String addLocation = "addLocation";
+  static const String filter = "filter";
+  static const String viewProfile = "viewProfile";
+  static const String whatsapp = "whatsapp";
+  static const String callNow = "callNow";
+  static const String serviceType = "serviceType";
+  static const String status = "status";
+  static const String rateProvider = "rateProvider";
+  static const String rateProviderRating = "rateProviderRating";
+  static const String reset = "reset";
+  static const String description = "description";
+  static const String submitRating = "submitRating";
+  static const String apply = "apply";
+  static const String active = "active";
+  static const String inactive = "inactive";
+  static const String deleteLocation = "deleteLocation";
+  static const String deleteLocationSubtitle = "deleteLocationSubtitle";
+  static const String deleteLocationSuccess = "deleteLocationSuccess";
+  static const String confirm = "confirm";
+  static const String cancel = "cancel";
+  static const invalidGoogleMapLink = 'invalid_google_map_link';
+  static const settings = 'settings';
+  static const language = 'language';
+  static const changePassword = 'changePassword';
+  static const editProfile = 'editProfile';
+  static const logout = 'logout';
+  static const save = 'save';
+  static const rateApp = 'rateApp';
+  static const rateAppTitle = 'rateAppTitle';
+  static const services = 'services';
+  static const portfolio = 'portfolio';
+  static const enterDescription = 'enterDescription';
+}
