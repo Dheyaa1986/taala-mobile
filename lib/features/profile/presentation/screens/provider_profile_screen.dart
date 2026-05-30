@@ -89,7 +89,6 @@ class ProviderProfileScreen extends StatelessWidget {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemBuilder: (_, index) => ServiceChip(
-                          // onRemove: () {},
                           service: _services[index],
                         ),
                         separatorBuilder: (_, __) => 10.width,

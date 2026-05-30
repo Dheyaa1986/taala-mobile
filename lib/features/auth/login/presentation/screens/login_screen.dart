@@ -6,7 +6,6 @@ import '../cubit/login_cubit/login_cubit.dart';
 import '../widgets/login_form.dart';
 
 class LoginScreen extends StatefulWidget {
-  /// Pre-selects role when set (e.g. after registration). User must still confirm on login.
   final bool? initialIsProvider;
   const LoginScreen({super.key, this.initialIsProvider});
   @override

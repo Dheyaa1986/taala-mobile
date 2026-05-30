@@ -19,9 +19,6 @@ class CustomTextButton extends StatelessWidget {
               fontSize: 14.sp,
               fontWeight: FontWeight.w400,
             ),
-        /*       clickableTextStyle: ,
-        text: '',
-        clickableText: ,*/
       ),
     );
   }

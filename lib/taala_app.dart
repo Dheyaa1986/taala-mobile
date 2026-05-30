@@ -77,7 +77,7 @@ class _TaalaAppState extends State<TaalaApp> {
               locale: context.locale,
               supportedLocales: context.supportedLocales,
               localizationsDelegates: context.localizationDelegates,
-              title: 'Taala',
+              title: 'taal',
             ),
           ),
         );

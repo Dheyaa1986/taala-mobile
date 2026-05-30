@@ -27,7 +27,6 @@ class FilterServiceButton extends StatelessWidget {
             .then(
           (value) {
             if (value != null && value is FilterProvidersModel) {
-              print(value.toJson());
               context.read<ServiceProvidersCubit>().updateFilter(value);
             }
           },

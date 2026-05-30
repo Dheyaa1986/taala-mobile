@@ -66,38 +66,5 @@ class ClientRatingsCubit extends Cubit<ClientRatingsState> {
           )),
     );
     emit(ClientRatingsLoaded(ratings: clientRatings, reachedMax: true));
-    /*  if (reset) resetPagination();
-
-    if (!reachedMax || locations.isEmpty) {
-      if (locations.isEmpty) emit(LocationsLoading());
-
-      searchQuery = query ?? searchQuery;
-
-      final response = await repository.getLocations(
-        PaginationOptions(
-
-          limit: pageSize,
-          page: page,
-          search: searchQuery,
-        ),
-      );
-      response.fold(
-            (l) {
-          emit(LocationsError( message: l.message));
-        },
-            (data) {
-          */ /* reachedMax = data.length < pageSize;
-          if (!reachedMax) page++;
-
-          universities.addAll(data);*/ /*
-          locations = data;
-          emit(LocationsLoaded(
-            locations: locations,
-            reachedMax: reachedMax,
-          ));
-        },
-      );
-
-    }*/
   }
 }

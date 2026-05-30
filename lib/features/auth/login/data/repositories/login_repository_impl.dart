@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:developer';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -23,10 +21,6 @@ class LoginRepositoryImpl extends LoginRepository {
   }) async {
     final loginUrl =
         isProvider ? AppUrls.providerLogin : AppUrls.clientLogin;
-    print("🔵 LOGIN REPOSITORY - Starting login request");
-    print("🔵 URL: $loginUrl");
-    print("🔵 BODY: ${model.toJson()}");
-
     final result = await exceptionHandler(
       () async {
         try {
@@ -39,8 +33,6 @@ class LoginRepositoryImpl extends LoginRepository {
               json: json,
             ),
           );
-
-          print("🟢 LOGIN SUCCESS - Token: ${user.token}");
 
           await SecureLocalStorage.write(PrefsKeys.token, user.token);
           await SecureLocalStorage.write(
@@ -63,14 +55,9 @@ class LoginRepositoryImpl extends LoginRepository {
             ),
           );
           return user;
-        } on DioException catch (e) {
-          print("🔴 DIO ERROR");
-          print("   Status Code: ${e.response?.statusCode}");
-          print("   Response Data: ${e.response?.data}");
-          print("   Message: ${e.message}");
+        } on DioException {
           rethrow;
         } catch (e) {
-          print("🔴 GENERAL ERROR: $e");
           rethrow;
         }
       },

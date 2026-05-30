@@ -1,5 +1,4 @@
 class AppStrings {
-  //login screen
   static const String login = 'login';
   static const String signUp = 'signUp';
   static const String loginHeaderSubtitle = 'loginHeaderSubtitle';
@@ -37,15 +36,12 @@ class AppStrings {
   static const String addNewLocation = 'addNewLocation';
   static const String editLocation = 'editLocation';
 
-  //select role
   static const String whoAreYou = 'who_are_you';
   static const String chooseAccountType = 'choose_account_type';
   static const String imProvider = 'im_provider';
   static const String providerDescription = 'provider_description';
   static const String imClient = 'im_client';
   static const String clientDescription = 'client_description';
-  //Global
-
   static const String noItemsAvailable = 'noItemsAvailable';
 
   static const String notAValidId = 'notAValidId';
@@ -102,13 +98,11 @@ class AppStrings {
   static const String verificationRequestUploadedSubTitle =
       "verificationRequestUploadedSubTitle";
 
-  // settings screen
   static const String menu = "menu";
 
   static const String home = 'home';
   static const String rating = 'rating';
 
-  // welcome
   static String addPhotos = "addPhotos";
   static String addPhotosMessage = "addPhotosMessage";
 

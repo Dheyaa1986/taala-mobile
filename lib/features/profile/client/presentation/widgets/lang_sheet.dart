@@ -75,7 +75,6 @@ class _LangSheetState extends State<LangSheet> {
               setState(() {
 
                 lang = p0;
-                print('lang $lang');
               });
             },
             value: lang,

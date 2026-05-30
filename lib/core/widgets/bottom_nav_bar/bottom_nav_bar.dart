@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,13 +43,9 @@ class _BottomNavBarState extends State<BottomNavBar>
 
   void _onItemTapped(int index) {
     if (index == widget.shell.currentIndex && index == 0) {
-      // Already on home, trigger scroll to top
-      log("Triggering scroll to top on home screen");
-
       HapticFeedback.lightImpact();
       return;
     }
-    log("Navigating to index: $index");
     HapticFeedback.lightImpact();
     widget.shell.goBranch(
       index,
@@ -60,7 +54,6 @@ class _BottomNavBarState extends State<BottomNavBar>
   }
 
   void _goToHomeScreen() {
-    log("Navigating to home");
     _onItemTapped(0);
   }
 
@@ -68,7 +61,6 @@ class _BottomNavBarState extends State<BottomNavBar>
   Widget build(BuildContext context) {
     final isBaseRoute = widget.shell.currentIndex == 0;
 
-    // Control app bar visibility with animation
     if (isBaseRoute) {
       if (_animationController.status == AnimationStatus.dismissed) {
         _animationController.forward();
@@ -82,7 +74,6 @@ class _BottomNavBarState extends State<BottomNavBar>
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        log("Pop invoked: didPop=$didPop, result=$result");
         if (!didPop && widget.shell.currentIndex != 0) {
           widget.shell.goBranch(0);
         } else if (!didPop && widget.shell.currentIndex == 0) {
@@ -98,7 +89,6 @@ class _BottomNavBarState extends State<BottomNavBar>
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: AppColors.lightBGColor,
-            // borderRadius: BorderRadius.circular(8.r),
             boxShadow: [
               BoxShadow(
                 color: AppColors.lightSecMainText.withOpacity(0.15),
@@ -110,7 +100,6 @@ class _BottomNavBarState extends State<BottomNavBar>
           ),
           child: SizedBox(
             height: 80.h + MediaQuery.of(context).padding.bottom,
-            // padding: REdgeInsets.symmetric(horizontal: 16.w),
             child: Localizations.override(
               context: context,
               locale: context.locale,
@@ -139,7 +128,6 @@ class _BottomNavBarState extends State<BottomNavBar>
   }) {
     return GestureDetector(
       onTapDown: (_) {
-        // Scale down slightly on press
         setState(() {});
       },
       onTapUp: (_) {
@@ -152,7 +140,6 @@ class _BottomNavBarState extends State<BottomNavBar>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Background highlight
             AnimatedOpacity(
               opacity: isSelected ? 0.15 : 0.0,
               duration: const Duration(milliseconds: 300),
@@ -195,8 +182,6 @@ class _BottomNavBarState extends State<BottomNavBar>
 
                 SizedBox(
                     height: 16.h + MediaQuery.of(context).padding.bottom / 2),
-                // isSelected ? 0.height : 2.height,
-                // Icon with bounce animation
                 AnimatedScale(
                   scale: 1.0,
                   duration: const Duration(milliseconds: 350),
@@ -204,7 +189,6 @@ class _BottomNavBarState extends State<BottomNavBar>
                   child: item.icon,
                 ),
                 4.height,
-                // Text with fade, slide, and scale animation
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 250),
@@ -230,7 +214,6 @@ class _BottomNavBarState extends State<BottomNavBar>
                   ),
                 ),
                 const Spacer(),
-                // Gradient indicator bar
               ],
             ),
           ],

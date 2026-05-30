@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -20,15 +18,12 @@ class SplashScreen extends StatelessWidget {
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
     await Future.delayed(const Duration(seconds: 2));
 
-    log("Splash screen completed - Checking auth status");
-
     if (!context.mounted) return;
 
     final hadStoredToken =
         (await SecureLocalStorage.read(PrefsKeys.token))?.isNotEmpty == true;
 
     if (await AuthSessionHelper.hasActiveSession()) {
-      log("Valid session - Navigating to home");
       final isProviderAccount =
           getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
       context.read<BottomNavigationCubit>().isProvider = isProviderAccount;
@@ -37,7 +32,6 @@ class SplashScreen extends StatelessWidget {
       if (hadStoredToken) {
         await AuthSessionHelper.clearSession();
       }
-      log("No valid token - Navigating to login");
       final isProvider =
           getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
       context.goNamed(Routes.login, extra: isProvider);

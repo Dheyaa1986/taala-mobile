@@ -58,7 +58,6 @@ class PhoneField extends StatelessWidget {
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(11)
           ],
-          // 🎯 التعديل هنا: فحص الخانات بحيث لا تقل ولا تزيد عن 11 رقماً
           validator: (value) {
             if (value == null || value.isEmpty) {
               return AppStrings.enterPhone.tr();

@@ -83,7 +83,6 @@ class ConfirmationDialog extends StatelessWidget {
                       text: AppStrings.confirm.tr(),
                       backgroundColor:buttonColor?? AppColors.primaryColor,
                       onTap: () {
-                        // onConfirm();
                         context.pop(true);
                       },
                     ),

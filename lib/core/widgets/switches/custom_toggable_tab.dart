@@ -34,8 +34,6 @@ class CustomToggleTab extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onTabChanged(index),
                 child: Container(
-                  // duration: const Duration(milliseconds: 200),
-                  // curve: Curves.easeInOut,
                   padding: const EdgeInsets.symmetric(horizontal: 23.5, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.white : Colors.transparent,

@@ -4,8 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 
 import '../app_config/app_colors.dart';
-import '../app_config/app_strings.dart';
-
 
 class AppMessages {
   static Future<dynamic> showLoading(BuildContext context) =>
@@ -19,48 +17,6 @@ class AppMessages {
           ),
         ),
       );
-/*  static Future<dynamic> showConfirmDialog(
-    BuildContext context, {
-    required String title,
-    Widget? content,
-  }) =>
-      showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text(
-            title,
-            style: TextStyle(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.w400,
-              fontFamily: 'Bebas Neue',
-            ),
-          ),
-          content: content,
-          actionsOverflowButtonSpacing: 8.w,
-          actions: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    text: AppStrings.save.tr(),
-                    isBackgroundGradient: true,
-                    onTap: () => Navigator.pop(context, true),
-                  ),
-                ),
-                8.width,
-                Expanded(
-                  child: CustomButton(
-                    text: AppStrings.cancel.tr(),
-                    hasBorder: true,
-                    backgroundColor: Colors.transparent,
-                    onTap: () => Navigator.pop(context),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );*/
 
   static void showError(BuildContext context, String error,
       [SnackBarAction? action]) {
@@ -85,11 +41,8 @@ class AppMessages {
             Flexible(
               child: Text(
                 error,
-
-                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700
-                  ),
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                    fontSize: 16.sp, fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -123,9 +76,7 @@ class AppMessages {
               child: Text(
                 message,
                 style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700
-                ),
+                      fontSize: 16.sp, fontWeight: FontWeight.w700),
               ),
             ),
           ],

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dartz/dartz.dart';
 
 import '../../../../../core/app_config/app_urls.dart';
@@ -18,7 +16,6 @@ class RegisterRepositoryImpl extends RegisterRepository {
     final result = await exceptionHandler(
       () async {
         final formData = await model.toFormData();
-        log("DATA SENT: ${formData.fields}");
         BaseResponseModel response = await dioService.callApi(
           NetworkRequest(AppUrls.registerClient,
               method: RequestMethod.post,

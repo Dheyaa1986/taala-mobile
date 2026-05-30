@@ -46,21 +46,15 @@ class DateTimeHelper {
     final now = DateTime.now();
     final formattedDate = DateFormat('dd MMM, yyyy', locale).format(date);
 
-    // If the date is today
     if (isSameDay(date, now)) {
       return AppStrings.today.tr();
-    }
-
-    // If the date is yesterday
-    else if (isSameDay(date, now.subtract(const Duration(days: 1)))) {
+    } else if (isSameDay(date, now.subtract(const Duration(days: 1)))) {
       return AppStrings.yesterday.tr();
     }
 
-    // Otherwise, return the formatted date
     return formattedDate;
   }
 
-// Helper function to compare if two dates are the same day
   static bool isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
         date1.month == date2.month &&

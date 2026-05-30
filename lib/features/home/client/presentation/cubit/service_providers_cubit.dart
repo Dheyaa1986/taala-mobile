@@ -33,8 +33,6 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
     bool reset = false,
     String? query,
   }) async {
-    print(
-        'getProviders ${filter.value.active}, ${filter.value.regionId}, ${filter.value.cityId}, ${filter.value.governanceId}, ${filter.value.serviceTypeId}');
     emit(ServiceProvidersLoading());
     Future.delayed(const Duration(seconds: 1));
     providers = List.generate(10, (index) {
@@ -55,7 +53,7 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
         rate: (3.5 + index % 3),
         email: 'provider${index + 1}@example.com',
         services: ['Cleaning', 'Plumbing', 'Electrical']
-            .sublist(0, (index % 3) + 1), // Varying service count
+            .sublist(0, (index % 3) + 1),
         phone: '012345678${index}',
         image: 'https://example.com/images/provider${index + 1}.jpg',
         address: 'Street ${index + 1}, City ${index % 3 + 1}',
@@ -64,39 +62,6 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
       );
     });
     emit(ServiceProvidersLoaded(serviceProviders: providers, reachedMax: true));
-    /*  if (reset) resetPagination();
-
-    if (!reachedMax || locations.isEmpty) {
-      if (locations.isEmpty) emit(LocationsLoading());
-
-      searchQuery = query ?? searchQuery;
-
-      final response = await repository.getLocations(
-        PaginationOptions(
-
-          limit: pageSize,
-          page: page,
-          search: searchQuery,
-        ),
-      );
-      response.fold(
-            (l) {
-          emit(LocationsError( message: l.message));
-        },
-            (data) {
-          */ /* reachedMax = data.length < pageSize;
-          if (!reachedMax) page++;
-
-          universities.addAll(data);*/ /*
-          locations = data;
-          emit(LocationsLoaded(
-            locations: locations,
-            reachedMax: reachedMax,
-          ));
-        },
-      );
-
-    }*/
   }
 
   updateFilter(FilterProvidersModel filter) {

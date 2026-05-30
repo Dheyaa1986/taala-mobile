@@ -2,16 +2,11 @@ import 'dart:io';
 
 
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 import 'exceptions.dart';
 
 class ErrorsExceptionsHandler {
   static dynamic handleError(DioException error) {
-    print("STATUS CODE: ${error.response?.statusCode}");
-    print("REQUEST URL: ${error.requestOptions.uri}");
-    print("FULL RESPONSE: ${error.response?.data}");
-
     final data = error.response?.data;
 
     String? errorMessage;
@@ -57,9 +52,6 @@ class ErrorsExceptionsHandler {
       case DioExceptionType.cancel:
         throw const CustomException('request_cancelled');
     case DioExceptionType.unknown:
-        print("UNKNOWN ERROR: ${error.error}");
-        print("UNKNOWN MESSAGE: ${error.message}");
-
         throw CustomException(errorMessage ?? 'BadRequestException');
       default:
         throw CustomException(

@@ -14,9 +14,6 @@ import 'core/helpers/locale_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-/*  await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform); // Initialize Firebase*/
-
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -24,10 +21,6 @@ void main() async {
   Bloc.observer = MyBlocObserver();
 
   await EasyLocalization.ensureInitialized();
-/*  // package info
-  await PackageInfoHelper.initialize();
-  // remote config
-  await RemoteConfigHelper.initialize();*/
   await setupServiceLocator();
   debugRepaintRainbowEnabled = false;
 

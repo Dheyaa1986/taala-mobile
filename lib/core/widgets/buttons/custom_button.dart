@@ -215,16 +215,6 @@ class CustomButton extends StatelessWidget {
                             prefix!,
                             8.width,
                           ],
-                          // Row(
-                          //   mainAxisSize: MainAxisSize.min,
-                          //   children: [
-
-                          //     const SizedBox(
-                          //       width: 16,
-                          //     ),
-                          //   ],
-                          // ),
-
                           fit
                               ? FittedBox(
                                   fit: BoxFit.scaleDown,

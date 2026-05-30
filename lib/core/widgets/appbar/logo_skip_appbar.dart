@@ -171,7 +171,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
       );
 
   @override
-  // TODO: implement preferredSize
   Size get preferredSize =>
       Size.fromHeight(kToolbarHeight + (appBarHeight ?? 0));
 }
@@ -181,11 +180,10 @@ class LogoAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      const Size.fromHeight(130); // Total height including logo
+      const Size.fromHeight(130);
 
   @override
   Widget build(BuildContext context) {
-    // Get the current text direction (works with EasyLocalization)
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
 
     return Container(

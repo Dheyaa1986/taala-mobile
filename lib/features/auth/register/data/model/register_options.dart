@@ -12,7 +12,7 @@ class RegisterOptions {
   final String country;
   final String countryImageSvg;
   final File image;
-  final String? type; // 'client' أو 'provider'
+  final String? type;
 
   RegisterOptions({
     required this.username,

@@ -143,7 +143,6 @@ class _RegisterFormState extends State<RegisterForm> {
                   ),
                   20.height,
 
-                  // 🎯 حقل كلمة المرور المطور والمترجم بـ 8 خانات
                   PasswordField(
                     controller: _passwordController,
                     label: AppStrings.password.tr(),
@@ -160,7 +159,6 @@ class _RegisterFormState extends State<RegisterForm> {
                   ),
                   24.height,
 
-                  // 🎯 حقل تأكيد كلمة المرور المطور مع فحص الطول والمطابقة
                   PasswordField(
                     controller: _confirmController,
                     label: AppStrings.confirmPassword.tr(),

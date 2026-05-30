@@ -87,7 +87,6 @@ class _CountriesWidgetState extends State<CountriesWidget> {
           children: [
             20.height,
             CustomTextField(
-              // label: '',
               hint: AppStrings.search.tr(),
               textStyle: Theme.of(context).textTheme.headlineSmall,
               controller: _searchController,
@@ -120,7 +119,6 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                         foregroundImage: CachedNetworkImageProvider(
                           country.flagPng,
                         ),
-                        // radius: 32,
                       ),
                       title: Text(
                         country.name,

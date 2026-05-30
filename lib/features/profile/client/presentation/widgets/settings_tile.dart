@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 
-/// [title] must be a translation key (e.g. [AppStrings.logout]), not pre-translated text.
 class SettingsTile extends StatelessWidget {
   const SettingsTile({super.key, required this.title, this.onTap});
   final String title;

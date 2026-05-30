@@ -60,7 +60,6 @@ class _CustomOTPFieldState extends State<CustomOTPField> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              // margin: const EdgeInsets.only(bottom: 9),
               width: 22.w,
               height: 1,
               color: AppColors.primaryColor,

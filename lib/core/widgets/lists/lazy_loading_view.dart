@@ -208,7 +208,6 @@ class _LazyLoadingViewState extends State<LazyLoadingView> {
         primary: widget.primary,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: widget.crossAxisCount ?? 2,
-// 3 columns
           crossAxisSpacing: widget.crossAxisSpacing ?? 0,
           mainAxisSpacing: widget.mainAxisSpacing ?? 0,
           childAspectRatio: widget.childAspectRatio ?? 0.7,

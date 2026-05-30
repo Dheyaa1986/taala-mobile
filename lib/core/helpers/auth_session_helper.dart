@@ -24,7 +24,6 @@ class AuthSessionHelper {
     }
   }
 
-  /// Returns true when access token is valid or was renewed via refresh token.
   static Future<bool> hasActiveSession() async {
     final token = await SecureLocalStorage.read(PrefsKeys.token);
     if (isAccessTokenValid(token)) return true;
@@ -75,7 +74,6 @@ class AuthSessionHelper {
     }
   }
 
-  /// Clears session tokens only; keeps saved email/password for next login.
   static Future<void> clearSession() async {
     await SecureLocalStorage.delete(PrefsKeys.token);
     await SecureLocalStorage.delete(PrefsKeys.refreshToken);

@@ -23,7 +23,6 @@ import '../../features/auth/select_role/presentation/select_role_screen.dart';
 class AppRouter {
   static final GlobalKey<NavigatorState> appNavigatorKey =
       GlobalKey<NavigatorState>();
-  // Define the global navigator keys for each tab
   static final GlobalKey<NavigatorState> _homeTabNavigatorKey =
       GlobalKey<NavigatorState>();
 
@@ -33,7 +32,6 @@ class AppRouter {
   static final GlobalKey<NavigatorState> _settingsTabNavigatorKey =
       GlobalKey<NavigatorState>();
 
-  // Define the home branch statically to avoid accessing instance members in initializers
   static final List<StatefulShellBranch> _homeBranches = [
     StatefulShellBranch(
       navigatorKey: _homeTabNavigatorKey,
@@ -52,7 +50,6 @@ class AppRouter {
     ),
   ];
 
-  // Define the auctions branch statically
   static final List<StatefulShellBranch> _settingsBranches = [
     StatefulShellBranch(
       navigatorKey: _settingsTabNavigatorKey,
@@ -212,7 +209,6 @@ class AppRouter {
       ];
 }
 
-// Define your custom screen transition
 CustomTransitionPage screenWithFadeTransition<T>({
   required BuildContext context,
   required GoRouterState state,

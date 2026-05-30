@@ -79,7 +79,6 @@ class CustomGradientTabBar extends StatelessWidget {
                               color: selectedIndex == index
                                   ? Colors.white
                                   : AppColors.secondaryColor,
-                              // height: 1.h,
                             ),
                         child: Text(
                           tabs[index],

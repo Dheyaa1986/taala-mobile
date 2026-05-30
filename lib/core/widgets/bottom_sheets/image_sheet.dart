@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -86,8 +85,8 @@ class ImagePickerHelper {
       if (image == null) return;
 
       onPick(File(image.path));
-    } on Exception catch (e) {
-      log(e.toString());
+    } on Exception {
+      return;
     }
   }
 

@@ -42,7 +42,6 @@ class CustomLauncher {
   }
   Future call(String phoneNumber,String clientName) async {
     try {
-      // bool res = await FlutterPhoneDirectCaller.callNumber('01149945599')??false;
       final call = Uri.parse('tel:$phoneNumber');
       if (await canLaunchUrl(call)) {
         launchUrl(call);
@@ -55,7 +54,6 @@ class CustomLauncher {
   }
   Future sendMessage(String phoneNumber,String clientName) async {
     try {
-      // bool res = await FlutterPhoneDirectCaller.callNumber('01149945599')??false;
       final message = Uri.parse('sms:$phoneNumber');
       if (await canLaunchUrl(message)) {
         launchUrl(message);

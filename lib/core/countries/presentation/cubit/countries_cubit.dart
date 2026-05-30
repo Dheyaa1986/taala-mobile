@@ -54,7 +54,6 @@ class CountriesCubit extends Cubit<CountriesState> {
   selectCountry(code) {
     final state = this.state;
     if (state is CountriesLoaded) {
-      print('ccc code $code');
       selectedCountry = _select(code);
 
       emit(

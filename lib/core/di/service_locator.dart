@@ -35,7 +35,6 @@ Future<void> setupServiceLocator() async {
   _initCubits();
 }
 
-//?Externals
 Future<void> _initExternals() async {
   await SharedPref.init();
 
@@ -45,15 +44,11 @@ Future<void> _initExternals() async {
 
 }
 
-//?Remote Sources
 void _initRemoteDataSources() {
-  //*countries
   getIt.registerLazySingleton<CountryService>(() => CountryService());
 }
 
-//?Repositories
 void _initRepositories() {
-  //*Auth
   getIt.registerLazySingleton<LoginRepository>(() => LoginRepositoryImpl());
 
   getIt.registerLazySingleton<RegisterRepository>(
@@ -68,10 +63,7 @@ void _initRepositories() {
           () => CountriesRepositoryImpl(service: getIt()));
 }
 
-//?Blocs
-
 void _initCubits() {
-  //*Auth
   getIt.registerFactory<LoginCubit>(
     () => LoginCubit(
       getIt(),

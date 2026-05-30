@@ -21,27 +21,3 @@ class BaseResponseModel {
   }
 }
 
-/*class BaseResponseModel<T> {
-  final int code;
-  final String? message;
-  final T? response;
-
-  BaseResponseModel({required this.code, required this.response, this.message});
-
-  factory BaseResponseModel.fromJson(Map<String, dynamic> json,
-      {T Function(Map<String, dynamic>)? fromJsonT}) {
-    return BaseResponseModel(
-      code: json['code'],
-      message: json.containsKey('additionalProp1') &&
-              (json['additionalProp1'] is Map<String, dynamic> &&
-                  json['additionalProp1'].containsKey('message'))
-          ? json['additionalProp1']['message']
-          : "",
-      response: json.containsKey('response') &&
-              json['response'] is Map<String, dynamic> &&
-              fromJsonT != null
-          ? fromJsonT(json['response'])
-          : null,
-    );
-  }
-}*/

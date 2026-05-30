@@ -66,7 +66,6 @@ class SectionWidget extends StatelessWidget {
                     ),
                 ],
               ),
-              // 16.height,
               if (titleAndContentSpace != null) titleAndContentSpace!.height,
               content
             ],

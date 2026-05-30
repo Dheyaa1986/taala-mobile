@@ -83,13 +83,6 @@ class _PhotoAvatarState extends State<PhotoAvatar> {
                     ],
                   ),
           ),
-          // if (widget.isEditing! && (widget.image != null || widget.url != null))
-          //   Positioned(
-          //     bottom: 5.h,
-          //     right: 100.w,
-          //     child: SvgImageWidget(image: AppIcons.editIcon),
-          //
-          //   ),
           Positioned(
             bottom: 5.h,
             right: 0,

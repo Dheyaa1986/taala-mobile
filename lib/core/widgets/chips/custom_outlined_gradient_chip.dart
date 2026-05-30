@@ -41,8 +41,6 @@ class CustomOutlinedGradientChip extends StatelessWidget {
         ),
         child: ShaderMask(
           shaderCallback: (rect) => LinearGradient(
-            // begin: AlignmentDirectional.centerStart,
-            // end: AlignmentDirectional.centerEnd,
             colors: [
               AppColors.secondaryColor,
               AppColors.primaryColor,
@@ -61,7 +59,6 @@ class CustomOutlinedGradientChip extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontSize: 14.sp,
                   color: Colors.white,
-                  // height: 1.h,
                 ),
           ),
         ),

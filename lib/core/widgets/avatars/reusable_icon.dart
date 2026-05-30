@@ -18,8 +18,6 @@ Widget reusableIcon({
       child: Center(
         child: SvgImageWidget(
           image: image,
-          // width: 100.w,
-          // height: 100.h,
         ),
       ),
     ),

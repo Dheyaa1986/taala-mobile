@@ -22,16 +22,7 @@ class CustomTable extends StatelessWidget {
     this.columnSeparatorWidth,
     this.showRowSeparator = false,
     this.showColumnSeparator = false,
-  })
-  // : assert(headers.cells.isNotEmpty, 'Headers must have at least one cell'),
-  //   assert(
-  //       rows.isNotEmpty &&
-  //           rows
-  //                   .where((e) => e.cells.length == headers.cells.length)
-  //                   .length <
-  //               rows.length,
-  //       'Rows must have the same number of cells as headers')
-  ;
+  });
 
   @override
   Widget build(BuildContext context) {

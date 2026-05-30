@@ -44,15 +44,6 @@ class CustomDraggableBottomSheet extends StatelessWidget {
       child: Stack(
         children: [
           child,
-      /*    if (canClose)
-            PositionedDirectional(
-              top: 0,
-              end: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0).r,
-                child: const CustomCloseButton(),
-              ),
-            ),*/
         ],
       ),
     );

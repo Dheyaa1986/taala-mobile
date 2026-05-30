@@ -44,7 +44,7 @@ class CustomCachedNetworkImage extends StatelessWidget {
             size: (height ?? 50) / 2,
           ),
         ),
-        imageUrl:/* serverImage ==true ? AppUrls.imageLink(url??''):*/(url??''),
+        imageUrl: url ?? '',
         imageBuilder: (context, imageProvider) {
           return Container(
             width: width ?? double.maxFinite,

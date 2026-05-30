@@ -21,7 +21,6 @@ class LoginCubit extends Cubit<LoginState> {
     bool isProvider = false,
   }) async {
     emit(LoginLoading());
-    print("🔵 ATTEMPTING LOGIN with email: $email");
 
     final result = await loginRepository.login(
       model: LoginOptions(email: email, password: password),
@@ -30,7 +29,6 @@ class LoginCubit extends Cubit<LoginState> {
 
     result.fold(
       (failure) {
-        print("🔴 LOGIN FAILED: ${failure.message}, Code: ${failure.code}");
         final isRoleMismatch =
             failure.message.contains('للدخول كـ');
         if (failure.code == 403 && !isRoleMismatch) {
@@ -40,7 +38,6 @@ class LoginCubit extends Cubit<LoginState> {
         }
       },
       (response) async {
-        print("🟢 LOGIN SUCCESS: ${response.token}");
         await getIt<SharedPref>().set(
           key: PrefsKeys.isProviderAccount,
           value: isProvider,
@@ -49,9 +46,6 @@ class LoginCubit extends Cubit<LoginState> {
         await SecureLocalStorage.write(
             PrefsKeys.refreshToken, response.refreshToken);
         await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: true);
-
-        final savedToken = await SecureLocalStorage.read(PrefsKeys.token);
-        print("🟢 VERIFY TOKEN SAVED: $savedToken");
 
         emit(LoginSuccess(response: response));
       },

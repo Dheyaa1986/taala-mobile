@@ -138,14 +138,12 @@ class ClientRatingsCardLoading extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Image
               const CustomShimmerWidget(
                 height: 64,
                 width: 64,
                 radius: 100,
               ),
               10.width,
-              // Name and Rating Column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +163,6 @@ class ClientRatingsCardLoading extends StatelessWidget {
                 ),
               ),
               8.width,
-              // View Profile Text
               const CustomShimmerWidget(
                 height: 14,
                 width: 60,
@@ -174,7 +171,6 @@ class ClientRatingsCardLoading extends StatelessWidget {
             ],
           ),
           _divider(),
-          // Comment
           const CustomShimmerWidget(
             height: 14,
             width: double.infinity,
@@ -188,7 +184,6 @@ class ClientRatingsCardLoading extends StatelessWidget {
           ),
           _divider(),
           8.height,
-          // Action buttons
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

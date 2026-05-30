@@ -9,7 +9,6 @@ class Routes {
   static const String home = '/homeScreen';
   static const String editProfile = '/editProfile';
 
-  //menu
   static const String menu = '/menu';
   static const String baseSettings = '/baseSettings';
   static const String clientSettings = '/clientSettings';

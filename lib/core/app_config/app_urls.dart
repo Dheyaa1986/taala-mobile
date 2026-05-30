@@ -27,7 +27,6 @@ class AppUrls {
   static const String sendSupportTicket = '$_baseApi/support-ticket';
   static const String banners = '$_baseApi/banners';
 
-  //*Auctions
   static const String auctions = '$_baseApi/auction';
   static const String addBid = '$auctions/add-bid';
   static const String myAuctions = '$auctions/contributed';

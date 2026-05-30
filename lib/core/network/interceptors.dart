@@ -2,10 +2,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../config/routes/app_router.dart';
-import '../../config/routes/routes.dart';
 import '../app_config/app_urls.dart';
 import '../app_config/prefs_keys.dart';
 import '../helpers/auth_session_helper.dart';
@@ -21,8 +19,6 @@ class CustomInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // add lang and time zone to each request headers
-    // we can add the token here if needed but cuz we might send requests without the token .. so let the method call decides this
     options.headers.addAll({
       HttpHeaders.acceptHeader: ContentType.json.mimeType,
       'Accept-Language':
@@ -35,19 +31,16 @@ class CustomInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // Pass through successful responses
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    // Token is expired, try refreshing it
     if (err.response?.statusCode == 401) {
       _failedRequests.add({'err': err, 'handler': handler});
 
       if (!isRefreshing) {
         isRefreshing = true;
-        // refresh method
         final refreshSuccess = await _refreshToken(err, handler);
         if (!refreshSuccess) {
           handler.reject(err);
@@ -58,42 +51,6 @@ class CustomInterceptor extends Interceptor {
     }
   }
 
-/*  @override
-  void onError(DioError err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
-      // Token is expired, try refreshing it
-      String? accessToken = await SecureLocalStorage.read(PrefsKeys.token);
-      String? refreshToken =
-          await SecureLocalStorage.read(PrefsKeys.refreshToken);
-      try {
-        final newTokens = await refreshTokens(
-            access: accessToken ?? '', refresh: refreshToken ?? '');
-        accessToken = newTokens['accessToken'];
-        refreshToken = newTokens['refreshToken'];
-
-        // Retry the original request with the new token
-        final retryResponse = await dio.request(
-          err.requestOptions.path,
-          options: Options(
-            method: err.requestOptions.method,
-            headers: {
-              ...err.requestOptions.headers,
-              AppConstants.authorization : '${AppConstants.bearer} $accessToken',
-            },
-          ),
-        );
-
-        handler.resolve(retryResponse);
-      } catch (e) {
-        // If refreshing tokens fails, pass the error
-        _logout();
-        super.onError(err, handler);
-      }
-    } else {
-      // For other errors, pass them through
-      super.onError(err, handler);
-    }
-  }*/
   Future<void> _retryFailedRequests(String newToken) async {
     for (var failed in _failedRequests) {
       final RequestOptions requestOptions = failed['err'].requestOptions;
@@ -149,29 +106,6 @@ class CustomInterceptor extends Interceptor {
     await SecureLocalStorage.write(PrefsKeys.token, access);
     await SecureLocalStorage.write(PrefsKeys.refreshToken, refresh);
   }
-/*  Future<Map<String, String>> refreshTokens(
-      {required String access, required String refresh}) async {
-    // Call the refresh endpoint
-
-    dio.options.headers = {};
-    final response = await dio.post(AppUrls.refreshToken, data: {
-      'accessToken': access,
-      'refreshToken': refresh,
-    });
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      return {
-        'accessToken': response.data['accessToken'],
-        'refreshToken': response.data['refreshToken'],
-      };
-    } else {
-      _logout();
-      throw DioError(
-        requestOptions: RequestOptions(path: AppUrls.refreshToken),
-        error: 'Failed to refresh tokens',
-      );
-    }
-  }*/
 
   Future<void> _logout() async {
     dio.options.headers.clear();

@@ -12,7 +12,6 @@ class CustomValidators {
     return null;
   }
 
-  /// Requires at least three name parts (e.g. first, father, grandfather).
   static String? validateTripleName(String? value, {String? message}) {
     final errorText = message ?? AppStrings.tripleNameValidation.tr();
 
@@ -48,20 +47,17 @@ class CustomValidators {
     }
 
     final century = id[0];
-    final birthDateString = id.substring(1, 7); // YYMMDD
+    final birthDateString = id.substring(1, 7);
     final governorateCode = int.tryParse(id.substring(7, 9));
 
-    // Validate century
     if (century != '2' && century != '3') {
       return AppStrings.notAValidId.tr();
     }
 
-    // Validate governorate code
     if (governorateCode == null || governorateCode < 1 || governorateCode > 99) {
       return AppStrings.notAValidId.tr();
     }
 
-    // Validate date
     try {
       final yearPrefix = century == '2' ? 1900 : 2000;
       final year = yearPrefix + int.parse(birthDateString.substring(0, 2));
@@ -69,7 +65,6 @@ class CustomValidators {
       final day = int.parse(birthDateString.substring(4, 6));
       final date = DateTime(year, month, day);
 
-      // Make sure parsed values are valid
       if (date.year != year || date.month != month || date.day != day) {
         return AppStrings.notAValidId.tr();
       }
@@ -77,7 +72,7 @@ class CustomValidators {
       return AppStrings.notAValidId.tr();
     }
 
-    return null; // valid ID
+    return null;
   }
 
 
@@ -133,7 +128,7 @@ class CustomValidators {
     if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
       return AppStrings.notAValidValue.tr();
     }
-    return null; // Valid input
+    return null;
   }
 
   static String? validatePositiveDouble(String? value,
@@ -146,7 +141,7 @@ class CustomValidators {
       return AppStrings.notAValidValue.tr();
     }
 
-    return null; // Valid input
+    return null;
   }
 
   static String? validatePhone(String? phone, {CountryModel? country}) {
@@ -168,7 +163,7 @@ class CustomValidators {
    final host = link.toLowerCase();
    if (host.contains('google') ||host.contains('goo.g') ||
        (link.contains('/maps'))) {
-     return null; // Valid
+     return null;
    }
 
    return AppStrings.invalidGoogleMapLink;

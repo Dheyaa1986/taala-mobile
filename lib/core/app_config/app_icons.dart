@@ -27,15 +27,9 @@ class AppIcons {
   static const String delete = "$_iconBase/delete.svg";
   static const String share = "$_iconBase/share.svg";
 
-  //*Nav Bar
-  // static const String addIcon = "$_iconBase/Add Icon.svg";
-  // static const String chats = "$_navBar/chat.svg";
   static const String home = "$_iconBase/home.svg";
   static const String homeActive = "$_iconBase/home-active.svg";
   static const String star = "$_iconBase/star.svg";
-  // static const String myAds = "$_navBar/my ads.svg";
-  // static const String profile = "$_navBar/profile.svg";
-  // static const String notificationsNavBar = "$_navBar/notifications.svg";
   static const String menu = "$_iconBase/menu.svg";
 
   static const String filterIcon = "$_iconBase/filter_icon.svg";
@@ -50,7 +44,6 @@ class AppIcons {
   static const String whatsappButton = "$_iconBase/whatsapp_button.svg";
   static const String changeLanguage = "$_iconBase/change_language.svg";
 
-  // profile
   static const String camera = "$_iconBase/camera.svg";
   static const String editProfileIcon = "$_iconBase/edit_profile.svg";
 

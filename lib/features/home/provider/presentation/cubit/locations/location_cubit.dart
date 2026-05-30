@@ -37,46 +37,12 @@ class LocationCubit extends Cubit<LocationState> {
        lng: '31.2357',
      ),);
      emit(LocationsLoaded(locations: locations,reachedMax: true));
-  /*  if (reset) resetPagination();
-
-    if (!reachedMax || locations.isEmpty) {
-      if (locations.isEmpty) emit(LocationsLoading());
-
-      searchQuery = query ?? searchQuery;
-
-      final response = await repository.getLocations(
-        PaginationOptions(
-
-          limit: pageSize,
-          page: page,
-          search: searchQuery,
-        ),
-      );
-      response.fold(
-            (l) {
-          emit(LocationsError( message: l.message));
-        },
-            (data) {
-          *//* reachedMax = data.length < pageSize;
-          if (!reachedMax) page++;
-
-          universities.addAll(data);*//*
-          locations = data;
-          emit(LocationsLoaded(
-            locations: locations,
-            reachedMax: reachedMax,
-          ));
-        },
-      );
-
-    }*/
   }
 
   addLocation(LocationModel location) {
     location.id = locations.length.toString();
     location.lat = '30.0444';
     location.lng = '31.2357';
-    print('sdsa ${location.governance?.name} ${location.city?.name}');
     locations.insert(0,location);
     emit(LocationsLoaded(locations: locations,reachedMax: true));
   }
