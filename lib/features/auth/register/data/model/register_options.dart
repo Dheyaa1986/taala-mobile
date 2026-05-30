@@ -12,7 +12,7 @@ class RegisterOptions {
   final String country;
   final String countryImageSvg;
   final File image;
-  int? role;
+  final String? type; // 'client' أو 'provider'
 
   RegisterOptions({
     required this.username,
@@ -24,22 +24,22 @@ class RegisterOptions {
     required this.country,
     required this.countryImageSvg,
     required this.image,
-    this.role,
+    this.type,
   });
 
   Future<FormData> toFormData() async {
     return FormData.fromMap({
-      'userName': username,
+      'name': username,
       'phone': phone,
       'email': email,
       'password': password,
       'address': address,
       'confirmPassword': confirmPassword,
-      'country': country,
-      'countryImageSvg': countryImageSvg,
-      'role': role ?? 1, // ✅ إذا null اجعله 1
-      'image': await MultipartFile.fromFile(image.path,
-          filename: image.path.split('/').last),
+      'type': type ?? 'client',
+      'profile': await MultipartFile.fromFile(
+        image.path,
+        filename: image.path.split('/').last,
+      ),
     });
   }
 }

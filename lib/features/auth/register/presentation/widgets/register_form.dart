@@ -57,7 +57,7 @@ class _RegisterFormState extends State<RegisterForm> {
           countryImageSvg: _country?.flagSvg ?? '',
           confirmPassword: _confirmController.text,
           password: _passwordController.text,
-          username: _nameController.text,
+          username: _nameController.text.trim().replaceAll(RegExp(r'\s+'), ' '),
           phone:
               PhoneFormatterHelper.formatPhone(_phoneController.text, _country),
           email: _emailController.text,
@@ -117,7 +117,8 @@ class _RegisterFormState extends State<RegisterForm> {
                     controller: _nameController,
                     label: AppStrings.name.tr(),
                     hint: AppStrings.enterName.tr(),
-                    validator: CustomValidators.validateEmpty,
+                    helperText: AppStrings.tripleNameHint.tr(),
+                    validator: CustomValidators.validateTripleName,
                   ),
                   20.height,
                   CustomTextField(

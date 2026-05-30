@@ -2,17 +2,14 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-
 
 import '../../config/routes/app_router.dart';
 import '../../config/routes/routes.dart';
 import '../app_config/app_urls.dart';
-import '../app_config/constants.dart';
 import '../app_config/prefs_keys.dart';
+import '../helpers/auth_session_helper.dart';
 import '../helpers/secure_local_storage.dart';
-import '../helpers/user_helper.dart';
 
 class CustomInterceptor extends Interceptor {
   final Dio dio;
@@ -27,7 +24,7 @@ class CustomInterceptor extends Interceptor {
     // add lang and time zone to each request headers
     // we can add the token here if needed but cuz we might send requests without the token .. so let the method call decides this
     options.headers.addAll({
-      HttpHeaders.acceptHeader: ContentType.json,
+      HttpHeaders.acceptHeader: ContentType.json.mimeType,
       'Accept-Language':
           AppRouter.appNavigatorKey.currentContext!.locale.languageCode,
       'time-zone': DateTime.now().timeZoneName,
@@ -148,7 +145,7 @@ class CustomInterceptor extends Interceptor {
     }
   }
 
-  _saveTokens(String access, String refresh) async {
+  Future<void> _saveTokens(String access, String refresh) async {
     await SecureLocalStorage.write(PrefsKeys.token, access);
     await SecureLocalStorage.write(PrefsKeys.refreshToken, refresh);
   }
@@ -177,11 +174,7 @@ class CustomInterceptor extends Interceptor {
   }*/
 
   Future<void> _logout() async {
-    await SecureLocalStorage.delete(PrefsKeys.token);
-    await SecureLocalStorage.delete(PrefsKeys.refreshToken);
-     // UserHelper.clear();
     dio.options.headers.clear();
-    GoRouter.of(AppRouter.appNavigatorKey.currentContext!)
-        .pushReplacementNamed(Routes.login);
+    await AuthSessionHelper.logout();
   }
 }

@@ -7,5 +7,6 @@ class PrefsKeys {
   static const String client = 'client';
   static const String link = 'link';
   static const String rememberMe = 'rememberMe';
+  static const String isProviderAccount = 'isProviderAccount';
   static const String selectedLanguage = 'selected_language';
 }

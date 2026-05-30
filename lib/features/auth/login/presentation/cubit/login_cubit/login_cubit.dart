@@ -1,10 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
-
 import '../../../../../../core/app_config/prefs_keys.dart';
 import '../../../../../../core/di/service_locator.dart';
 import '../../../../../../core/helpers/shared_pref_local_storage.dart';
+import '../../../../../../core/helpers/secure_local_storage.dart';
 import '../../../data/model/request/login_request_options.dart';
 import '../../../data/model/response/user_model.dart';
 import '../../../data/repositories/login_repository.dart';
@@ -18,21 +18,43 @@ class LoginCubit extends Cubit<LoginState> {
   Future<void> login({
     required String email,
     required String password,
+    bool isProvider = false,
   }) async {
     emit(LoginLoading());
+    print("🔵 ATTEMPTING LOGIN with email: $email");
+
     final result = await loginRepository.login(
-        model: LoginOptions(email: email, password: password));
+      model: LoginOptions(email: email, password: password),
+      isProvider: isProvider,
+    );
+
     result.fold(
       (failure) {
-        if (failure.code == 403) {
-          emit(AccountNotVerified(mailOrPhone: email,error: failure.message));
+        print("🔴 LOGIN FAILED: ${failure.message}, Code: ${failure.code}");
+        final isRoleMismatch =
+            failure.message.contains('للدخول كـ');
+        if (failure.code == 403 && !isRoleMismatch) {
+          emit(AccountNotVerified(mailOrPhone: email, error: failure.message));
         } else {
           emit(LoginError(failure.message));
         }
       },
-      (user) => emit(
-        LoginSuccess(user: user),
-      ),
+      (response) async {
+        print("🟢 LOGIN SUCCESS: ${response.token}");
+        await getIt<SharedPref>().set(
+          key: PrefsKeys.isProviderAccount,
+          value: isProvider,
+        );
+        await SecureLocalStorage.write(PrefsKeys.token, response.token);
+        await SecureLocalStorage.write(
+            PrefsKeys.refreshToken, response.refreshToken);
+        await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: true);
+
+        final savedToken = await SecureLocalStorage.read(PrefsKeys.token);
+        print("🟢 VERIFY TOKEN SAVED: $savedToken");
+
+        emit(LoginSuccess(response: response));
+      },
     );
   }
 

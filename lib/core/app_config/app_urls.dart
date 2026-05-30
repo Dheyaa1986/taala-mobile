@@ -1,16 +1,19 @@
 class AppUrls {
   const AppUrls._();
-  static const String base = 'https://test.com';
+  static const String base = 'https://taala-back-production.up.railway.app';
   static String imageLink(String image) => '$base$image';
-  static const String baseApi = '$base/api';
-  static const String _baseApi = base;
-  static const String login = '$_baseApi/auth/login';
-  static const String registerClient = '$_baseApi/auth/client-register';
+  static const String baseApi = base;
+  static const String _baseApi = baseApi;
+  static const String clientLogin = '$_baseApi/auth/client/login';
+  static const String providerLogin = '$_baseApi/auth/provider/login';
+  static const String login = clientLogin;
+  static const String registerClient = '$_baseApi/auth/register';
   static const String registerCompany = '$_baseApi/auth/company-register';
   static const String logout = '$_baseApi/logout';
   static const String emailVerify = '$_baseApi/email/verify';
   static const String forgetPassword = '$_baseApi/auth/forget-password';
   static const String passwordReset = '$_baseApi/auth/update-password';
+  static const String changePassword = '$_baseApi/auth/change-password';
   static const String updatePassword = '$_baseApi/updatePassword';
   static const String countries = '$_baseApi/countries';
   static const String sendCode = '$_baseApi/auth/verify-email';

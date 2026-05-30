@@ -1,30 +1,30 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
-import 'package:taal/core/di/service_locator.dart';
-import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/locale_helper.dart';
+import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/cached_network_image/custom_cached_network_image.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
 import 'package:taal/features/profile/client/presentation/widgets/change_password_sheet.dart';
-import 'package:taal/features/profile/client/presentation/widgets/edit_profile_sheet.dart';
 import 'package:taal/features/profile/client/presentation/widgets/lang_sheet.dart';
-import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
-import '../widgets/settings_tile.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 
-class ClientSettingsScreen extends StatefulWidget {
-  const ClientSettingsScreen({super.key});
+class ProviderSettingsScreen extends StatefulWidget {
+  const ProviderSettingsScreen({super.key});
 
   @override
-  State<ClientSettingsScreen> createState() => _ClientSettingsScreenState();
+  State<ProviderSettingsScreen> createState() => _ProviderSettingsScreenState();
 }
 
-class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
+class _ProviderSettingsScreenState extends State<ProviderSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final _ = context.locale;
@@ -36,7 +36,7 @@ class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
       body: ListView(
         padding: REdgeInsets.all(16.0),
         children: [
-          _profileTile(context: context),
+          _profileTile(context),
           _divider(),
           SettingsTile(
             title: AppStrings.language,
@@ -52,16 +52,7 @@ class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
           16.height,
           SettingsTile(
             title: AppStrings.changePassword,
-            onTap: () {
-              showChangePasswordSheet(context);
-            },
-          ),
-          16.height,
-          SettingsTile(
-            title: AppStrings.rateApp,
-            onTap: () {
-              showRateAppSheet(context);
-            },
+            onTap: () => showChangePasswordSheet(context),
           ),
           _divider(),
           _logoutTile(context),
@@ -70,23 +61,19 @@ class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
     );
   }
 
-  _divider() => Divider(
+  Widget _divider() => Divider(
         color: AppColors.lightGreyDividerColor,
         height: 36.h,
       );
 
-  _logoutTile(BuildContext context) => GestureDetector(
-        onTap: () async {
-          await getIt<DioService>().logout();
-        },
+  Widget _logoutTile(BuildContext context) => GestureDetector(
+        onTap: () => getIt<DioService>().logout(),
         child: Card(
           elevation: 3,
           shadowColor: const Color(0x269A9A9A),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.r),
-            side: const BorderSide(
-              color: AppColors.borderColorMain,
-            ),
+            side: const BorderSide(color: AppColors.borderColorMain),
           ),
           margin: EdgeInsets.zero,
           child: Padding(
@@ -114,26 +101,19 @@ class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
         ),
       );
 
-  _profileTile({required BuildContext context}) {
+  Widget _profileTile(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        showEditProfileSheet(context);
-      },
+      onTap: () => GoRouter.of(context).pushNamed(Routes.editProfile),
       child: Card(
         elevation: 3,
         shadowColor: const Color(0x269A9A9A),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.r),
-          side: const BorderSide(
-            color: AppColors.borderColorMain,
-          ),
+          side: const BorderSide(color: AppColors.borderColorMain),
         ),
         margin: EdgeInsets.zero,
         child: ListTile(
           contentPadding: REdgeInsets.symmetric(horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.r),
-          ),
           trailing: Icon(
             Icons.arrow_forward_ios,
             color: AppColors.greyText,
@@ -142,20 +122,24 @@ class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
           leading: CustomCachedNetworkImage(
             radius: 100.r,
             url:
-                "https://media.istockphoto.com/id/1682296067/photo/happy-studio-portrait-or-professional-man-real-estate-agent-or-asian-businessman-smile-for.jpg?s=612x612&w=0&k=20&c=9zbG2-9fl741fbTWw5fNgcEEe4ll-JegrGlQQ6m54rg=",
+                'https://cdn-icons-png.flaticon.com/512/219/219983.png',
             width: 48.w,
             height: 48.w,
           ),
-          title: Text('John Doe',
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w400,
-                  )),
-          subtitle: Text('client@gmail.com',
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.w400,
-                  )),
+          title: Text(
+            'John Doe',
+            style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+          ),
+          subtitle: Text(
+            'provider@gmail.com',
+            style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+          ),
         ),
       ),
     );

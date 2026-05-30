@@ -9,6 +9,7 @@ import 'config/locale/locales.dart';
 import 'config/routes/app_router.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/bloc_observer.dart';
+import 'core/helpers/locale_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,13 +28,14 @@ void main() async {
   await PackageInfoHelper.initialize();
   // remote config
   await RemoteConfigHelper.initialize();*/
-  setupServiceLocator();
+  await setupServiceLocator();
   debugRepaintRainbowEnabled = false;
 
   runApp(
     EasyLocalization(
       ignorePluralRules: false,
-      startLocale: AppLocales.supportedLocales.first,
+      startLocale: LocaleHelper.savedLocale() ??
+          AppLocales.supportedLocales.first,
       supportedLocales: AppLocales.supportedLocales,
       fallbackLocale: AppLocales.supportedLocales.first,
       saveLocale: true,

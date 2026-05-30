@@ -9,10 +9,15 @@ import 'package:taal/features/auth/register/presentation/cubit/register_cubit.da
 
 import '../../../../core/app_config/app_icons.dart';
 import '../../../../core/app_config/app_strings.dart';
+import '../../../../core/app_config/prefs_keys.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/helpers/messages.dart';
+import '../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
+import '../../../../core/widgets/buttons/back_button.dart';
 import '../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../core/widgets/texts/clickable_text_widget.dart';
+import '../../../../core/app_config/app_colors.dart';
 import '../../register/data/model/register_options.dart';
 import '../../widgets/auth_header_widget.dart';
 import '../widgets/role_list_tile.dart';
@@ -31,25 +36,56 @@ class SelectRoleScreen extends StatefulWidget {
 class _SelectRoleScreenState extends State<SelectRoleScreen> {
   UserRole? _role;
 
+  void _goBack(BuildContext context) {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.goNamed(Routes.register);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt<RegisterCubit>(),
-      child: Scaffold(
-        body: Builder(builder: (context) {
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _goBack(context);
+        },
+        child: Scaffold(
+        body: SafeArea(
+          child: Builder(builder: (context) {
           return BlocListener<RegisterCubit, RegisterState>(
-            listener: (context, state) {
+            listener: (context, state) async {
               if (state is RegisterLoadingState) {
                 AppMessages.showLoading(context);
               } else {
                 if (Navigator.canPop(context)) {
                   Navigator.pop(context);
                 }
-                if (state is RegisterSuccessState) {}
+                if (state is RegisterSuccessState) {
+                  final isProvider = _role == UserRole.provider;
+                  context.read<BottomNavigationCubit>().isProvider =
+                      isProvider;
+                  await getIt<SharedPref>().set(
+                    key: PrefsKeys.isProviderAccount,
+                    value: isProvider,
+                  );
+                  AppMessages.showSuccess(
+                    context,
+                    state.response.message ?? AppStrings.signUp.tr(),
+                  );
+                  context.goNamed(
+                    Routes.login,
+                    extra: _role == UserRole.provider,
+                  );
+                }
                 if (state is RegisterErrorState) {
                   AppMessages.showError(
                     context,
-                    state.error.tr(),
+                    state.error,
                   );
                 }
               }
@@ -58,7 +94,13 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16).r,
               child: Column(
                 children: [
-                  60.height,
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: CustomBackButton(
+                      onPressed: () => _goBack(context),
+                    ),
+                  ),
+                  24.height,
                   Center(
                     child: AuthHeaderWidget(
                       subTitle: AppStrings.chooseAccountType.tr(),
@@ -102,6 +144,26 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                       text: AppStrings.continueKey.tr(),
                       onTap: () => _submit(context),
                     ),
+                  16.height,
+                  Center(
+                    child: ClickableTextWidget(
+                      textStyle: Theme.of(context).textTheme.labelSmall,
+                      clickableTextStyle: Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .copyWith(
+                            color: AppColors.primaryColor,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primaryColor,
+                          ),
+                      text: '  ${AppStrings.alreadyHaveAccount.tr()}  ',
+                      clickableText: AppStrings.login.tr(),
+                      onTap: () => context.goNamed(
+                        Routes.login,
+                        extra: _role == UserRole.provider,
+                      ),
+                    ),
+                  ),
                   const Spacer(
                     flex: 1,
                   ),
@@ -110,14 +172,28 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
             ),
           );
         }),
+        ),
+      ),
       ),
     );
   }
 
   void _submit(BuildContext context) {
-    if (_role == null) return;
-    context.read<BottomNavigationCubit>().isProvider =
-        _role == UserRole.provider;
-    context.go(Routes.home);
+    if (_role == null || widget.options == null) return;
+
+    final options = RegisterOptions(
+      username: widget.options!.username,
+      phone: widget.options!.phone,
+      email: widget.options!.email,
+      password: widget.options!.password,
+      address: widget.options!.address,
+      confirmPassword: widget.options!.confirmPassword,
+      country: widget.options!.country,
+      countryImageSvg: widget.options!.countryImageSvg,
+      image: widget.options!.image,
+      type: _role == UserRole.provider ? 'provider' : 'client',
+    );
+
+    context.read<RegisterCubit>().registerClient(options: options);
   }
 }

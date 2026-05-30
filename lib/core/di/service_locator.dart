@@ -28,7 +28,7 @@ import '../network/dio_service.dart';
 final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
-  _initExternals();
+  await _initExternals();
 
   _initRemoteDataSources();
   _initRepositories();
@@ -36,7 +36,7 @@ Future<void> setupServiceLocator() async {
 }
 
 //?Externals
-void _initExternals() async {
+Future<void> _initExternals() async {
   await SharedPref.init();
 
   getIt.registerLazySingleton<SharedPref>(() => SharedPref());

@@ -18,10 +18,10 @@ final class AccountNotVerified extends LoginState {
 final class LoginLoading extends LoginState {}
 
 final class LoginSuccess extends LoginState {
-  final LoginResponseModel user;
-  const LoginSuccess({required this.user});
+  final LoginResponseModel response;
+  const LoginSuccess({required this.response});
   @override
-  List<Object> get props => [user];
+  List<Object> get props => [response];
 }
 
 final class LoginError extends LoginState {

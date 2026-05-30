@@ -145,7 +145,7 @@ class AppRouter {
           pageBuilder: (context, state) => screenWithFadeTransition(
             context: context,
             state: state,
-            child: LoginScreen(isProvider: state.extra as bool? ?? false),
+            child: LoginScreen(initialIsProvider: state.extra as bool?),
           ),
           routes: const [],
         ),

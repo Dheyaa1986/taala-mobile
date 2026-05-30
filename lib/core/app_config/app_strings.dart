@@ -12,6 +12,8 @@ class AppStrings {
   static const String enterEmail = 'enterEmail';
   static const String name = 'name';
   static const String enterName = 'enterName';
+  static const String tripleNameValidation = 'tripleNameValidation';
+  static const String tripleNameHint = 'tripleNameHint';
   static const String pleaseEnterName = 'pleaseEnterName';
   static const String confirmPassword = 'confirmPassword';
   static const String enterConfirmPassword = 'enterConfirmPassword';
@@ -138,6 +140,7 @@ class AppStrings {
   static const invalidGoogleMapLink = 'invalid_google_map_link';
   static const settings = 'settings';
   static const language = 'language';
+  static const changeLanguage = 'changeLanguage';
   static const changePassword = 'changePassword';
   static const editProfile = 'editProfile';
   static const logout = 'logout';

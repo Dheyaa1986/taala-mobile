@@ -53,7 +53,10 @@ class _BottomNavBarState extends State<BottomNavBar>
     }
     log("Navigating to index: $index");
     HapticFeedback.lightImpact();
-    widget.shell.goBranch(index);
+    widget.shell.goBranch(
+      index,
+      initialLocation: index == 2,
+    );
   }
 
   void _goToHomeScreen() {

@@ -6,8 +6,9 @@ import '../cubit/login_cubit/login_cubit.dart';
 import '../widgets/login_form.dart';
 
 class LoginScreen extends StatefulWidget {
-  final bool isProvider;
-  const LoginScreen({super.key, this.isProvider = false});
+  /// Pre-selects role when set (e.g. after registration). User must still confirm on login.
+  final bool? initialIsProvider;
+  const LoginScreen({super.key, this.initialIsProvider});
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
           resizeToAvoidBottomInset: false,
           body: Padding(
             padding: EdgeInsets.only(bottom: 0),
-           child: LoginForm(isProvider: widget.isProvider),
+           child: LoginForm(initialIsProvider: widget.initialIsProvider),
           ),
         );
       }),

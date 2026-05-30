@@ -17,12 +17,13 @@ class RegisterRepositoryImpl extends RegisterRepository {
       {required RegisterOptions model}) async {
     final result = await exceptionHandler(
       () async {
-        log("DATA SENT: ${(await model.toFormData()).fields}");
+        final formData = await model.toFormData();
+        log("DATA SENT: ${formData.fields}");
         BaseResponseModel response = await dioService.callApi(
           NetworkRequest(AppUrls.registerClient,
               method: RequestMethod.post,
               isFormData: true,
-              formDataBody: await model.toFormData(),
+              formDataBody: formData,
               requestWithOutToken: true),
           mapper: (json) => BaseResponseModel.fromJson(json),
         );

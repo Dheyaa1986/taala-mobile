@@ -8,7 +8,17 @@ import 'exceptions.dart';
 
 class ErrorsExceptionsHandler {
   static dynamic handleError(DioException error) {
-    final String? errorMessage = error.response?.data['message'];
+    print("STATUS CODE: ${error.response?.statusCode}");
+    print("REQUEST URL: ${error.requestOptions.uri}");
+    print("FULL RESPONSE: ${error.response?.data}");
+
+    final data = error.response?.data;
+
+    String? errorMessage;
+
+    if (data is Map<String, dynamic>) {
+      errorMessage = data['message']?.toString();
+    }
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
         throw CustomException(errorMessage ?? 'BadRequestException');
@@ -46,9 +56,11 @@ class ErrorsExceptionsHandler {
         }
       case DioExceptionType.cancel:
         throw const CustomException('request_cancelled');
-      case DioExceptionType.unknown:
-        throw CustomException(
-            errorMessage ?? 'BadRequestException');
+    case DioExceptionType.unknown:
+        print("UNKNOWN ERROR: ${error.error}");
+        print("UNKNOWN MESSAGE: ${error.message}");
+
+        throw CustomException(errorMessage ?? 'BadRequestException');
       default:
         throw CustomException(
             errorMessage ?? 'BadRequestException');

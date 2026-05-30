@@ -11,6 +11,33 @@ class CustomValidators {
     }
     return null;
   }
+
+  /// Requires at least three name parts (e.g. first, father, grandfather).
+  static String? validateTripleName(String? value, {String? message}) {
+    final errorText = message ?? AppStrings.tripleNameValidation.tr();
+
+    if (value == null || value.trim().isEmpty) {
+      return errorText;
+    }
+
+    final parts = value
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.length < 3) {
+      return errorText;
+    }
+
+    for (final part in parts) {
+      if (part.length < 2) {
+        return errorText;
+      }
+    }
+
+    return null;
+  }
   String? validateEgyptianID(String? id) {
     if (id == null || id.trim().isEmpty) {
       return AppStrings.requiredField.tr();
@@ -58,8 +85,8 @@ class CustomValidators {
   static String? validatePassword(String? password) {
     if (password == null || password.trim().isEmpty) {
       return AppStrings.requiredField.tr();
-    } else if (password.length < 9) {
-      return AppStrings.passwordLengthValidation;
+    } else if (password.length < 8) {
+      return AppStrings.passwordLengthValidation.tr();
     } else {
       return null;
     }

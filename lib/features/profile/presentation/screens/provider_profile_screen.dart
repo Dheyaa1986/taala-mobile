@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,6 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
@@ -104,9 +108,8 @@ class ProviderProfileScreen extends StatelessWidget {
                     ),
                   ),
                   32.height,
-                  // زر تسجيل الخروج
                   GestureDetector(
-                    onTap: () => context.go(Routes.login),
+                    onTap: () => getIt<DioService>().logout(),
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -120,7 +123,7 @@ class ProviderProfileScreen extends StatelessWidget {
                           const Icon(Icons.logout, color: Colors.red),
                           8.width,
                           Text(
-                            "تسجيل الخروج",
+                            AppStrings.logout.tr(),
                             style: TextStyle(
                               color: Colors.red,
                               fontSize: 16.sp,

@@ -3,8 +3,8 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-
 
 import '../../../../../core/app_config/app_urls.dart';
 import '../../../../../core/app_config/prefs_keys.dart';
@@ -16,58 +16,66 @@ import '../model/response/user_model.dart';
 import 'login_repository.dart';
 
 class LoginRepositoryImpl extends LoginRepository {
-  // FirebaseFirestore firestore = FirebaseFirestore.instance;
   @override
-  Future<Either<CustomException, LoginResponseModel>> login(
-      {required LoginOptions model}) async {
+  Future<Either<CustomException, LoginResponseModel>> login({
+    required LoginOptions model,
+    bool isProvider = false,
+  }) async {
+    final loginUrl =
+        isProvider ? AppUrls.providerLogin : AppUrls.clientLogin;
+    print("🔵 LOGIN REPOSITORY - Starting login request");
+    print("🔵 URL: $loginUrl");
+    print("🔵 BODY: ${model.toJson()}");
+
     final result = await exceptionHandler(
       () async {
-        LoginResponseModel user = await dioService.callApi(
-          NetworkRequest(AppUrls.login,
-              method: RequestMethod.post,
-              body: model.toJson(),
-              requestWithOutToken: true),
-          mapper: (json) => LoginResponseModel.fromJson(
-            json: json,
-          ),
-        );
-        await SecureLocalStorage.write(PrefsKeys.token, user.token);
-        await SecureLocalStorage.write(
-          PrefsKeys.password,
-          model.password,
-        );
-        await SecureLocalStorage.write(
-          PrefsKeys.mailOrPhone,
-          model.email,
-        );
-        // await singInWithFirebase(
-        //     UserModel.fromJson(JwtDecoder.decode(user.token)));
+        try {
+          LoginResponseModel user = await dioService.callApi(
+            NetworkRequest(loginUrl,
+                method: RequestMethod.post,
+                body: model.toJson(),
+                requestWithOutToken: true),
+            mapper: (json) => LoginResponseModel.fromJson(
+              json: json,
+            ),
+          );
 
-        await SecureLocalStorage.write(
-          PrefsKeys.user,
-          jsonEncode(
-            JwtDecoder.decode(user.token),
-          ),
-        );
-        return user;
+          print("🟢 LOGIN SUCCESS - Token: ${user.token}");
+
+          await SecureLocalStorage.write(PrefsKeys.token, user.token);
+          await SecureLocalStorage.write(
+            PrefsKeys.refreshToken,
+            user.refreshToken,
+          );
+          await SecureLocalStorage.write(
+            PrefsKeys.password,
+            model.password,
+          );
+          await SecureLocalStorage.write(
+            PrefsKeys.mailOrPhone,
+            model.email,
+          );
+
+          await SecureLocalStorage.write(
+            PrefsKeys.user,
+            jsonEncode(
+              JwtDecoder.decode(user.token),
+            ),
+          );
+          return user;
+        } on DioException catch (e) {
+          print("🔴 DIO ERROR");
+          print("   Status Code: ${e.response?.statusCode}");
+          print("   Response Data: ${e.response?.data}");
+          print("   Message: ${e.message}");
+          rethrow;
+        } catch (e) {
+          print("🔴 GENERAL ERROR: $e");
+          rethrow;
+        }
       },
     );
 
     return result;
   }
-
-/*  singInWithFirebase(UserModel user) async {
-    try {
-
-      await firestore
-          .collection('Users')
-          .doc(user.id.toString())
-          .set(user.toFirestoreJson());
-
-    } catch (e) {
-      log(e.toString());
-    }
-  }*/
-
-
 }

@@ -15,6 +15,7 @@ class CustomTextField extends StatefulWidget {
   final Widget? prefix, suffix;
   final VoidCallback? onTap;
   final String? Function(String?)? validator;
+  final String? helperText;
   final int? minLines, maxLines;
   final List<TextInputFormatter>? inputFormatters;
   final TextStyle? textStyle, labelStyle;
@@ -31,6 +32,7 @@ class CustomTextField extends StatefulWidget {
       this.prefix,
       this.suffix,
       this.validator,
+      this.helperText,
       this.filled = true,
       this.onTap,
       this.minLines,
@@ -91,19 +93,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 ),
               ],
             ],
-            if (widget.label != null) ...[
-              if (_validationMessage.isNotEmpty)
-                Expanded(
-                  child: Text(
-                    _validationMessage,
-                    textAlign: TextAlign.end,
-                    overflow: TextOverflow.ellipsis,
-                    style: FontStyles.textStyle12.copyWith(
-                      color: AppColors.errorColor,
-                    ),
-                  ),
-                ),
-            ],
           ],
         ),
         SizedBox(
@@ -143,6 +132,26 @@ class _CustomTextFieldState extends State<CustomTextField> {
             suffixIcon: widget.suffix,
           ),
         ),
+        if (widget.helperText != null && widget.helperText!.isNotEmpty) ...[
+          SizedBox(height: 6.h),
+          Text(
+            widget.helperText!,
+            style: FontStyles.textStyle12.copyWith(
+              color: AppColors.subtitleGreyColor,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+        if (_validationMessage.isNotEmpty) ...[
+          SizedBox(height: 4.h),
+          Text(
+            _validationMessage,
+            style: FontStyles.textStyle12.copyWith(
+              color: AppColors.errorColor,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ],
     );
   }
