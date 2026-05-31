@@ -13,6 +13,9 @@ import 'package:taal/features/home/provider/presentation/cubit/locations/locatio
 import 'package:taal/features/rating/client/data/repository/providers_repository.dart';
 import 'package:taal/features/rating/client/data/repository/providers_repository_impl.dart';
 import 'package:taal/features/rating/client/presentation/cubit/client_ratings_cubit.dart';
+import 'package:taal/features/theme/data/repositories/theme_repository.dart';
+import 'package:taal/features/theme/data/repositories/theme_repository_impl.dart';
+import 'package:taal/features/theme/presentation/cubit/theme_cubit.dart';
 
 
 import '../../features/auth/login/data/repositories/login_repository.dart';
@@ -61,6 +64,8 @@ void _initRepositories() {
           () => ClientRatingsRepositoryImpl());
   getIt.registerLazySingleton<CountriesRepository>(
           () => CountriesRepositoryImpl(service: getIt()));
+  getIt.registerLazySingleton<ThemeRepository>(
+      () => ThemeRepositoryImpl());
 }
 
 void _initCubits() {
@@ -97,6 +102,11 @@ void _initCubits() {
   );
   getIt.registerFactory<ClientRatingsCubit>(
         () => ClientRatingsCubit(
+      repository: getIt(),
+    ),
+  );
+  getIt.registerFactory<ThemeCubit>(
+        () => ThemeCubit(
       repository: getIt(),
     ),
   );

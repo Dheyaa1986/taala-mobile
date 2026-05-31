@@ -6,8 +6,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'config/routes/app_router.dart';
 import 'config/themes/theme.dart';
 import 'core/app_config/prefs_keys.dart';
+import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
 import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
+import 'features/theme/presentation/cubit/theme_cubit.dart';
 
 class TaalaApp extends StatefulWidget {
   final AppRouter appRouter;
@@ -26,6 +28,7 @@ class _TaalaAppState extends State<TaalaApp> {
   void initState() {
     super.initState();
     _checkAuthStatus();
+    _loadActiveTheme();
   }
 
   Future<void> _checkAuthStatus() async {
@@ -39,6 +42,11 @@ class _TaalaAppState extends State<TaalaApp> {
         _initialRoute = '/login';
       }
     });
+  }
+
+  Future<void> _loadActiveTheme() async {
+    final themeCubit = getIt<ThemeCubit>();
+    await themeCubit.loadActiveTheme();
   }
 
   @override
@@ -65,19 +73,33 @@ class _TaalaAppState extends State<TaalaApp> {
             BlocProvider(
               create: (context) => BottomNavigationCubit(),
             ),
+            BlocProvider(
+              create: (context) => getIt<ThemeCubit>(),
+            ),
           ],
           child: GestureDetector(
             onTap: () {
               FocusManager.instance.primaryFocus?.unfocus();
             },
-            child: MaterialApp.router(
-              routerConfig: AppRouter.router,
-              theme: TariqyAppTheme.lightTheme,
-              debugShowCheckedModeBanner: false,
-              locale: context.locale,
-              supportedLocales: context.supportedLocales,
-              localizationsDelegates: context.localizationDelegates,
-              title: 'taal',
+            child: BlocBuilder<ThemeCubit, ThemeState>(
+              builder: (context, state) {
+                ThemeData themeData;
+                if (state is ThemeLoaded) {
+                  themeData = TariqyAppTheme.getLightTheme(customTheme: state.theme);
+                } else {
+                  themeData = TariqyAppTheme.getLightTheme();
+                }
+
+                return MaterialApp.router(
+                  routerConfig: AppRouter.router,
+                  theme: themeData,
+                  debugShowCheckedModeBanner: false,
+                  locale: context.locale,
+                  supportedLocales: context.supportedLocales,
+                  localizationsDelegates: context.localizationDelegates,
+                  title: 'taal',
+                );
+              },
             ),
           ),
         );
