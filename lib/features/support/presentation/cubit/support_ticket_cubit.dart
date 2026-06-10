@@ -14,8 +14,9 @@ class SupportTicketCubit extends Cubit<SupportTicketState> {
       emit(SupportTicketsLoading());
     }
 
-    final currentPage =
-        reset || state is! SupportTicketsLoaded ? 1 : (state as SupportTicketsLoaded).page + 1;
+    final currentPage = reset || state is! SupportTicketsLoaded
+        ? 1
+        : (state as SupportTicketsLoaded).page + 1;
 
     final result = await _repository.getMyTickets(page: currentPage);
     result.fold(
@@ -29,6 +30,32 @@ class SupportTicketCubit extends Cubit<SupportTicketState> {
           page: currentPage,
           reachedMax: currentPage >= page.totalPages,
         ));
+      },
+    );
+  }
+
+  Future<void> loadTicketDetail(String id) async {
+    emit(SupportTicketDetailLoading());
+    final result = await _repository.getTicketById(id);
+    result.fold(
+      (error) => emit(SupportTicketDetailError(error.message)),
+      (ticket) => emit(SupportTicketDetailLoaded(ticket)),
+    );
+  }
+
+  Future<bool> sendReply(String ticketId, String body) async {
+    final result = await _repository.sendMessage(
+      ticketId: ticketId,
+      body: body,
+    );
+    return result.fold(
+      (error) {
+        emit(SupportTicketDetailError(error.message));
+        return false;
+      },
+      (ticket) {
+        emit(SupportTicketDetailLoaded(ticket));
+        return true;
       },
     );
   }

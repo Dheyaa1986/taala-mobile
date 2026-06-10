@@ -1,25 +1,36 @@
 part of 'support_ticket_cubit.dart';
 
-abstract class SupportTicketState {}
+sealed class SupportTicketState {}
 
-class SupportTicketInitial extends SupportTicketState {}
+final class SupportTicketInitial extends SupportTicketState {}
 
-class SupportTicketsLoading extends SupportTicketState {}
+final class SupportTicketsLoading extends SupportTicketState {}
 
-class SupportTicketsLoaded extends SupportTicketState {
-  final List<SupportTicketModel> items;
-  final int page;
-  final bool reachedMax;
-
+final class SupportTicketsLoaded extends SupportTicketState {
   SupportTicketsLoaded({
     required this.items,
     required this.page,
     required this.reachedMax,
   });
+
+  final List<SupportTicketModel> items;
+  final int page;
+  final bool reachedMax;
 }
 
-class SupportTicketsError extends SupportTicketState {
-  final String message;
-
+final class SupportTicketsError extends SupportTicketState {
   SupportTicketsError(this.message);
+  final String message;
+}
+
+final class SupportTicketDetailLoading extends SupportTicketState {}
+
+final class SupportTicketDetailLoaded extends SupportTicketState {
+  SupportTicketDetailLoaded(this.ticket);
+  final SupportTicketModel ticket;
+}
+
+final class SupportTicketDetailError extends SupportTicketState {
+  SupportTicketDetailError(this.message);
+  final String message;
 }

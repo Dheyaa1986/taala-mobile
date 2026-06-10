@@ -43,4 +43,39 @@ class SupportTicketRepository extends Repository {
       );
     });
   }
+
+  Future<Either<CustomException, SupportTicketModel>> getTicketById(
+      String id) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.supportTicketById(id),
+          method: RequestMethod.get,
+        ),
+        mapper: (json) {
+          final response = json['response'] as Map<String, dynamic>? ?? json;
+          return SupportTicketModel.fromJson(response);
+        },
+      );
+    });
+  }
+
+  Future<Either<CustomException, SupportTicketModel>> sendMessage({
+    required String ticketId,
+    required String body,
+  }) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.supportTicketMessages(ticketId),
+          method: RequestMethod.post,
+          body: {'body': body},
+        ),
+        mapper: (json) {
+          final response = json['response'] as Map<String, dynamic>? ?? json;
+          return SupportTicketModel.fromJson(response);
+        },
+      );
+    });
+  }
 }

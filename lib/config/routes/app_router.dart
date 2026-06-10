@@ -16,6 +16,7 @@ import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
+import 'package:taal/features/support/presentation/screens/support_ticket_detail_screen.dart';
 import 'package:taal/features/support/presentation/screens/support_tickets_screen.dart';
 
 import '../../core/di/service_locator.dart';
@@ -207,6 +208,23 @@ class AppRouter {
               child: const SupportTicketsScreen(),
             ),
           ),
+          routes: [
+            GoRoute(
+              parentNavigatorKey: appNavigatorKey,
+              path: ':id',
+              name: Routes.supportTicketDetail,
+              pageBuilder: (context, state) => screenWithFadeTransition(
+                context: context,
+                state: state,
+                child: BlocProvider(
+                  create: (_) => getIt<SupportTicketCubit>(),
+                  child: SupportTicketDetailScreen(
+                    ticketId: state.pathParameters['id']!,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ]);
   static List<StatefulShellBranch> get _rateBranches => [

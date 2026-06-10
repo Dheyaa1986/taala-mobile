@@ -36,12 +36,55 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   Future<void> markAsRead(String id) async {
+    final current = state;
+    if (current is NotificationLoaded) {
+      final updatedItems = current.items
+          .map(
+            (item) => item.id == id
+                ? NotificationModel(
+                    id: item.id,
+                    title: item.title,
+                    message: item.message,
+                    isRead: true,
+                    createdAt: item.createdAt,
+                  )
+                : item,
+          )
+          .toList();
+      final wasUnread =
+          current.items.any((item) => item.id == id && !item.isRead);
+      final newCount = wasUnread
+          ? (current.unreadCount - 1).clamp(0, 999)
+          : current.unreadCount;
+      emit(NotificationLoaded(items: updatedItems, unreadCount: newCount));
+    }
+
     await _repository.markAsRead(id);
-    await loadNotifications();
+    await loadUnreadCount();
   }
 
   Future<void> markAllAsRead() async {
+    final current = state;
+    if (current is NotificationLoaded) {
+      emit(
+        NotificationLoaded(
+          items: current.items
+              .map(
+                (item) => NotificationModel(
+                  id: item.id,
+                  title: item.title,
+                  message: item.message,
+                  isRead: true,
+                  createdAt: item.createdAt,
+                ),
+              )
+              .toList(),
+          unreadCount: 0,
+        ),
+      );
+    }
+
     await _repository.markAllAsRead();
-    await loadNotifications();
+    await loadUnreadCount();
   }
 }

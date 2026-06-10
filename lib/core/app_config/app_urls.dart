@@ -43,6 +43,10 @@ class AppUrls {
       '/providers/$providerId/locations/$locationId';
   static String clientHome(String clientId) => '/home/clients/$clientId/';
   static const String supportTicketsMe = '/support-tickets/me';
+  static String supportTicketById(String id) => '/support-tickets/$id';
+  static String supportTicketMessages(String id) =>
+      '/support-tickets/$id/messages';
+  static const String serviceTypesList = '/service-types/list';
   static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
   static const String providerUpdateProfile = '$_baseApi/providers/profile';
   static const String refreshToken = '$_baseApi/refresh-token';

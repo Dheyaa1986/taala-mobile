@@ -4,6 +4,7 @@ import 'package:taal/core/error/exceptions.dart';
 import 'package:taal/core/network/network_request.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/core/repository/repository.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/governate.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
@@ -48,6 +49,16 @@ class LocationsRepositoryImpl extends Repository implements LocationsRepository 
         ),
       );
       return _parseList(json, GovernanceModel.fromJson);
+    });
+  }
+
+  @override
+  Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes() {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(AppUrls.serviceTypesList, method: RequestMethod.get),
+      );
+      return _parseList(json, ServiceTypeModel.fromJson);
     });
   }
 

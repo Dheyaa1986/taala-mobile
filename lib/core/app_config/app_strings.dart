@@ -155,6 +155,12 @@ class AppStrings {
   static const mySupportTickets = 'mySupportTickets';
   static const noSupportTickets = 'noSupportTickets';
   static const adminNote = 'adminNote';
+  static const admin = 'admin';
+  static const you = 'you';
+  static const supportChat = 'supportChat';
+  static const typeReply = 'typeReply';
+  static const sendReply = 'sendReply';
+  static const ticketClosed = 'ticketClosed';
   static const ticketStatusNew = 'ticketStatusNew';
   static const ticketStatusInProgress = 'ticketStatusInProgress';
   static const ticketStatusResolved = 'ticketStatusResolved';

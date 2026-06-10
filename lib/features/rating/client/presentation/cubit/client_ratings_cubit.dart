@@ -42,7 +42,7 @@ class ClientRatingsCubit extends Cubit<ClientRatingsState> {
           comment: 'the service provider $index is good and on time',
           id: index,
           serviceProviderModel: ServiceProviderModel(
-            id: index,
+            id: index.toString(),
             name: 'Provider $index',
             image: 'https://cdn-icons-png.flaticon.com/512/219/219983.png',
             totalRatings: 100,
@@ -56,9 +56,9 @@ class ClientRatingsCubit extends Cubit<ClientRatingsState> {
             locations: [
               LocationModel(
                 id: index.toString(),
-                governance: GovernanceModel(name: 'Alexandria', id: 3),
-                city: CityModel(name: 'Nasr City', id: 101),
-                region: RegionModel(name: 'Downtown', id: 1003),
+                governance: GovernanceModel(name: 'Alexandria', id: '3'),
+                city: CityModel(name: 'Nasr City', id: '101'),
+                region: RegionModel(name: 'Downtown', id: '1003'),
                 lat: '30.0444',
                 lng: '31.2357',
               ),

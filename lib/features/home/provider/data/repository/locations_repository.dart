@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:taal/core/options/pagination_options.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/governate.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 
@@ -11,6 +12,7 @@ abstract class LocationsRepository {
       String countryId);
   Future<Either<CustomException, List<CityModel>>> getCities(
       String governorateId);
+  Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes();
   Future<Either<CustomException, List<LocationModel>>> getLocations(
       String providerId, PaginationOptions options);
   Future<Either<CustomException, LocationModel>> addLocation({

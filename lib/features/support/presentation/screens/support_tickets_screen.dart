@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
@@ -44,7 +46,12 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
         title: AppStrings.mySupportTickets.tr(),
         actions: [
           IconButton(
-            onPressed: () => showSupportTicketSheet(context),
+            onPressed: () async {
+              await showSupportTicketSheet(context);
+              if (context.mounted) {
+                context.read<SupportTicketCubit>().loadTickets(reset: true);
+              }
+            },
             icon: const Icon(Icons.add),
           ),
         ],
@@ -68,32 +75,18 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
               itemBuilder: (context, index) {
                 final ticket = state.items[index];
                 return Card(
-                  child: ExpansionTile(
+                  child: ListTile(
                     title: Text(ticket.title),
                     subtitle: Text(
                       '${ticket.type == 'complaint' ? AppStrings.complaint.tr() : AppStrings.request.tr()} • ${_statusLabel(ticket.status)}',
                     ),
-                    children: [
-                      Padding(
-                        padding: REdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(ticket.description),
-                            if (ticket.adminNote != null &&
-                                ticket.adminNote!.isNotEmpty) ...[
-                              12.height,
-                              Text(
-                                AppStrings.adminNote.tr(),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              4.height,
-                              Text(ticket.adminNote!),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      context.pushNamed(
+                        Routes.supportTicketDetail,
+                        pathParameters: {'id': ticket.id},
+                      );
+                    },
                   ),
                 );
               },

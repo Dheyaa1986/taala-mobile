@@ -19,17 +19,31 @@ class ViewMapButton extends StatelessWidget {
   final String? name;
   final String? mapUrl;
 
+  bool get _hasMapUrl => mapUrl != null && mapUrl!.trim().isNotEmpty;
+
+  bool get _hasCoordinates {
+    final parsedLat = double.tryParse(lat ?? '');
+    final parsedLng = double.tryParse(long ?? '');
+    return parsedLat != null &&
+        parsedLng != null &&
+        (parsedLat != 0 || parsedLng != 0);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_hasMapUrl && !_hasCoordinates) {
+      return const SizedBox.shrink();
+    }
+
     return GestureDetector(
       onTap: () async {
-        if (mapUrl != null && mapUrl!.isNotEmpty) {
-          await getIt<CustomLauncher>().openUrl(mapUrl!);
+        if (_hasMapUrl) {
+          await getIt<CustomLauncher>().openUrl(mapUrl!.trim());
           return;
         }
         await getIt<CustomLauncher>().openMaps(
-          double.tryParse(lat ?? '0.0') ?? 0.0,
-          double.tryParse(long ?? '0.0') ?? 0.0,
+          double.parse(lat!),
+          double.parse(long!),
           name ?? '',
         );
       },
