@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../core/app_config/app_colors.dart';
 import '../../core/app_config/font_styles.dart';
@@ -88,9 +87,11 @@ class TariqyAppTheme {
   static ThemeData _buildDynamicTheme(ThemeModel theme) {
     final colors = theme.colors!;
     final primaryColor = _parseColor(colors.primary) ?? AppColors.primaryColor;
-    final secondaryColor = _parseColor(colors.secondary) ?? AppColors.secondaryColor;
+    final secondaryColor =
+        _parseColor(colors.secondary) ?? AppColors.secondaryColor;
     final accentColor = _parseColor(colors.accent) ?? AppColors.primaryColor;
-    final backgroundColor = _parseColor(colors.background) ?? AppColors.lightBGColor;
+    final backgroundColor =
+        _parseColor(colors.background) ?? AppColors.lightBGColor;
     final textColor = _parseColor(colors.text) ?? AppColors.lightMainText;
 
     return ThemeData(fontFamily: 'Cairo').copyWith(
@@ -110,48 +111,30 @@ class TariqyAppTheme {
       scaffoldBackgroundColor: backgroundColor,
       dialogBackgroundColor: backgroundColor,
       textTheme: TextTheme(
-        labelLarge: FontStyles.label24.copyWith(
-          color: textColor,
-        ),
-        labelMedium: FontStyles.label16.copyWith(
-          color: textColor,
-        ),
+        labelLarge: FontStyles.label24.copyWith(color: textColor),
+        labelMedium: FontStyles.label16.copyWith(color: textColor),
         labelSmall: FontStyles.label16.copyWith(
           color: AppColors.lightGreyText,
         ),
-        headlineLarge: FontStyles.headline14.copyWith(
-          color: primaryColor,
-        ),
+        headlineLarge: FontStyles.headline14.copyWith(color: primaryColor),
         headlineMedium: FontStyles.headline16.copyWith(
           color: AppColors.whiteColor,
         ),
-        headlineSmall: FontStyles.headline16.copyWith(
-          color: textColor,
-        ),
-        bodyLarge: FontStyles.body14W700.copyWith(
-          color: textColor,
-        ),
-        bodyMedium: FontStyles.body14W500.copyWith(
-          color: textColor,
-        ),
+        headlineSmall: FontStyles.headline16.copyWith(color: textColor),
+        bodyLarge: FontStyles.body14W700.copyWith(color: textColor),
+        bodyMedium: FontStyles.body14W500.copyWith(color: textColor),
         bodySmall: FontStyles.body12W400.copyWith(
           color: AppColors.lightSubTitleText,
         ),
-        titleLarge: FontStyles.body14W500.copyWith(
-          color: textColor,
-        ),
+        titleLarge: FontStyles.body14W500.copyWith(color: textColor),
         displayLarge: FontStyles.body14W700.copyWith(
           color: AppColors.textFieldFillColor,
         ),
-        titleSmall: FontStyles.body14W700.copyWith(
-          color: accentColor,
-        ),
+        titleSmall: FontStyles.body14W700.copyWith(color: accentColor),
         titleMedium: FontStyles.body14W500.copyWith(
           color: AppColors.greyText,
         ),
-        displayMedium: FontStyles.body14W500.copyWith(
-          color: textColor,
-        ),
+        displayMedium: FontStyles.body14W500.copyWith(color: textColor),
         displaySmall: FontStyles.body14W500.copyWith(
           color: AppColors.greyTitle,
         ),
@@ -162,20 +145,25 @@ class TariqyAppTheme {
   static Color? _parseColor(String? colorString) {
     if (colorString == null || colorString.isEmpty) return null;
     try {
-      return Color(int.parse(colorString.replace('#', '0xFF')));
-    } catch (e) {
+      final normalized = colorString.startsWith('#')
+          ? colorString.replaceFirst('#', '0xFF')
+          : colorString;
+      return Color(int.parse(normalized));
+    } catch (_) {
       return null;
     }
   }
 
-  static final ThemeData darkTheme =
-      ThemeData(fontFamily: 'Tajawal').copyWith();
-
-  get lightMode {
-    return getLightTheme();
+  static Color splashBackgroundColor() {
+    final primary = activeTheme?.colors?.primary;
+    return _parseColor(primary) ?? AppColors.primaryColor;
   }
 
-  get darkMode {
-    return darkTheme;
-  }
+  static final ThemeData lightTheme = _getDefaultLightTheme();
+
+  static final ThemeData darkTheme = ThemeData(fontFamily: 'Tajawal').copyWith();
+
+  ThemeData get lightMode => getLightTheme();
+
+  ThemeData get darkMode => darkTheme;
 }

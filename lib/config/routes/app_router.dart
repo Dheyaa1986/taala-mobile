@@ -13,6 +13,7 @@ import 'package:taal/features/profile/settings_screen.dart';
 import 'package:taal/features/rating/base_rating_screen.dart';
 import 'package:taal/features/rating/client/presentation/screen/client_rating_screen.dart';
 import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
+import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
 
 import '../../core/widgets/bottom_nav_bar/bottom_nav_bar.dart';
@@ -180,6 +181,16 @@ class AppRouter {
             ),
           ),
           routes: const [],
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.notifications,
+          name: Routes.notifications,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const NotificationsScreen(),
+          ),
         ),
       ]);
   static List<StatefulShellBranch> get _rateBranches => [

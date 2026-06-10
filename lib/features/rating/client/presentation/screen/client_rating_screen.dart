@@ -19,7 +19,7 @@ class ClientRatingsScreen extends StatelessWidget {
       create: (context) => getIt<ClientRatingsCubit>(),
       child: Scaffold(
         appBar: CustomAppBar.langAppBar(
-          leading: null,
+          showProfileIcon: true,
           title: AppStrings.rateProvider.tr(),
           centerTitle: true,
         ),

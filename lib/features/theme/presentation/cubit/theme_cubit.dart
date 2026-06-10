@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../config/themes/theme.dart';
 import '../../../../core/models/theme_model.dart';
 import '../../data/repositories/theme_repository.dart';
 
@@ -14,17 +15,16 @@ class ThemeCubit extends Cubit<ThemeState> {
     emit(ThemeLoading());
     final result = await themeRepository.getActiveTheme();
     result.fold(
-      (error) => emit(ThemeError(error.message)),
-      (theme) => emit(ThemeLoaded(theme)),
-    );
-  }
-
-  Future<void> loadAllThemes() async {
-    emit(ThemeLoading());
-    final result = await themeRepository.getAllThemes();
-    result.fold(
-      (error) => emit(ThemeError(error.message)),
-      (themes) => emit(ThemesLoaded(themes)),
+      (_) => emit(ThemeInitial()),
+      (theme) {
+        if (theme == null) {
+          TariqyAppTheme.activeTheme = null;
+          emit(ThemeInitial());
+          return;
+        }
+        TariqyAppTheme.activeTheme = theme;
+        emit(ThemeLoaded(theme));
+      },
     );
   }
 }

@@ -67,6 +67,15 @@
   "editProfile": "تعديل الملف الشخصي",
   "logout": "تسجيل الخروج",
   "rateApp": "تقييم التطبيق",
+  "submitSupportTicket": "شكوى أو طلب",
+  "complaint": "شكوى",
+  "request": "طلب",
+  "supportTicketTitle": "العنوان",
+  "supportTicketTitleHint": "أدخل عنوان الشكوى أو الطلب",
+  "supportTicketDescription": "التفاصيل",
+  "supportTicketDescriptionHint": "اشرح المشكلة أو الطلب بالتفصيل",
+  "supportTicketSent": "تم إرسال طلبك بنجاح",
+  "send": "إرسال",
   "save": "حفظ",
   "rateAppTitle": "ما هو تقييمك للتطبيق؟",
   "enterDescription": "ادخل الوصف",
@@ -103,6 +112,9 @@
   "provider_description": "ساعد العملاء في السحب والمساعدة على الطريق",
   "im_client": "أنا عميل",
   "client_description": "اطلب خدمة سحب أو مساعدة للسيارة في أي وقت ومن أي مكان",
-  "password_invalid_length": "يجب أن تتكون كلمة المرور من 8 خانات على الأقل"
+  "password_invalid_length": "يجب أن تتكون كلمة المرور من 8 خانات على الأقل",
+  "notifications": "الإشعارات",
+  "noNotifications": "لا توجد إشعارات",
+  "markAllRead": "قراءة الكل"
 
 }

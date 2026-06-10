@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/widgets/buttons/notification_icon_button.dart';
+import 'package:taal/core/widgets/buttons/profile_icon_button.dart';
 import 'package:taal/core/widgets/fields/custom_search_field.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
@@ -23,6 +25,7 @@ class LangSearchProvidersWidget extends StatelessWidget {
         children: [
           Row(
             children: [
+              const ProfileIconButton(),
               Expanded(
                 child: CustomSearchField(
 
@@ -32,6 +35,7 @@ class LangSearchProvidersWidget extends StatelessWidget {
                 ),
               ),
               8.width,
+              const NotificationIconButton(),
               const LangPopup(),
             ],
           )

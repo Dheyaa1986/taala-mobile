@@ -21,10 +21,21 @@ class AppUrls {
   static const String verify = '$_baseApi/auth/validate-otp';
   static const String verifyRegister = '$_baseApi/auth/validate-email-otp';
   static const String profile = '$_baseApi/profile';
+  static const String authMe = '$_baseApi/auth/me';
+  static const String notificationsMe = '$_baseApi/notifications/me';
+  static const String notificationsUnreadCount =
+      '$_baseApi/notifications/me/unread-count';
+  static const String notificationsReadAll =
+      '$_baseApi/notifications/me/read-all';
+  static String notificationRead(String id) =>
+      '$_baseApi/notifications/$id/read';
+  static const String supportTickets = '$_baseApi/support-tickets';
+  static const String themesActive = '/themes/active';
+  static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
+  static const String providerUpdateProfile = '$_baseApi/providers/profile';
   static const String refreshToken = '$_baseApi/refresh-token';
   static const String auctionCategories = '$_baseApi/auction/categories';
   static const String locations = '$_baseApi/locations';
-  static const String sendSupportTicket = '$_baseApi/support-ticket';
   static const String banners = '$_baseApi/banners';
 
   static const String auctions = '$_baseApi/auction';

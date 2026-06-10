@@ -6,6 +6,7 @@ import 'package:alice_dio/alice_dio_adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:taal/core/network/extensions.dart';
@@ -49,13 +50,15 @@ class DioService implements NetworkService {
       }
       ..options.responseType = ResponseType.json;
 
-    (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
-        (HttpClient client) {
-      client.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
+    if (!kIsWeb) {
+      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
+          (HttpClient client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
 
-      return client;
-    };
+        return client;
+      };
+    }
     if (kDebugMode) {
       AliceDioAdapter aliceDioAdapter = AliceDioAdapter();
 

@@ -7,6 +7,8 @@ import '../../../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../../../core/helpers/secure_local_storage.dart';
 import '../../../data/model/request/login_request_options.dart';
 import '../../../data/model/response/user_model.dart';
+import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
+import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 import '../../../data/repositories/login_repository.dart';
 
 part 'login_state.dart';
@@ -46,6 +48,8 @@ class LoginCubit extends Cubit<LoginState> {
         await SecureLocalStorage.write(
             PrefsKeys.refreshToken, response.refreshToken);
         await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: true);
+        await getIt<ProfileCubit>().loadProfile();
+        await getIt<NotificationCubit>().loadUnreadCount();
 
         emit(LoginSuccess(response: response));
       },

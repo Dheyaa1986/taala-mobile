@@ -9,6 +9,8 @@ import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
 import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
+import 'features/notifications/presentation/cubit/notification_cubit.dart';
+import 'features/profile/presentation/cubit/profile_cubit.dart';
 import 'features/theme/presentation/cubit/theme_cubit.dart';
 
 class TaalaApp extends StatefulWidget {
@@ -28,7 +30,7 @@ class _TaalaAppState extends State<TaalaApp> {
   void initState() {
     super.initState();
     _checkAuthStatus();
-    _loadActiveTheme();
+    getIt<ThemeCubit>().loadActiveTheme();
   }
 
   Future<void> _checkAuthStatus() async {
@@ -42,11 +44,6 @@ class _TaalaAppState extends State<TaalaApp> {
         _initialRoute = '/login';
       }
     });
-  }
-
-  Future<void> _loadActiveTheme() async {
-    final themeCubit = getIt<ThemeCubit>();
-    await themeCubit.loadActiveTheme();
   }
 
   @override
@@ -73,8 +70,23 @@ class _TaalaAppState extends State<TaalaApp> {
             BlocProvider(
               create: (context) => BottomNavigationCubit(),
             ),
+            BlocProvider.value(
+              value: getIt<ThemeCubit>(),
+            ),
             BlocProvider(
-              create: (context) => getIt<ThemeCubit>(),
+              create: (context) {
+                final cubit = getIt<ProfileCubit>();
+                SecureLocalStorage.read(PrefsKeys.token).then((token) {
+                  if (token != null && token.isNotEmpty) {
+                    cubit.loadProfile();
+                    getIt<NotificationCubit>().loadUnreadCount();
+                  }
+                });
+                return cubit;
+              },
+            ),
+            BlocProvider(
+              create: (context) => getIt<NotificationCubit>(),
             ),
           ],
           child: GestureDetector(
@@ -83,12 +95,9 @@ class _TaalaAppState extends State<TaalaApp> {
             },
             child: BlocBuilder<ThemeCubit, ThemeState>(
               builder: (context, state) {
-                ThemeData themeData;
-                if (state is ThemeLoaded) {
-                  themeData = TariqyAppTheme.getLightTheme(customTheme: state.theme);
-                } else {
-                  themeData = TariqyAppTheme.getLightTheme();
-                }
+                final themeData = state is ThemeLoaded
+                    ? TariqyAppTheme.getLightTheme(customTheme: state.theme)
+                    : TariqyAppTheme.getLightTheme();
 
                 return MaterialApp.router(
                   routerConfig: AppRouter.router,

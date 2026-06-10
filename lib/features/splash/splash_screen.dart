@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/config/themes/theme.dart';
+import 'package:taal/core/app_config/app_urls.dart';
 
 import '../../core/app_config/prefs_keys.dart';
 import '../../core/di/service_locator.dart';
@@ -42,15 +43,33 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: _checkAuthAndNavigate(context),
-      builder: (context, snapshot) => Scaffold(
-        backgroundColor: AppColors.primaryColor,
-        body: Center(
-          child: Image.asset(
-            'assets/taal.png',
-            width: 250,
+      builder: (context, snapshot) {
+        final themeLogo = TariqyAppTheme.activeTheme?.logoUrl;
+        final splashLogo = themeLogo != null && themeLogo.isNotEmpty
+            ? (themeLogo.startsWith('http')
+                ? themeLogo
+                : AppUrls.imageLink(themeLogo))
+            : null;
+
+        return Scaffold(
+          backgroundColor: TariqyAppTheme.splashBackgroundColor(),
+          body: Center(
+            child: splashLogo != null
+                ? Image.network(
+                    splashLogo,
+                    width: 250,
+                    errorBuilder: (_, __, ___) => Image.asset(
+                      'assets/taal.png',
+                      width: 250,
+                    ),
+                  )
+                : Image.asset(
+                    'assets/taal.png',
+                    width: 250,
+                  ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

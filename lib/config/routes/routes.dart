@@ -14,4 +14,5 @@ class Routes {
   static const String clientSettings = '/clientSettings';
   static const String rate = '/rate';
   static const String baseRate = '/baseRate';
+  static const String notifications = '/notifications';
 }

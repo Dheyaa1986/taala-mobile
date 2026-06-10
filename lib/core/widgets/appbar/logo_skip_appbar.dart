@@ -5,6 +5,8 @@ import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 
 import '../../app_config/app_colors.dart';
 import '../buttons/back_button.dart';
+import '../buttons/notification_icon_button.dart';
+import '../buttons/profile_icon_button.dart';
 import '../buttons/skip_button.dart';
 import '../logo/app_logo.dart';
 
@@ -97,19 +99,24 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
     double? appBarHeight,
     Widget? titleWidget,
     Widget? leading,
+    bool showProfileIcon = false,
   }) =>
       CustomAppBar(
         titleFs: titleFS,
         customTitle:  titleWidget,
         appBarHeight: 0,
         centerTitle: centerTitle,
-        leading:leading?? CustomBackButton(
-          onPressed: onBackPressed,
-        ),
+        leading: leading ??
+            (showProfileIcon
+                ? const ProfileIconButton()
+                : CustomBackButton(
+                    onPressed: onBackPressed,
+                  )),
         title: title,
         bottomWidget:bottomWidget,
         actions: [
           ...?actions,
+          const NotificationIconButton(),
           const LangPopup(),
         ],
       );

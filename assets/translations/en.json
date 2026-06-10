@@ -83,6 +83,15 @@
  "editProfile": "Edit Profile",
  "logout": "Logout",
  "rateApp": "Rate App",
+  "submitSupportTicket": "Complaint or Request",
+  "complaint": "Complaint",
+  "request": "Request",
+  "supportTicketTitle": "Title",
+  "supportTicketTitleHint": "Enter a short title",
+  "supportTicketDescription": "Details",
+  "supportTicketDescriptionHint": "Describe your issue or request",
+  "supportTicketSent": "Your request was sent successfully",
+  "send": "Send",
   "rateProviderRating": "How would you rate this service?",
   "description": "Description",
   "submitRating": "Submit Rating",
@@ -104,5 +113,8 @@
   "portfolio": "Portfolio",
   "mapLink": "Google Maps Link",
   "invalid_google_map_link": "Please enter a valid Google Maps link.",
-  "password_invalid_length": "Password must be at least 8 characters long"
+  "password_invalid_length": "Password must be at least 8 characters long",
+  "notifications": "Notifications",
+  "noNotifications": "No notifications yet",
+  "markAllRead": "Mark all read"
 }

@@ -1,4 +1,3 @@
-
 import 'package:get_it/get_it.dart';
 import 'package:taal/core/countries/data/repository/countries_repo_impl.dart';
 import 'package:taal/core/countries/data/repository/countries_repository.dart';
@@ -13,11 +12,16 @@ import 'package:taal/features/home/provider/presentation/cubit/locations/locatio
 import 'package:taal/features/rating/client/data/repository/providers_repository.dart';
 import 'package:taal/features/rating/client/data/repository/providers_repository_impl.dart';
 import 'package:taal/features/rating/client/presentation/cubit/client_ratings_cubit.dart';
-import 'package:taal/features/theme/data/repositories/theme_repository.dart';
-import 'package:taal/features/theme/data/repositories/theme_repository_impl.dart';
-import 'package:taal/features/theme/presentation/cubit/theme_cubit.dart';
 
 
+import '../../features/notifications/data/repository/notification_repository.dart';
+import '../../features/theme/data/repositories/theme_repository.dart';
+import '../../features/theme/data/repositories/theme_repository_impl.dart';
+import '../../features/theme/presentation/cubit/theme_cubit.dart';
+import '../../features/support/data/repository/support_ticket_repository.dart';
+import '../../features/notifications/presentation/cubit/notification_cubit.dart';
+import '../../features/profile/data/repository/profile_repository.dart';
+import '../../features/profile/presentation/cubit/profile_cubit.dart';
 import '../../features/auth/login/data/repositories/login_repository.dart';
 import '../../features/auth/login/data/repositories/login_repository_impl.dart';
 import '../../features/auth/login/presentation/cubit/login_cubit/login_cubit.dart';
@@ -57,15 +61,19 @@ void _initRepositories() {
   getIt.registerLazySingleton<RegisterRepository>(
       () => RegisterRepositoryImpl());
   getIt.registerLazySingleton<LocationsRepository>(
-          () => LocationsRepositoryImpl());
+      () => LocationsRepositoryImpl());
   getIt.registerLazySingleton<ProviderRepository>(
-          () => ProvidersRepositoryImpl());
+      () => ProvidersRepositoryImpl());
   getIt.registerLazySingleton<ClientRatingsRepository>(
-          () => ClientRatingsRepositoryImpl());
+      () => ClientRatingsRepositoryImpl());
   getIt.registerLazySingleton<CountriesRepository>(
-          () => CountriesRepositoryImpl(service: getIt()));
-  getIt.registerLazySingleton<ThemeRepository>(
-      () => ThemeRepositoryImpl());
+      () => CountriesRepositoryImpl(service: getIt()));
+  getIt.registerLazySingleton<ProfileRepository>(() => ProfileRepository());
+  getIt.registerLazySingleton<NotificationRepository>(
+      () => NotificationRepository());
+  getIt.registerLazySingleton<SupportTicketRepository>(
+      () => SupportTicketRepository());
+  getIt.registerLazySingleton<ThemeRepository>(() => ThemeRepositoryImpl());
 }
 
 void _initCubits() {
@@ -75,6 +83,17 @@ void _initCubits() {
     ),
   );
 
+  getIt.registerLazySingleton<ProfileCubit>(
+    () => ProfileCubit(getIt()),
+  );
+
+  getIt.registerLazySingleton<NotificationCubit>(
+    () => NotificationCubit(getIt()),
+  );
+
+  getIt.registerLazySingleton<ThemeCubit>(
+    () => ThemeCubit(getIt()),
+  );
 
   getIt.registerFactory<CountriesCubit>(
         () => CountriesCubit(
@@ -102,11 +121,6 @@ void _initCubits() {
   );
   getIt.registerFactory<ClientRatingsCubit>(
         () => ClientRatingsCubit(
-      repository: getIt(),
-    ),
-  );
-  getIt.registerFactory<ThemeCubit>(
-        () => ThemeCubit(
       repository: getIt(),
     ),
   );

@@ -92,6 +92,8 @@ class AppStrings {
   static const String call = "call";
 
   static const String notifications = "notifications";
+  static const String noNotifications = "noNotifications";
+  static const String markAllRead = "markAllRead";
 
   static const String verificationRequestUploadedTitle =
       "verificationRequestUploadedTitle";
@@ -141,6 +143,15 @@ class AppStrings {
   static const save = 'save';
   static const rateApp = 'rateApp';
   static const rateAppTitle = 'rateAppTitle';
+  static const submitSupportTicket = 'submitSupportTicket';
+  static const complaint = 'complaint';
+  static const request = 'request';
+  static const supportTicketTitle = 'supportTicketTitle';
+  static const supportTicketTitleHint = 'supportTicketTitleHint';
+  static const supportTicketDescription = 'supportTicketDescription';
+  static const supportTicketDescriptionHint = 'supportTicketDescriptionHint';
+  static const supportTicketSent = 'supportTicketSent';
+  static const send = 'send';
   static const services = 'services';
   static const portfolio = 'portfolio';
   static const enterDescription = 'enterDescription';

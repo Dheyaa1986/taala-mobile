@@ -32,7 +32,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
       child: Builder(builder: (context) {
         return Scaffold(
           appBar: CustomAppBar.langAppBar(
-            leading: null,
+            showProfileIcon: true,
             titleFS: 24.sp,
             centerTitle: true,
             title: AppStrings.locations.tr(),

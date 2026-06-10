@@ -11,6 +11,7 @@ class RatingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar.langAppBar(
+        showProfileIcon: true,
         title: AppStrings.rating.tr(),
       ),
       body: const ProviderRatingView(),

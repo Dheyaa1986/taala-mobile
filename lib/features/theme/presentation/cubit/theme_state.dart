@@ -12,12 +12,6 @@ class ThemeLoaded extends ThemeState {
   ThemeLoaded(this.theme);
 }
 
-class ThemesLoaded extends ThemeState {
-  final List<ThemeModel> themes;
-
-  ThemesLoaded(this.themes);
-}
-
 class ThemeError extends ThemeState {
   final String message;
 

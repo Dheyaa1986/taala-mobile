@@ -11,7 +11,7 @@ class ThemeModel {
   final String? startDate;
   final String? endDate;
 
-  ThemeModel({
+  const ThemeModel({
     required this.id,
     required this.name,
     this.nameAr,
@@ -26,37 +26,22 @@ class ThemeModel {
   });
 
   factory ThemeModel.fromJson(Map<String, dynamic> json) {
+    final data = json['response'] as Map<String, dynamic>? ?? json;
     return ThemeModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      nameAr: json['nameAr'] as String?,
-      nameEn: json['nameEn'] as String?,
-      colors: json['colors'] != null 
-          ? ThemeColors.fromJson(json['colors'] as Map<String, dynamic>)
+      id: data['id']?.toString() ?? '',
+      name: data['name']?.toString() ?? '',
+      nameAr: data['nameAr'] as String?,
+      nameEn: data['nameEn'] as String?,
+      colors: data['colors'] != null
+          ? ThemeColors.fromJson(data['colors'] as Map<String, dynamic>)
           : null,
-      logoUrl: json['logoUrl'] as String?,
-      backgroundImageUrl: json['backgroundImageUrl'] as String?,
-      isActive: json['isActive'] as bool? ?? false,
-      occasion: json['occasion'] as String?,
-      startDate: json['startDate'] as String?,
-      endDate: json['endDate'] as String?,
+      logoUrl: data['logoUrl'] as String?,
+      backgroundImageUrl: data['backgroundImageUrl'] as String?,
+      isActive: data['isActive'] as bool? ?? false,
+      occasion: data['occasion'] as String?,
+      startDate: data['startDate']?.toString(),
+      endDate: data['endDate']?.toString(),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'nameAr': nameAr,
-      'nameEn': nameEn,
-      'colors': colors?.toJson(),
-      'logoUrl': logoUrl,
-      'backgroundImageUrl': backgroundImageUrl,
-      'isActive': isActive,
-      'occasion': occasion,
-      'startDate': startDate,
-      'endDate': endDate,
-    };
   }
 }
 
@@ -67,7 +52,7 @@ class ThemeColors {
   final String? background;
   final String? text;
 
-  ThemeColors({
+  const ThemeColors({
     this.primary,
     this.secondary,
     this.accent,
@@ -83,15 +68,5 @@ class ThemeColors {
       background: json['background'] as String?,
       text: json['text'] as String?,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'primary': primary,
-      'secondary': secondary,
-      'accent': accent,
-      'background': background,
-      'text': text,
-    };
   }
 }

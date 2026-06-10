@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
@@ -16,6 +17,8 @@ import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
 import 'package:taal/features/profile/client/presentation/widgets/change_password_sheet.dart';
 import 'package:taal/features/profile/client/presentation/widgets/lang_sheet.dart';
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
+import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 
 class ProviderSettingsScreen extends StatefulWidget {
   const ProviderSettingsScreen({super.key});
@@ -26,12 +29,19 @@ class ProviderSettingsScreen extends StatefulWidget {
 
 class _ProviderSettingsScreenState extends State<ProviderSettingsScreen> {
   @override
+  void initState() {
+    super.initState();
+    context.read<ProfileCubit>().loadProfile();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final _ = context.locale;
     return Scaffold(
       appBar: CustomAppBar.langAppBar(
         title: AppStrings.settings.tr(),
         centerTitle: true,
+        showProfileIcon: true,
       ),
       body: ListView(
         padding: REdgeInsets.all(16.0),
@@ -53,6 +63,11 @@ class _ProviderSettingsScreenState extends State<ProviderSettingsScreen> {
           SettingsTile(
             title: AppStrings.changePassword,
             onTap: () => showChangePasswordSheet(context),
+          ),
+          16.height,
+          SettingsTile(
+            title: AppStrings.submitSupportTicket,
+            onTap: () => showSupportTicketSheet(context),
           ),
           _divider(),
           _logoutTile(context),
@@ -102,46 +117,59 @@ class _ProviderSettingsScreenState extends State<ProviderSettingsScreen> {
       );
 
   Widget _profileTile(BuildContext context) {
-    return GestureDetector(
-      onTap: () => GoRouter.of(context).pushNamed(Routes.editProfile),
-      child: Card(
-        elevation: 3,
-        shadowColor: const Color(0x269A9A9A),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.r),
-          side: const BorderSide(color: AppColors.borderColorMain),
-        ),
-        margin: EdgeInsets.zero,
-        child: ListTile(
-          contentPadding: REdgeInsets.symmetric(horizontal: 16),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            color: AppColors.greyText,
-            size: 10.r,
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        final name = state is ProfileLoaded ? state.profile.name : '...';
+        final email = state is ProfileLoaded ? state.profile.email : '...';
+        final imageUrl =
+            state is ProfileLoaded ? state.profile.imageLink : null;
+
+        return GestureDetector(
+          onTap: () => GoRouter.of(context).pushNamed(Routes.editProfile),
+          child: Card(
+            elevation: 3,
+            shadowColor: const Color(0x269A9A9A),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              side: const BorderSide(color: AppColors.borderColorMain),
+            ),
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              contentPadding: REdgeInsets.symmetric(horizontal: 16),
+              trailing: Icon(
+                Icons.arrow_forward_ios,
+                color: AppColors.greyText,
+                size: 10.r,
+              ),
+              leading: imageUrl != null && imageUrl.isNotEmpty
+                  ? CustomCachedNetworkImage(
+                      radius: 100.r,
+                      url: imageUrl,
+                      width: 48.w,
+                      height: 48.w,
+                    )
+                  : CircleAvatar(
+                      radius: 24.r,
+                      child: Text(name.isNotEmpty ? name[0] : '?'),
+                    ),
+              title: Text(
+                name,
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+              ),
+              subtitle: Text(
+                email,
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+              ),
+            ),
           ),
-          leading: CustomCachedNetworkImage(
-            radius: 100.r,
-            url:
-                'https://cdn-icons-png.flaticon.com/512/219/219983.png',
-            width: 48.w,
-            height: 48.w,
-          ),
-          title: Text(
-            'John Doe',
-            style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w400,
-                ),
-          ),
-          subtitle: Text(
-            'provider@gmail.com',
-            style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.w400,
-                ),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
