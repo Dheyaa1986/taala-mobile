@@ -15,7 +15,10 @@ import 'package:taal/features/rating/client/presentation/screen/client_rating_sc
 import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
+import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
+import 'package:taal/features/support/presentation/screens/support_tickets_screen.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../core/widgets/bottom_nav_bar/bottom_nav_bar.dart';
 import '../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../../features/auth/register/data/model/register_options.dart';
@@ -80,7 +83,7 @@ class AppRouter {
             context: context,
             state: state,
             child: ProviderProfileScreen(
-              id: state.extra as int?,
+              id: state.extra as String?,
             ),
           ),
         ),
@@ -190,6 +193,19 @@ class AppRouter {
             context: context,
             state: state,
             child: const NotificationsScreen(),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.supportTickets,
+          name: Routes.supportTickets,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: BlocProvider(
+              create: (_) => getIt<SupportTicketCubit>(),
+              child: const SupportTicketsScreen(),
+            ),
           ),
         ),
       ]);

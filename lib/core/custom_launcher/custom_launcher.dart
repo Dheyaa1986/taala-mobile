@@ -16,6 +16,19 @@ class CustomLauncher {
     AppMessages.showError(AppRouter.appNavigatorKey.currentContext!,message);
 
   }
+  Future<void> openUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        _showErrorToast("Can't open link");
+      }
+    } catch (_) {
+      _showErrorToast("Can't open link");
+    }
+  }
+
   openMaps(double lat, double lng, String address) async {
     try {
       final availableMaps = await MapLauncher.installedMaps;

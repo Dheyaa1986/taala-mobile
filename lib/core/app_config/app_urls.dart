@@ -31,6 +31,18 @@ class AppUrls {
       '$_baseApi/notifications/$id/read';
   static const String supportTickets = '$_baseApi/support-tickets';
   static const String themesActive = '/themes/active';
+  static const String countriesList = '/countries/list';
+  static String governoratesList(String countryId) =>
+      '/governorates/list?countryId=$countryId';
+  static String citiesList(String governorateId) =>
+      '/cities/list?governorateId=$governorateId';
+  static String providerLocations(String providerId) =>
+      '/providers/$providerId/locations';
+  static const String providerLocationsCreate = '/providers/locations';
+  static String providerLocation(String providerId, String locationId) =>
+      '/providers/$providerId/locations/$locationId';
+  static String clientHome(String clientId) => '/home/clients/$clientId/';
+  static const String supportTicketsMe = '/support-tickets/me';
   static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
   static const String providerUpdateProfile = '$_baseApi/providers/profile';
   static const String refreshToken = '$_baseApi/refresh-token';

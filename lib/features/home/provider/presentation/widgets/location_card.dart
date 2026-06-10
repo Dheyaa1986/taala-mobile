@@ -49,7 +49,10 @@ class LocationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${model.governance?.name},${model.city?.name}' ?? '',
+                    [
+                      model.governorateName ?? model.governance?.name,
+                      model.cityName ?? model.city?.name,
+                    ].where((e) => e != null && e.isNotEmpty).join(', '),
                     style: Theme.of(context).textTheme.displayMedium!.copyWith(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w400,
@@ -65,9 +68,10 @@ class LocationCard extends StatelessWidget {
                   ),
                   8.height,
                   ViewMapButton(
+                    mapUrl: model.mapLink,
                     lat: model.lat,
                     long: model.lng,
-                    name: '${model.governance?.name},${model.city?.name}',
+                    name: model.cityName ?? model.city?.name,
                   ),
                 ],
               ),

@@ -17,6 +17,8 @@ import 'package:taal/features/profile/client/presentation/widgets/edit_profile_s
 import 'package:taal/features/profile/client/presentation/widgets/lang_sheet.dart';
 import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 import '../widgets/settings_tile.dart';
 
@@ -77,6 +79,11 @@ class _ClientSettingsScreenState extends State<ClientSettingsScreen> {
           SettingsTile(
             title: AppStrings.submitSupportTicket,
             onTap: () => showSupportTicketSheet(context),
+          ),
+          16.height,
+          SettingsTile(
+            title: AppStrings.mySupportTickets,
+            onTap: () => context.pushNamed(Routes.supportTickets),
           ),
           _divider(),
           _logoutTile(context),

@@ -85,9 +85,12 @@ class ServiceProviderCard extends StatelessWidget {
                 ),
                 10.height,
                 ViewMapButton(
+                  mapUrl: model.locations.isNotEmpty
+                      ? model.locations.first.mapLink
+                      : null,
                   lat: model.lat,
                   long: model.lng,
-                  name: '${model.address}',
+                  name: model.address,
                 ),
               ]),
             ),

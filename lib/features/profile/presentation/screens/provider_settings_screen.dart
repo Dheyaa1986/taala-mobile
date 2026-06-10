@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
+import 'package:taal/features/profile/client/presentation/widgets/edit_profile_sheet.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -69,6 +70,11 @@ class _ProviderSettingsScreenState extends State<ProviderSettingsScreen> {
             title: AppStrings.submitSupportTicket,
             onTap: () => showSupportTicketSheet(context),
           ),
+          16.height,
+          SettingsTile(
+            title: AppStrings.mySupportTickets,
+            onTap: () => context.pushNamed(Routes.supportTickets),
+          ),
           _divider(),
           _logoutTile(context),
         ],
@@ -125,7 +131,11 @@ class _ProviderSettingsScreenState extends State<ProviderSettingsScreen> {
             state is ProfileLoaded ? state.profile.imageLink : null;
 
         return GestureDetector(
-          onTap: () => GoRouter.of(context).pushNamed(Routes.editProfile),
+          onTap: () {
+            if (state is ProfileLoaded) {
+              showEditProfileSheet(context, profile: state.profile);
+            }
+          },
           child: Card(
             elevation: 3,
             shadowColor: const Color(0x269A9A9A),

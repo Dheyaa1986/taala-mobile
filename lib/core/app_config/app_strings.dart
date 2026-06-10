@@ -152,6 +152,13 @@ class AppStrings {
   static const supportTicketDescriptionHint = 'supportTicketDescriptionHint';
   static const supportTicketSent = 'supportTicketSent';
   static const send = 'send';
+  static const mySupportTickets = 'mySupportTickets';
+  static const noSupportTickets = 'noSupportTickets';
+  static const adminNote = 'adminNote';
+  static const ticketStatusNew = 'ticketStatusNew';
+  static const ticketStatusInProgress = 'ticketStatusInProgress';
+  static const ticketStatusResolved = 'ticketStatusResolved';
+  static const ticketStatusClosed = 'ticketStatusClosed';
   static const services = 'services';
   static const portfolio = 'portfolio';
   static const enterDescription = 'enterDescription';

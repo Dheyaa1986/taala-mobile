@@ -11,6 +11,7 @@ import 'core/helpers/secure_local_storage.dart';
 import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'features/notifications/presentation/cubit/notification_cubit.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
+import 'core/widgets/themed_background.dart';
 import 'features/theme/presentation/cubit/theme_cubit.dart';
 
 class TaalaApp extends StatefulWidget {
@@ -99,14 +100,16 @@ class _TaalaAppState extends State<TaalaApp> {
                     ? TariqyAppTheme.getLightTheme(customTheme: state.theme)
                     : TariqyAppTheme.getLightTheme();
 
-                return MaterialApp.router(
-                  routerConfig: AppRouter.router,
-                  theme: themeData,
-                  debugShowCheckedModeBanner: false,
-                  locale: context.locale,
-                  supportedLocales: context.supportedLocales,
-                  localizationsDelegates: context.localizationDelegates,
-                  title: 'taal',
+                return ThemedBackground(
+                  child: MaterialApp.router(
+                    routerConfig: AppRouter.router,
+                    theme: themeData,
+                    debugShowCheckedModeBanner: false,
+                    locale: context.locale,
+                    supportedLocales: context.supportedLocales,
+                    localizationsDelegates: context.localizationDelegates,
+                    title: 'taal',
+                  ),
                 );
               },
             ),

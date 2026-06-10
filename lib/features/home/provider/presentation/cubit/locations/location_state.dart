@@ -14,8 +14,7 @@ final class LocationsLoaded extends LocationState {
 final class LocationsError extends LocationState {
   final String message;
 
-  LocationsError({required this.message});
-
+  LocationsError(this.message);
 }
 final class LocationsEmpty extends LocationState {
 

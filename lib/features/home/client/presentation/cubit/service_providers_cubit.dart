@@ -1,11 +1,11 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
+import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
-import 'package:taal/features/home/provider/data/model/location_model.dart';
+import 'package:taal/features/profile/data/repository/profile_repository.dart';
 
-import '../../../provider/data/model/governate.dart';
 import '../../data/model/service_provider_model/service_provider_model.dart';
 
 part 'service_providers_state.dart';
@@ -14,7 +14,7 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
   ServiceProvidersCubit({required this.repository})
       : super(ServiceProvidersInitial());
 
-  ProviderRepository repository;
+  final ProviderRepository repository;
 
   int page = 1;
   final int pageSize = 10;
@@ -23,49 +23,67 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
   String searchQuery = '';
   ValueNotifier<FilterProvidersModel> filter =
       ValueNotifier(FilterProvidersModel());
+  String? _clientId;
+
   void resetPagination() {
     providers = [];
     page = 1;
     reachedMax = false;
   }
 
-  getProviders({
+  Future<String?> _resolveClientId() async {
+    if (_clientId != null) return _clientId;
+    final result = await getIt<ProfileRepository>().getMyProfile();
+    return result.fold((_) => null, (profile) {
+      _clientId = profile.id;
+      return _clientId;
+    });
+  }
+
+  Future<void> getProviders({
     bool reset = false,
     String? query,
   }) async {
     emit(ServiceProvidersLoading());
-    Future.delayed(const Duration(seconds: 1));
-    providers = List.generate(10, (index) {
-      return ServiceProviderModel(
-        locations: [
-          LocationModel(
-            id: '1',
-            governance: GovernanceModel(name: 'Alexandria', id: 3),
-            city: CityModel(name: 'Nasr City', id: 101),
-            region: RegionModel(name: 'Downtown', id: 1003),
-            lat: '30.0444',
-            lng: '31.2357',
-          )
-        ],
-        totalRatings: index + 1,
-        id: index + 1,
-        name: 'Provider ${index + 1}',
-        rate: (3.5 + index % 3),
-        email: 'provider${index + 1}@example.com',
-        services: ['Cleaning', 'Plumbing', 'Electrical']
-            .sublist(0, (index % 3) + 1),
-        phone: '012345678${index}',
-        image: 'https://example.com/images/provider${index + 1}.jpg',
-        address: 'Street ${index + 1}, City ${index % 3 + 1}',
-        lat: '30.${index}1234',
-        lng: '31.${index}5678',
-      );
-    });
-    emit(ServiceProvidersLoaded(serviceProviders: providers, reachedMax: true));
+    final clientId = await _resolveClientId();
+    if (clientId == null) {
+      emit(ServiceProvidersError(error: 'Failed to load client profile'));
+      return;
+    }
+
+    if (reset) {
+      resetPagination();
+    }
+
+    if (query != null) {
+      searchQuery = query;
+    }
+
+    final result = await repository.getProviders(
+      clientId: clientId,
+      options: ProvidersPaginationOptions(
+        page: page,
+        limit: pageSize,
+        search: searchQuery.isEmpty ? null : searchQuery,
+        filter: filter.value,
+      ),
+    );
+
+    result.fold(
+      (error) => emit(ServiceProvidersError(error: error.message)),
+      (items) {
+        providers = reset ? items : [...providers, ...items];
+        reachedMax = items.length < pageSize;
+        emit(ServiceProvidersLoaded(
+          serviceProviders: providers,
+          reachedMax: reachedMax,
+        ));
+      },
+    );
   }
 
-  updateFilter(FilterProvidersModel filter) {
-    this.filter.value = filter;
+  void updateFilter(FilterProvidersModel newFilter) {
+    filter.value = newFilter;
     getProviders(reset: true);
   }
 }

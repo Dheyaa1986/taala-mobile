@@ -15,4 +15,5 @@ class Routes {
   static const String rate = '/rate';
   static const String baseRate = '/baseRate';
   static const String notifications = '/notifications';
+  static const String supportTickets = '/supportTickets';
 }

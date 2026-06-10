@@ -52,33 +52,33 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
   StatusType? selectedStatus;
   final List<ServiceTypeModel> serviceTypes = List.generate(5, (index) {
     return ServiceTypeModel(
-      id: index + 1,
+      id: '${index + 1}',
       name: 'Service Type ${index + 1}',
       image: 'https://example.com/images/service_type_${index + 1}.png',
     );
   });
   List<GovernanceModel> governorates = [
-    GovernanceModel(name: 'Cairo', id: 1),
-    GovernanceModel(name: 'Giza', id: 2),
-    GovernanceModel(name: 'Alexandria', id: 3),
-    GovernanceModel(name: 'Aswan', id: 4),
-    GovernanceModel(name: 'Luxor', id: 5),
+    const GovernanceModel(name: 'Cairo', id: '1'),
+    const GovernanceModel(name: 'Giza', id: '2'),
+    const GovernanceModel(name: 'Alexandria', id: '3'),
+    const GovernanceModel(name: 'Aswan', id: '4'),
+    const GovernanceModel(name: 'Luxor', id: '5'),
   ];
 
   List<CityModel> cities = [
-    CityModel(name: 'Nasr City', id: 101),
-    CityModel(name: '6th of October', id: 102),
-    CityModel(name: 'Smouha', id: 103),
-    CityModel(name: 'Aswan City', id: 104),
-    CityModel(name: 'East Luxor', id: 105),
+    const CityModel(name: 'Nasr City', id: '101'),
+    const CityModel(name: '6th of October', id: '102'),
+    const CityModel(name: 'Smouha', id: '103'),
+    const CityModel(name: 'Aswan City', id: '104'),
+    const CityModel(name: 'East Luxor', id: '105'),
   ];
 
   List<RegionModel> regions = [
-    RegionModel(name: 'First District', id: 1001),
-    RegionModel(name: 'Second District', id: 1002),
-    RegionModel(name: 'Downtown', id: 1003),
-    RegionModel(name: 'El Mahatta', id: 1004),
-    RegionModel(name: 'Karnak Area', id: 1005),
+    const RegionModel(name: 'First District', id: '1001'),
+    const RegionModel(name: 'Second District', id: '1002'),
+    const RegionModel(name: 'Downtown', id: '1003'),
+    const RegionModel(name: 'El Mahatta', id: '1004'),
+    const RegionModel(name: 'Karnak Area', id: '1005'),
   ];
   @override
   void initState() {
@@ -125,7 +125,7 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
             onChanged: ( p0) {
               setState(() {
                 selectedServiceType = p0;
-                widget.model?.serviceTypeId = p0?.profileId;
+                widget.model?.serviceTypeId = p0?.id;
               });
             },
             items: serviceTypes
@@ -156,7 +156,7 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
             onChanged: ( p0) {
               setState(() {
                 selectedGovernorate = p0;
-                widget.model?.governanceId = p0?.profileId;
+                widget.model?.governanceId = p0?.id;
                 selectedCity = null;
                 selectedRegion = null;
               });
@@ -174,7 +174,7 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
             onChanged: ( p0) {
               setState(() {
                 selectedCity = p0;
-                widget.model?.cityId = p0?.profileId;
+                widget.model?.cityId = p0?.id;
                 selectedRegion = null;
               });
             },
@@ -195,7 +195,7 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
             onChanged: ( p0) {
               setState(() {
                 selectedRegion = p0;
-                widget.model?.regionId = p0?.profileId;
+                widget.model?.regionId = p0?.id;
               });
             },
             value: selectedRegion,

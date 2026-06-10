@@ -4,6 +4,7 @@ import 'package:taal/core/error/exceptions.dart';
 import 'package:taal/core/models/base_response_model.dart';
 import 'package:taal/core/network/network_request.dart';
 import 'package:taal/core/repository/repository.dart';
+import 'package:taal/features/support/data/models/support_ticket_model.dart';
 
 class SupportTicketRepository extends Repository {
   Future<Either<CustomException, BaseResponseModel>> submitTicket({
@@ -23,6 +24,22 @@ class SupportTicketRepository extends Repository {
           },
         ),
         mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
+  Future<Either<CustomException, SupportTicketsPageModel>> getMyTickets({
+    int page = 1,
+    int limit = 20,
+  }) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.supportTicketsMe,
+          method: RequestMethod.get,
+          queryParameters: {'page': page, 'limit': limit},
+        ),
+        mapper: (json) => SupportTicketsPageModel.fromJson(json),
       );
     });
   }

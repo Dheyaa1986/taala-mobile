@@ -24,7 +24,7 @@ import 'package:taal/features/profile/presentation/widgets/service_chip.dart';
 import '../../../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 
 class ProviderProfileScreen extends StatelessWidget {
-  final int? id;
+  final String? id;
   const ProviderProfileScreen({super.key, this.id});
 
   bool get _isActive => true;

@@ -9,7 +9,7 @@ import '../../../../../core/app_config/app_strings.dart';
 
 class ViewProfileButton extends StatelessWidget {
   const ViewProfileButton({super.key, this.profileId});
- final int? profileId;
+  final String? profileId;
   @override
   Widget build(BuildContext context) {
     return   GestureDetector(
