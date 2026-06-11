@@ -73,6 +73,8 @@ class _SupportTicketSheetState extends State<SupportTicketSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.of(context).size.height * 0.9;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 16.w,
@@ -80,11 +82,14 @@ class _SupportTicketSheetState extends State<SupportTicketSheet> {
         top: 20.h,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
             SheetHeader(title: AppStrings.submitSupportTicket.tr()),
             16.height,
             Row(
@@ -122,13 +127,15 @@ class _SupportTicketSheetState extends State<SupportTicketSheet> {
               validator: CustomValidators.validateEmpty,
             ),
             20.height,
-            _isSubmitting
-                ? const CircularProgressIndicator()
-                : CustomButton(
-                    text: AppStrings.send.tr(),
-                    onTap: _submit,
-                  ),
-          ],
+                _isSubmitting
+                    ? const CircularProgressIndicator()
+                    : CustomButton(
+                        text: AppStrings.send.tr(),
+                        onTap: _submit,
+                      ),
+              ],
+            ),
+          ),
         ),
       ),
     );
