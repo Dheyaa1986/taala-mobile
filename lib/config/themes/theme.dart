@@ -26,7 +26,7 @@ class TariqyAppTheme {
       primaryColor: AppColors.primaryColor,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primaryColor,
-        secondary: AppColors.secondaryColor,
+        secondary: AppColors.primaryColor,
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.dividerColor,

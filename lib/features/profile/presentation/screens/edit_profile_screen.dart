@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/app_config/app_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String? id;
@@ -50,7 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     right: 0,
                     child: CircleAvatar(
                       radius: 16.r,
-                      backgroundColor: const Color(0xFFFFCC00),
+                      backgroundColor: const AppColors.primaryColor,
                       child: Icon(Icons.camera_alt,
                           size: 16.sp, color: Colors.white),
                     ),
@@ -72,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFCC00),
+                  backgroundColor: const AppColors.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
@@ -104,13 +105,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFFFFCC00)),
+        prefixIcon: Icon(icon, color: const AppColors.primaryColor),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(color: Color(0xFFFFCC00), width: 2),
+          borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
         ),
       ),
     );

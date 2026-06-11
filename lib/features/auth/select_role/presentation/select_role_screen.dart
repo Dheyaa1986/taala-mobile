@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
+import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
 
@@ -18,7 +19,6 @@ import '../../../../core/widgets/buttons/back_button.dart';
 import '../../../../core/widgets/buttons/custom_button.dart';
 import '../../../../core/widgets/texts/clickable_text_widget.dart';
 import '../../../../core/app_config/app_colors.dart';
-import '../../register/data/model/register_options.dart';
 import '../../widgets/auth_header_widget.dart';
 import '../widgets/role_list_tile.dart';
 
@@ -67,19 +67,21 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                 }
                 if (state is RegisterSuccessState) {
                   final isProvider = _role == UserRole.provider;
-                  context.read<BottomNavigationCubit>().isProvider =
-                      isProvider;
-                  await getIt<SharedPref>().set(
-                    key: PrefsKeys.isProviderAccount,
-                    value: isProvider,
-                  );
+                  if (!state.response.requiresApproval) {
+                    context.read<BottomNavigationCubit>().isProvider =
+                        isProvider;
+                    await getIt<SharedPref>().set(
+                      key: PrefsKeys.isProviderAccount,
+                      value: isProvider,
+                    );
+                  }
                   AppMessages.showSuccess(
                     context,
                     state.response.message ?? AppStrings.signUp.tr(),
                   );
                   context.goNamed(
                     Routes.login,
-                    extra: _role == UserRole.provider,
+                    extra: isProvider,
                   );
                 }
                 if (state is RegisterErrorState) {
@@ -181,6 +183,14 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
   void _submit(BuildContext context) {
     if (_role == null || widget.options == null) return;
 
+    if (_role == UserRole.provider) {
+      context.pushNamed(
+        Routes.providerRegisterSteps,
+        extra: widget.options,
+      );
+      return;
+    }
+
     final options = RegisterOptions(
       username: widget.options!.username,
       phone: widget.options!.phone,
@@ -191,7 +201,7 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
       country: widget.options!.country,
       countryImageSvg: widget.options!.countryImageSvg,
       image: widget.options!.image,
-      type: _role == UserRole.provider ? 'provider' : 'client',
+      type: 'client',
     );
 
     context.read<RegisterCubit>().registerClient(options: options);

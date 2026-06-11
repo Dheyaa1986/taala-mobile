@@ -133,6 +133,15 @@
   "deleteNotification": "حذف الإشعار",
   "deleteNotificationSubtitle": "هل تريد حذف هذا الإشعار؟",
   "deleteTicket": "حذف الشكوى",
-  "deleteTicketSubtitle": "هل تريد حذف هذه الشكوى المكتملة؟"
+  "deleteTicketSubtitle": "هل تريد حذف هذه الشكوى المكتملة؟",
+  "clientHomeWelcome": "مرحباً بك في طلعة",
+  "clientHomeSubtitle": "أضف موقعك الحالي ثم اطلب المساعدة من أقرب مزود خدمة.",
+  "myLocation": "موقعي الحالي",
+  "locationSaved": "تم حفظ موقعك",
+  "requestHelp": "طلب المساعدة",
+  "providerRegisterTitle": "تسجيل مزود الخدمة",
+  "providerRegisterStep1": "الخطوة 1: وصف خدماتك",
+  "providerRegisterStep2": "الخطوة 2: موقع عملك على الخريطة",
+  "providerServiceDescription": "وصف الخدمات"
 
 }

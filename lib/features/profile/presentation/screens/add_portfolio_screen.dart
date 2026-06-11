@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/app_config/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddPortfolioScreen extends StatefulWidget {
@@ -67,7 +68,7 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: const BorderSide(
-                    color: Color(0xFFFFCC00),
+                    color: AppColors.primaryColor,
                     width: 2,
                   ),
                 ),
@@ -90,7 +91,7 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                   height: 120.h,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: const Color(0xFFFFCC00)),
+                    border: Border.all(color: const AppColors.primaryColor),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -98,14 +99,14 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                       Icon(
                         Icons.add_photo_alternate_outlined,
                         size: 40.r,
-                        color: const Color(0xFFFFCC00),
+                        color: const AppColors.primaryColor,
                       ),
                       8.verticalSpace,
                       Text(
                         "اضغط لإضافة صور",
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: const Color(0xFFFFCC00),
+                          color: const AppColors.primaryColor,
                         ),
                       ),
                     ],
@@ -128,12 +129,12 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                           height: 120.h,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(color: const Color(0xFFFFCC00)),
+                            border: Border.all(color: const AppColors.primaryColor),
                           ),
                           child: Icon(
                             Icons.add,
                             size: 40.r,
-                            color: const Color(0xFFFFCC00),
+                            color: const AppColors.primaryColor,
                           ),
                         ),
                       );
@@ -176,7 +177,7 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
               height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFCC00),
+                  backgroundColor: const AppColors.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),

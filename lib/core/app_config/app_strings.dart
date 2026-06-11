@@ -173,4 +173,13 @@ class AppStrings {
   static const portfolio = 'portfolio';
   static const enterDescription = 'enterDescription';
   static const String passwordInvalidLength = 'password_invalid_length';
+  static const String clientHomeWelcome = 'clientHomeWelcome';
+  static const String clientHomeSubtitle = 'clientHomeSubtitle';
+  static const String myLocation = 'myLocation';
+  static const String locationSaved = 'locationSaved';
+  static const String requestHelp = 'requestHelp';
+  static const String providerRegisterTitle = 'providerRegisterTitle';
+  static const String providerRegisterStep1 = 'providerRegisterStep1';
+  static const String providerRegisterStep2 = 'providerRegisterStep2';
+  static const String providerServiceDescription = 'providerServiceDescription';
 }

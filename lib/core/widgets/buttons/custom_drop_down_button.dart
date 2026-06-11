@@ -26,7 +26,7 @@ class CustomDropdownButton extends StatelessWidget {
     this.width = 130.0,
     this.height = 30.0,
     this.textStyle,
-    this.backgroundColor = AppColors.secondaryButton,
+    this.backgroundColor = AppColors.lightBGColor,
     this.borderRadius = const BorderRadius.all(Radius.circular(44)),
     super.key,
     this.padding,
@@ -41,7 +41,7 @@ class CustomDropdownButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: gradient,
         color: backgroundColor,
-        border: Border.all(color: AppColors.secondaryColor),
+        border: Border.all(color: AppColors.primaryColor),
         borderRadius: borderRadius,
       ),
       child: DropdownButton<String>(

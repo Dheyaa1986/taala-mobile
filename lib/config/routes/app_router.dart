@@ -23,6 +23,7 @@ import '../../core/di/service_locator.dart';
 import '../../core/widgets/bottom_nav_bar/bottom_nav_bar.dart';
 import '../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../../features/auth/register/data/model/register_options.dart';
+import '../../features/auth/register/presentation/screens/provider_register_steps_screen.dart';
 import '../../features/auth/select_role/presentation/select_role_screen.dart';
 
 class AppRouter {
@@ -182,6 +183,19 @@ class AppRouter {
             state: state,
             child: SelectRoleScreen(
               options: state.extra as RegisterOptions?,
+            ),
+          ),
+          routes: const [],
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.providerRegisterSteps,
+          name: Routes.providerRegisterSteps,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: ProviderRegisterStepsScreen(
+              options: state.extra as RegisterOptions,
             ),
           ),
           routes: const [],

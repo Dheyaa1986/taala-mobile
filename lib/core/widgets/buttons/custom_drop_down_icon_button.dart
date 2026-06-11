@@ -47,7 +47,7 @@ class CustomDropdownIconButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: gradient,
         color: backgroundColor,
-        border: Border.all(color: AppColors.secondaryColor),
+        border: Border.all(color: AppColors.primaryColor),
         borderRadius: borderRadius,
       ),
       child: DropdownButton<String>(

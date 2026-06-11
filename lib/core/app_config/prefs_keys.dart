@@ -9,4 +9,6 @@ class PrefsKeys {
   static const String rememberMe = 'rememberMe';
   static const String isProviderAccount = 'isProviderAccount';
   static const String selectedLanguage = 'selected_language';
+  static const String clientLocationAddress = 'client_location_address';
+  static const String clientLocationMapLink = 'client_location_map_link';
 }
