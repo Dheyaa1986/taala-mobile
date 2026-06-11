@@ -5,7 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
+import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
@@ -60,7 +62,13 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          getIt<NotificationCubit>().loadUnreadCount();
+        }
+      },
+      child: Scaffold(
       appBar: CustomAppBar.backAppBar(title: AppStrings.supportChat.tr()),
       body: BlocBuilder<SupportTicketCubit, SupportTicketState>(
         builder: (context, state) {
@@ -132,6 +140,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
           );
         },
       ),
+    ),
     );
   }
 }
