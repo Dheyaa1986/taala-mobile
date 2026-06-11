@@ -24,7 +24,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          context.read<NotificationCubit>().loadUnreadCount();
+        }
+      },
+      child: Scaffold(
       appBar: CustomAppBar.backAppBar(
         title: AppStrings.notifications.tr(),
         actions: [
@@ -100,9 +106,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     onTap: () {
                       if (!item.isRead) {
-                        context
-                            .read<NotificationCubit>()
-                            .markAsRead(item.id);
+                        context.read<NotificationCubit>().markAsRead(item.id);
                       }
                     },
                   ),
@@ -114,6 +118,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           return const SizedBox.shrink();
         },
       ),
+    ),
     );
   }
 }

@@ -9,16 +9,33 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   final NotificationRepository _repository;
 
+  int _countUnread(List<NotificationModel> items) =>
+      items.where((item) => !item.isRead).length;
+
   Future<void> loadNotifications() async {
-    emit(NotificationLoading());
+    final previous = state is NotificationLoaded ? state as NotificationLoaded : null;
+    if (previous != null) {
+      emit(NotificationLoaded(
+        items: previous.items,
+        unreadCount: previous.unreadCount,
+        isRefreshing: true,
+      ));
+    } else {
+      emit(NotificationLoading());
+    }
+
     final notificationsResult = await _repository.getMyNotifications();
     final countResult = await _repository.getUnreadCount();
 
     notificationsResult.fold(
       (error) => emit(NotificationError(error.message)),
       (page) {
-        final unread = countResult.fold((_) => 0, (count) => count);
-        emit(NotificationLoaded(items: page.items, unreadCount: unread));
+        final unreadFromItems = _countUnread(page.items);
+        final unread = countResult.fold((_) => unreadFromItems, (count) => count);
+        emit(NotificationLoaded(
+          items: page.items,
+          unreadCount: unread,
+        ));
       },
     );
   }
@@ -28,7 +45,10 @@ class NotificationCubit extends Cubit<NotificationState> {
     countResult.fold((_) {}, (count) {
       final current = state;
       if (current is NotificationLoaded) {
-        emit(NotificationLoaded(items: current.items, unreadCount: count));
+        emit(NotificationLoaded(
+          items: current.items,
+          unreadCount: count,
+        ));
       } else {
         emit(NotificationLoaded(items: const [], unreadCount: count));
       }
@@ -37,54 +57,75 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   Future<void> markAsRead(String id) async {
     final current = state;
-    if (current is NotificationLoaded) {
-      final updatedItems = current.items
-          .map(
-            (item) => item.id == id
-                ? NotificationModel(
-                    id: item.id,
-                    title: item.title,
-                    message: item.message,
-                    isRead: true,
-                    createdAt: item.createdAt,
-                  )
-                : item,
-          )
-          .toList();
-      final wasUnread =
-          current.items.any((item) => item.id == id && !item.isRead);
-      final newCount = wasUnread
-          ? (current.unreadCount - 1).clamp(0, 999)
-          : current.unreadCount;
-      emit(NotificationLoaded(items: updatedItems, unreadCount: newCount));
-    }
+    if (current is! NotificationLoaded) return;
 
-    await _repository.markAsRead(id);
-    await loadUnreadCount();
-  }
-
-  Future<void> markAllAsRead() async {
-    final current = state;
-    if (current is NotificationLoaded) {
-      emit(
-        NotificationLoaded(
-          items: current.items
-              .map(
-                (item) => NotificationModel(
+    final updatedItems = current.items
+        .map(
+          (item) => item.id == id
+              ? NotificationModel(
                   id: item.id,
                   title: item.title,
                   message: item.message,
                   isRead: true,
                   createdAt: item.createdAt,
-                ),
-              )
-              .toList(),
-          unreadCount: 0,
-        ),
-      );
-    }
+                )
+              : item,
+        )
+        .toList();
 
-    await _repository.markAllAsRead();
-    await loadUnreadCount();
+    emit(NotificationLoaded(
+      items: updatedItems,
+      unreadCount: _countUnread(updatedItems),
+    ));
+
+    final result = await _repository.markAsRead(id);
+    await result.fold(
+      (_) async {
+        emit(NotificationLoaded(
+          items: current.items,
+          unreadCount: current.unreadCount,
+        ));
+      },
+      (_) async {
+        final countResult = await _repository.getUnreadCount();
+        countResult.fold(
+          (_) {},
+          (count) => emit(NotificationLoaded(
+            items: updatedItems,
+            unreadCount: count,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> markAllAsRead() async {
+    final current = state;
+    if (current is! NotificationLoaded) return;
+
+    final updatedItems = current.items
+        .map(
+          (item) => NotificationModel(
+            id: item.id,
+            title: item.title,
+            message: item.message,
+            isRead: true,
+            createdAt: item.createdAt,
+          ),
+        )
+        .toList();
+
+    emit(NotificationLoaded(items: updatedItems, unreadCount: 0));
+
+    final result = await _repository.markAllAsRead();
+    await result.fold(
+      (_) async {
+        emit(NotificationLoaded(
+          items: current.items,
+          unreadCount: current.unreadCount,
+        ));
+      },
+      (_) async => loadUnreadCount(),
+    );
   }
 }

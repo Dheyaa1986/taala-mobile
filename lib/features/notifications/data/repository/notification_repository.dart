@@ -31,7 +31,10 @@ class NotificationRepository extends Repository {
         ),
       );
       final response = json['response'] as Map<String, dynamic>? ?? json;
-      return response['count'] as int? ?? 0;
+      final count = response['count'];
+      if (count is int) return count;
+      if (count is num) return count.toInt();
+      return int.tryParse(count?.toString() ?? '') ?? 0;
     });
   }
 

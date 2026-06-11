@@ -10,10 +10,12 @@ final class NotificationLoaded extends NotificationState {
   NotificationLoaded({
     required this.items,
     required this.unreadCount,
+    this.isRefreshing = false,
   });
 
   final List<NotificationModel> items;
   final int unreadCount;
+  final bool isRefreshing;
 }
 
 final class NotificationError extends NotificationState {

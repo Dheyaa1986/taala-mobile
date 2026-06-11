@@ -20,7 +20,9 @@ class NotificationModel extends Equatable {
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       message: json['message']?.toString() ?? '',
-      isRead: json['isRead'] == true,
+      isRead: json['isRead'] == true ||
+          json['isRead'] == 1 ||
+          json['isRead'] == 'true',
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
