@@ -61,4 +61,16 @@ class NotificationRepository extends Repository {
       return true;
     });
   }
+
+  Future<Either<CustomException, bool>> deleteNotification(String id) {
+    return exceptionHandler(() async {
+      await dioService.callApi(
+        NetworkRequest(
+          AppUrls.notificationDelete(id),
+          method: RequestMethod.delete,
+        ),
+      );
+      return true;
+    });
+  }
 }

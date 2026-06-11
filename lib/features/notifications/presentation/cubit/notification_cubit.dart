@@ -13,7 +13,8 @@ class NotificationCubit extends Cubit<NotificationState> {
       items.where((item) => !item.isRead).length;
 
   Future<void> loadNotifications() async {
-    final previous = state is NotificationLoaded ? state as NotificationLoaded : null;
+    final previous =
+        state is NotificationLoaded ? state as NotificationLoaded : null;
     if (previous != null) {
       emit(NotificationLoaded(
         items: previous.items,
@@ -31,7 +32,8 @@ class NotificationCubit extends Cubit<NotificationState> {
       (error) => emit(NotificationError(error.message)),
       (page) {
         final unreadFromItems = _countUnread(page.items);
-        final unread = countResult.fold((_) => unreadFromItems, (count) => count);
+        final unread =
+            countResult.fold((_) => unreadFromItems, (count) => count);
         emit(NotificationLoaded(
           items: page.items,
           unreadCount: unread,
@@ -60,17 +62,7 @@ class NotificationCubit extends Cubit<NotificationState> {
     if (current is! NotificationLoaded) return;
 
     final updatedItems = current.items
-        .map(
-          (item) => item.id == id
-              ? NotificationModel(
-                  id: item.id,
-                  title: item.title,
-                  message: item.message,
-                  isRead: true,
-                  createdAt: item.createdAt,
-                )
-              : item,
-        )
+        .map((item) => item.id == id ? item.copyWith(isRead: true) : item)
         .toList();
 
     emit(NotificationLoaded(
@@ -103,22 +95,37 @@ class NotificationCubit extends Cubit<NotificationState> {
     final current = state;
     if (current is! NotificationLoaded) return;
 
-    final updatedItems = current.items
-        .map(
-          (item) => NotificationModel(
-            id: item.id,
-            title: item.title,
-            message: item.message,
-            isRead: true,
-            createdAt: item.createdAt,
-          ),
-        )
-        .toList();
+    final updatedItems =
+        current.items.map((item) => item.copyWith(isRead: true)).toList();
 
     emit(NotificationLoaded(items: updatedItems, unreadCount: 0));
 
     final result = await _repository.markAllAsRead();
     await result.fold(
+      (_) async {
+        emit(NotificationLoaded(
+          items: current.items,
+          unreadCount: current.unreadCount,
+        ));
+      },
+      (_) async => loadUnreadCount(),
+    );
+  }
+
+  Future<void> deleteNotification(String id) async {
+    final current = state;
+    if (current is! NotificationLoaded) return;
+
+    final updatedItems =
+        current.items.where((item) => item.id != id).toList();
+
+    emit(NotificationLoaded(
+      items: updatedItems,
+      unreadCount: _countUnread(updatedItems),
+    ));
+
+    final result = await _repository.deleteNotification(id);
+    result.fold(
       (_) async {
         emit(NotificationLoaded(
           items: current.items,

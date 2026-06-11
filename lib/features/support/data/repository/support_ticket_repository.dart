@@ -78,4 +78,16 @@ class SupportTicketRepository extends Repository {
       );
     });
   }
+
+  Future<Either<CustomException, bool>> deleteTicket(String id) {
+    return exceptionHandler(() async {
+      await dioService.callApi(
+        NetworkRequest(
+          AppUrls.supportTicketDelete(id),
+          method: RequestMethod.delete,
+        ),
+      );
+      return true;
+    });
+  }
 }

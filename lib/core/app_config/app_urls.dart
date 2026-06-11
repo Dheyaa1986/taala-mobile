@@ -29,6 +29,8 @@ class AppUrls {
       '$_baseApi/notifications/me/read-all';
   static String notificationRead(String id) =>
       '$_baseApi/notifications/$id/read';
+  static String notificationDelete(String id) =>
+      '$_baseApi/notifications/$id';
   static const String supportTickets = '$_baseApi/support-tickets';
   static const String themesActive = '/themes/active';
   static const String countriesList = '/countries/list';
@@ -46,6 +48,7 @@ class AppUrls {
   static String supportTicketById(String id) => '/support-tickets/$id';
   static String supportTicketMessages(String id) =>
       '/support-tickets/$id/messages';
+  static String supportTicketDelete(String id) => '/support-tickets/$id';
   static const String serviceTypesList = '/service-types/list';
   static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
   static const String providerUpdateProfile = '$_baseApi/providers/profile';

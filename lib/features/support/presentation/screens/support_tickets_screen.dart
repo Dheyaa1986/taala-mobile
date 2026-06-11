@@ -8,6 +8,7 @@ import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
+import 'package:taal/features/support/presentation/widgets/support_ticket_card.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 
 class SupportTicketsScreen extends StatefulWidget {
@@ -24,18 +25,27 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
     context.read<SupportTicketCubit>().loadTickets(reset: true);
   }
 
-  String _statusLabel(String status) {
-    switch (status) {
-      case 'new':
-        return AppStrings.ticketStatusNew.tr();
-      case 'in_progress':
-        return AppStrings.ticketStatusInProgress.tr();
-      case 'resolved':
-        return AppStrings.ticketStatusResolved.tr();
-      case 'closed':
-        return AppStrings.ticketStatusClosed.tr();
-      default:
-        return status;
+  Future<void> _confirmDelete(String id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.deleteTicket.tr()),
+        content: Text(AppStrings.deleteTicketSubtitle.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppStrings.cancel.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppStrings.delete.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await context.read<SupportTicketCubit>().deleteTicket(id);
     }
   }
 
@@ -74,20 +84,17 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
               separatorBuilder: (_, __) => 12.height,
               itemBuilder: (context, index) {
                 final ticket = state.items[index];
-                return Card(
-                  child: ListTile(
-                    title: Text(ticket.title),
-                    subtitle: Text(
-                      '${ticket.type == 'complaint' ? AppStrings.complaint.tr() : AppStrings.request.tr()} • ${_statusLabel(ticket.status)}',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      context.pushNamed(
-                        Routes.supportTicketDetail,
-                        pathParameters: {'id': ticket.id},
-                      );
-                    },
-                  ),
+                return SupportTicketCard(
+                  ticket: ticket,
+                  onTap: () {
+                    context.pushNamed(
+                      Routes.supportTicketDetail,
+                      pathParameters: {'id': ticket.id},
+                    );
+                  },
+                  onDelete: ticket.isClosed
+                      ? () => _confirmDelete(ticket.id)
+                      : null,
                 );
               },
             );

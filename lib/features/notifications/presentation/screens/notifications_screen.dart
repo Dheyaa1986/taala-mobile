@@ -2,10 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
+import 'package:taal/features/notifications/data/models/notification_model.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/notifications/presentation/widgets/notification_card.dart';
 
@@ -21,6 +24,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     context.read<NotificationCubit>().loadNotifications();
+  }
+
+  void _onNotificationTap(NotificationModel item) {
+    if (!item.isRead) {
+      context.read<NotificationCubit>().markAsRead(item.id);
+    }
+
+    final ticketId = item.supportTicketId;
+    if (ticketId != null && ticketId.isNotEmpty) {
+      context.pushNamed(
+        Routes.supportTicketDetail,
+        pathParameters: {'id': ticketId},
+      );
+    }
+  }
+
+  Future<void> _confirmDelete(String id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.deleteNotification.tr()),
+        content: Text(AppStrings.deleteNotificationSubtitle.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppStrings.cancel.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppStrings.delete.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      context.read<NotificationCubit>().deleteNotification(id);
+    }
   }
 
   @override
@@ -79,11 +120,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   final item = state.items[index];
                   return NotificationCard(
                     notification: item,
-                    onTap: () {
-                      if (!item.isRead) {
-                        context.read<NotificationCubit>().markAsRead(item.id);
-                      }
-                    },
+                    onTap: () => _onNotificationTap(item),
+                    onDelete: () => _confirmDelete(item.id),
                   );
                 },
               );

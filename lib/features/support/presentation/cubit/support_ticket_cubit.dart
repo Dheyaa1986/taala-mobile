@@ -59,4 +59,25 @@ class SupportTicketCubit extends Cubit<SupportTicketState> {
       },
     );
   }
+
+  Future<bool> deleteTicket(String id) async {
+    final result = await _repository.deleteTicket(id);
+    return result.fold(
+      (error) {
+        emit(SupportTicketsError(error.message));
+        return false;
+      },
+      (_) {
+        final current = state;
+        if (current is SupportTicketsLoaded) {
+          emit(SupportTicketsLoaded(
+            items: current.items.where((t) => t.id != id).toList(),
+            page: current.page,
+            reachedMax: current.reachedMax,
+          ));
+        }
+        return true;
+      },
+    );
+  }
 }

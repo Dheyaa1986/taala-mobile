@@ -100,7 +100,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                     ...ticket.messages.map(
                       (msg) => _MessageBubble(
                         sender: msg.isFromAdmin
-                            ? AppStrings.admin.tr()
+                            ? msg.senderName
                             : msg.senderName,
                         body: msg.body,
                         isMine: !msg.isFromAdmin,

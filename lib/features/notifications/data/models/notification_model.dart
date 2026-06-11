@@ -6,6 +6,7 @@ class NotificationModel extends Equatable {
   final String message;
   final bool isRead;
   final DateTime? createdAt;
+  final String? supportTicketId;
 
   const NotificationModel({
     required this.id,
@@ -13,7 +14,26 @@ class NotificationModel extends Equatable {
     required this.message,
     required this.isRead,
     this.createdAt,
+    this.supportTicketId,
   });
+
+  NotificationModel copyWith({
+    String? id,
+    String? title,
+    String? message,
+    bool? isRead,
+    DateTime? createdAt,
+    String? supportTicketId,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+      supportTicketId: supportTicketId ?? this.supportTicketId,
+    );
+  }
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
@@ -26,11 +46,13 @@ class NotificationModel extends Equatable {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
+      supportTicketId: json['supportTicketId']?.toString(),
     );
   }
 
   @override
-  List<Object?> get props => [id, title, message, isRead, createdAt];
+  List<Object?> get props =>
+      [id, title, message, isRead, createdAt, supportTicketId];
 }
 
 class NotificationsPageModel {

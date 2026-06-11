@@ -128,6 +128,11 @@
   "password_invalid_length": "يجب أن تتكون كلمة المرور من 8 خانات على الأقل",
   "notifications": "الإشعارات",
   "noNotifications": "لا توجد إشعارات",
-  "markAllRead": "قراءة الكل"
+  "markAllRead": "قراءة الكل",
+  "delete": "حذف",
+  "deleteNotification": "حذف الإشعار",
+  "deleteNotificationSubtitle": "هل تريد حذف هذا الإشعار؟",
+  "deleteTicket": "حذف الشكوى",
+  "deleteTicketSubtitle": "هل تريد حذف هذه الشكوى المكتملة؟"
 
 }
