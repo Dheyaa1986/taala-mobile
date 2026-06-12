@@ -77,6 +77,76 @@ class LocationsRepositoryImpl extends Repository implements LocationsRepository 
   }
 
   @override
+  Future<Either<CustomException, String>> resolveCityIdForIraqGovernorate(
+      String governorateNameAr) {
+    return exceptionHandler(() async {
+      final countriesJson = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(AppUrls.countriesList, method: RequestMethod.get),
+      );
+      final countries = _parseList(countriesJson, CountryModel.fromJson);
+      CountryModel? iraq;
+      for (final country in countries) {
+        final name = country.name?.toLowerCase() ?? '';
+        if (country.name == 'العراق' ||
+            country.name == 'Iraq' ||
+            name.contains('iraq')) {
+          iraq = country;
+          break;
+        }
+      }
+      if (iraq?.id == null) {
+        throw const CustomException('لم يتم العثور على العراق في قاعدة البيانات');
+      }
+
+      final governoratesJson = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(
+          AppUrls.governoratesList(iraq!.id!),
+          method: RequestMethod.get,
+        ),
+      );
+      final governoratesRaw = _extractRawList(governoratesJson);
+      final target = governorateNameAr.trim();
+      final governorate = governoratesRaw.firstWhere(
+        (g) =>
+            (g['nameAr']?.toString().trim() ?? '') == target ||
+            (g['name']?.toString().trim() ?? '') == target,
+        orElse: () => <String, dynamic>{},
+      );
+      final governorateId = governorate['id']?.toString();
+      if (governorateId == null || governorateId.isEmpty) {
+        throw CustomException('لم يتم العثور على محافظة $governorateNameAr');
+      }
+
+      final citiesJson = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(
+          AppUrls.citiesList(governorateId),
+          method: RequestMethod.get,
+        ),
+      );
+      final cities = _parseList(citiesJson, CityModel.fromJson);
+      for (final city in cities) {
+        if (city.id != null && city.id!.isNotEmpty) {
+          return city.id!;
+        }
+      }
+      throw CustomException('لا توجد مدينة مرتبطة بمحافظة $governorateNameAr');
+    });
+  }
+
+  List<Map<String, dynamic>> _extractRawList(Map<String, dynamic> json) {
+    final response = json['response'];
+    if (response is List) {
+      return response.map((e) => e as Map<String, dynamic>).toList();
+    }
+    if (response is Map<String, dynamic> && response['data'] is List) {
+      return (response['data'] as List)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+    }
+    return [];
+  }
+
+  @override
   Future<Either<CustomException, List<LocationModel>>> getLocations(
       String providerId, PaginationOptions options) {
     return exceptionHandler(() async {
@@ -99,6 +169,8 @@ class LocationsRepositoryImpl extends Repository implements LocationsRepository 
   Future<Either<CustomException, LocationModel>> addLocation({
     required String cityId,
     required String googleMapsUrl,
+    double? latitude,
+    double? longitude,
   }) {
     return exceptionHandler(() async {
       final json = await dioService.callApi<Map<String, dynamic>>(
@@ -108,6 +180,8 @@ class LocationsRepositoryImpl extends Repository implements LocationsRepository 
           body: {
             'cityId': cityId,
             'googleMapsUrl': googleMapsUrl,
+            if (latitude != null) 'latitude': latitude,
+            if (longitude != null) 'longitude': longitude,
           },
         ),
       );

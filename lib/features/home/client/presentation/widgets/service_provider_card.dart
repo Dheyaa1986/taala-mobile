@@ -51,7 +51,7 @@ class ServiceProviderCard extends StatelessWidget {
                           fontWeight: FontWeight.w400,
                         )),
                 6.height,
-                Text(model.services?.join(', ') ?? '',
+                Text(model.services.join(', '),
                     style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w400,
@@ -60,6 +60,32 @@ class ServiceProviderCard extends StatelessWidget {
                 RatingRow(
                     rating: model.rate ?? 0,
                     totalRatings: model.totalRatings ?? 0),
+                if (model.distanceKm != null || model.etaMinutes != null) ...[
+                  8.height,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.near_me_outlined,
+                        size: 14.r,
+                        color: AppColors.primaryColor,
+                      ),
+                      4.width,
+                      Text(
+                        [
+                          if (model.distanceKm != null)
+                            '${model.distanceKm!.toStringAsFixed(1)} كم',
+                          if (model.etaMinutes != null)
+                            '• ${model.etaMinutes} دقيقة',
+                        ].join(' '),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 8.height,
                 Row(
                   children: [
@@ -71,11 +97,9 @@ class ServiceProviderCard extends StatelessWidget {
                     2.width,
                     Text(
                         model.locations
-                                .map((x) =>
-                                    '${x.governance?.name}, ${x.city?.name}' ??
-                                    '')
-                                .join('- ') ??
-                            '',
+                            .map((x) =>
+                                '${x.governance?.name ?? ''}, ${x.city?.name ?? ''}')
+                            .join('- '),
                         style:
                             Theme.of(context).textTheme.headlineLarge!.copyWith(
                                   fontSize: 10.sp,

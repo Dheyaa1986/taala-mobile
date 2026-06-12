@@ -155,6 +155,13 @@ class CustomValidators {
       return null;
     }
   }
+  static String? validatePickedLocation(dynamic value) {
+    if (value == null) {
+      return AppStrings.noLocationSelected.tr();
+    }
+    return null;
+  }
+
  static String? isValidGoogleMapLink(String? link) {
    if (link == null || link.isEmpty) {
      return AppStrings.requiredField.tr();

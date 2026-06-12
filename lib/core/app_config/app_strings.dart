@@ -114,6 +114,7 @@ class AppStrings {
 
   static const String delete = "delete";
   static const String governance = "governance";
+  static const String governorate = "governorate";
   static const String city = "city";
   static const String region = "region";
   static const String mapLink = "mapLink";
@@ -182,4 +183,20 @@ class AppStrings {
   static const String providerRegisterStep1 = 'providerRegisterStep1';
   static const String providerRegisterStep2 = 'providerRegisterStep2';
   static const String providerServiceDescription = 'providerServiceDescription';
+  static const String pickLocationOnMap = 'pickLocationOnMap';
+  static const String pickLocation = 'pickLocation';
+  static const String useMyLocation = 'useMyLocation';
+  static const String locationPicked = 'locationPicked';
+  static const String confirmLocation = 'confirmLocation';
+  static const String mapLocationHint = 'mapLocationHint';
+  static const String noLocationSelected = 'noLocationSelected';
+  static const String changeLocation = 'changeLocation';
+  static const String locationPermissionDenied = 'locationPermissionDenied';
+  static const String useCurrentLocationNow = 'useCurrentLocationNow';
+  static const String nearestProviders = 'nearestProviders';
+  static const String noProvidersNearby = 'noProvidersNearby';
+  static const String providerAvailable = 'providerAvailable';
+  static const String providerUnavailable = 'providerUnavailable';
+  static const String etaMinutes = 'etaMinutes';
+  static const String distanceKm = 'distanceKm';
 }

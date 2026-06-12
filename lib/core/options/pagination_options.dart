@@ -38,6 +38,8 @@ class FilterProvidersModel {
 
 class ProvidersPaginationOptions extends PaginationOptions {
   final FilterProvidersModel? filter;
+  final double? clientLatitude;
+  final double? clientLongitude;
 
   const ProvidersPaginationOptions({
     super.page = 1,
@@ -45,5 +47,7 @@ class ProvidersPaginationOptions extends PaginationOptions {
     super.search,
     super.sendLang,
     this.filter,
+    this.clientLatitude,
+    this.clientLongitude,
   });
 }

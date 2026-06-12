@@ -15,7 +15,9 @@ import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'package:taal/core/widgets/buttons/back_button.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
+import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
 import 'package:taal/features/auth/widgets/auth_header_widget.dart';
@@ -34,14 +36,13 @@ class _ProviderRegisterStepsScreenState
     extends State<ProviderRegisterStepsScreen> {
   final _pageController = PageController();
   final _descriptionController = TextEditingController();
-  final _mapLinkController = TextEditingController();
+  PickedLocation? _pickedLocation;
   int _step = 0;
 
   @override
   void dispose() {
     _pageController.dispose();
     _descriptionController.dispose();
-    _mapLinkController.dispose();
     super.dispose();
   }
 
@@ -54,10 +55,9 @@ class _ProviderRegisterStepsScreenState
       }
     }
     if (_step == 1) {
-      final linkError =
-          CustomValidators.isValidGoogleMapLink(_mapLinkController.text);
-      if (linkError != null) {
-        AppMessages.showError(context, linkError);
+      final locationError = CustomValidators.validatePickedLocation(_pickedLocation);
+      if (locationError != null) {
+        AppMessages.showError(context, locationError);
         return;
       }
       _submit(context);
@@ -72,7 +72,7 @@ class _ProviderRegisterStepsScreenState
 
   void _submit(BuildContext context) {
     final description = _descriptionController.text.trim();
-    final mapLink = _mapLinkController.text.trim();
+    final mapLink = _pickedLocation!.googleMapsUrl;
     final fullAddress =
         '${widget.options.address}\n$description\n${AppStrings.mapLink.tr()}: $mapLink';
 
@@ -172,10 +172,11 @@ class _ProviderRegisterStepsScreenState
                           hint: AppStrings.enterDescription.tr(),
                           maxLines: 5,
                         ),
-                        CustomTextField(
-                          controller: _mapLinkController,
-                          label: AppStrings.mapLink.tr(),
-                          hint: AppStrings.mapLink.tr(),
+                        MapLocationPickerField(
+                          value: _pickedLocation,
+                          onChanged: (value) =>
+                              setState(() => _pickedLocation = value),
+                          validator: CustomValidators.validatePickedLocation,
                         ),
                       ],
                     ),

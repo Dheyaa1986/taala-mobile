@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/data/iraq_governorates.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/helpers/messages.dart';
+import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_drop_down_field.dart';
-import 'package:taal/core/widgets/fields/custom_text_field.dart';
+import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
 import 'package:taal/features/home/provider/data/model/governate.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
@@ -21,7 +24,12 @@ Future showLocationSheet(BuildContext context, {LocationModel? model}) async {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
-    builder: (_) => AddLocationSheet(model: model),
+    builder: (sheetContext) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+      ),
+      child: AddLocationSheet(model: model),
+    ),
   );
 }
 
@@ -35,68 +43,73 @@ class AddLocationSheet extends StatefulWidget {
 
 class _AddLocationSheetState extends State<AddLocationSheet> {
   final _formKey = GlobalKey<FormState>();
-  final linkController = TextEditingController();
   final _repository = getIt<LocationsRepository>();
 
-  List<CountryModel> countries = [];
-  List<GovernanceModel> governorates = [];
-  List<CityModel> cities = [];
-  CountryModel? selectedCountry;
-  GovernanceModel? selectedGovernorate;
-  CityModel? selectedCity;
-  bool _isLoadingGeo = true;
+  IraqGovernorate? selectedGovernorate;
+  PickedLocation? _pickedLocation;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.model?.mapLink != null) {
-      linkController.text = widget.model!.mapLink!;
-    }
-    _loadCountries();
+    _prefillGovernorate();
+    _prefillMapLocation();
   }
 
-  Future<void> _loadCountries() async {
-    final result = await _repository.getCountries();
+  void _prefillGovernorate() {
+    final name = widget.model?.governorateName ?? widget.model?.governance?.name;
+    if (name == null || name.isEmpty) return;
+    for (final governorate in iraqGovernorates) {
+      if (governorate.nameAr == name || governorate.nameEn == name) {
+        selectedGovernorate = governorate;
+        break;
+      }
+    }
+  }
+
+  void _prefillMapLocation() {
+    final link = widget.model?.mapLink;
+    if (link == null || link.isEmpty) return;
+    try {
+      _pickedLocation = PickedLocation.fromGoogleMapsUrl(link);
+    } catch (_) {}
+  }
+
+  Future<void> _submit() async {
+    if (_isSubmitting || !_formKey.currentState!.validate()) return;
+    if (selectedGovernorate == null || _pickedLocation == null) return;
+
+    setState(() => _isSubmitting = true);
+    AppMessages.showLoading(context);
+
+    final result = await _repository.resolveCityIdForIraqGovernorate(
+      selectedGovernorate!.nameAr,
+    );
+
     if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    setState(() => _isSubmitting = false);
+
     result.fold(
-      (_) => setState(() => _isLoadingGeo = false),
-      (data) {
-        setState(() {
-          countries = data;
-          _isLoadingGeo = false;
-        });
+      (error) => AppMessages.showError(context, error.message),
+      (cityId) {
+        final location = widget.model ?? LocationModel();
+        location.cityId = cityId;
+        location.city = CityModel(
+          name: selectedGovernorate!.nameAr,
+          id: cityId,
+        );
+        location.governance = GovernanceModel(
+          name: selectedGovernorate!.nameAr,
+          id: null,
+        );
+        location.governorateName = selectedGovernorate!.nameAr;
+        location.mapLink = _pickedLocation!.googleMapsUrl;
+        location.lat = _pickedLocation!.lat;
+        location.lng = _pickedLocation!.lng;
+        context.pop(location);
       },
     );
-  }
-
-  Future<void> _loadGovernorates(String countryId) async {
-    final result = await _repository.getGovernorates(countryId);
-    if (!mounted) return;
-    result.fold((_) => null, (data) {
-      setState(() {
-        governorates = data;
-        selectedGovernorate = null;
-        selectedCity = null;
-        cities = [];
-      });
-    });
-  }
-
-  Future<void> _loadCities(String governorateId) async {
-    final result = await _repository.getCities(governorateId);
-    if (!mounted) return;
-    result.fold((_) => null, (data) {
-      setState(() {
-        cities = data;
-        selectedCity = null;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    linkController.dispose();
-    super.dispose();
   }
 
   @override
@@ -114,83 +127,35 @@ class _AddLocationSheetState extends State<AddLocationSheet> {
                   : AppStrings.editLocation.tr(),
             ),
             24.height,
-            if (_isLoadingGeo)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              )
-            else ...[
-              CustomDropDownField<CountryModel?>(
-                value: selectedCountry,
-                label: AppStrings.governance.tr(),
-                hint: AppStrings.governance.tr(),
-                validator: CustomValidators.validateDropDown,
-                onChanged: (value) {
-                  setState(() => selectedCountry = value);
-                  if (value?.id != null) _loadGovernorates(value!.id!);
-                },
-                items: countries
-                    .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e.name ?? ''),
-                        ))
-                    .toList(),
-              ),
-              20.height,
-              CustomDropDownField<GovernanceModel?>(
-                value: selectedGovernorate,
-                label: AppStrings.governance.tr(),
-                hint: AppStrings.governance.tr(),
-                validator: CustomValidators.validateDropDown,
-                onChanged: (value) {
-                  setState(() => selectedGovernorate = value);
-                  if (value?.id != null) _loadCities(value!.id!);
-                },
-                items: governorates
-                    .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e.name ?? ''),
-                        ))
-                    .toList(),
-              ),
-              20.height,
-              CustomDropDownField<CityModel?>(
-                value: selectedCity,
-                label: AppStrings.city.tr(),
-                hint: AppStrings.city.tr(),
-                validator: CustomValidators.validateDropDown,
-                onChanged: (value) => setState(() => selectedCity = value),
-                items: cities
-                    .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e.name ?? ''),
-                        ))
-                    .toList(),
-              ),
-              20.height,
-              CustomTextField(
-                label: AppStrings.mapLink.tr(),
-                hint: AppStrings.mapLink.tr(),
-                validator: CustomValidators.isValidGoogleMapLink,
-                controller: linkController,
-              ),
-              24.height,
-              CustomButton.filled(
-                width: 168.w,
-                onTap: () {
-                  if (!_formKey.currentState!.validate()) return;
-                  final location = widget.model ?? LocationModel();
-                  location.cityId = selectedCity?.id;
-                  location.city = selectedCity;
-                  location.governance = selectedGovernorate;
-                  location.mapLink = linkController.text.trim();
-                  context.pop(location);
-                },
-                text: widget.model == null
-                    ? AppStrings.addLocation.tr()
-                    : AppStrings.editLocation.tr(),
-              ),
-            ],
+            CustomDropDownField<IraqGovernorate?>(
+              value: selectedGovernorate,
+              label: AppStrings.governorate.tr(),
+              hint: AppStrings.governorate.tr(),
+              validator: CustomValidators.validateDropDown,
+              onChanged: (value) => setState(() => selectedGovernorate = value),
+              items: iraqGovernorates
+                  .map(
+                    (g) => DropdownMenuItem(
+                      value: g,
+                      child: Text(g.nameAr),
+                    ),
+                  )
+                  .toList(),
+            ),
+            20.height,
+            MapLocationPickerField(
+              value: _pickedLocation,
+              onChanged: (value) => setState(() => _pickedLocation = value),
+              validator: CustomValidators.validatePickedLocation,
+            ),
+            24.height,
+            CustomButton.filled(
+              width: 168.w,
+              onTap: _isSubmitting ? null : _submit,
+              text: widget.model == null
+                  ? AppStrings.addLocation.tr()
+                  : AppStrings.editLocation.tr(),
+            ),
           ],
         ),
       ),

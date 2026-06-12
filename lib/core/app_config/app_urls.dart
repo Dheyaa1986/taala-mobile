@@ -52,6 +52,7 @@ class AppUrls {
   static const String serviceTypesList = '/service-types/list';
   static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
   static const String providerUpdateProfile = '$_baseApi/providers/profile';
+  static const String providerLiveLocation = '/providers/live-location';
   static const String refreshToken = '$_baseApi/refresh-token';
   static const String auctionCategories = '$_baseApi/auction/categories';
   static const String locations = '$_baseApi/locations';

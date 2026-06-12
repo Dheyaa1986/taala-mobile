@@ -12,12 +12,16 @@ abstract class LocationsRepository {
       String countryId);
   Future<Either<CustomException, List<CityModel>>> getCities(
       String governorateId);
+  Future<Either<CustomException, String>> resolveCityIdForIraqGovernorate(
+      String governorateNameAr);
   Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes();
   Future<Either<CustomException, List<LocationModel>>> getLocations(
       String providerId, PaginationOptions options);
   Future<Either<CustomException, LocationModel>> addLocation({
     required String cityId,
     required String googleMapsUrl,
+    double? latitude,
+    double? longitude,
   });
   Future<Either<CustomException, LocationModel>> updateLocation({
     required String providerId,

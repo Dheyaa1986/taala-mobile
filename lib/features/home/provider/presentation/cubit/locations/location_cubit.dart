@@ -69,6 +69,8 @@ class LocationCubit extends Cubit<LocationState> {
     final result = await repository.addLocation(
       cityId: cityId,
       googleMapsUrl: mapUrl,
+      latitude: double.tryParse(location.lat ?? ''),
+      longitude: double.tryParse(location.lng ?? ''),
     );
 
     await result.fold(

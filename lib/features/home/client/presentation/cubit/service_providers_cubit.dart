@@ -86,4 +86,42 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
     filter.value = newFilter;
     getProviders(reset: true);
   }
+
+  Future<void> loadNearestAvailable({
+    required double latitude,
+    required double longitude,
+  }) async {
+    emit(ServiceProvidersLoading());
+    final clientId = await _resolveClientId();
+    if (clientId == null) {
+      emit(ServiceProvidersError(error: 'Failed to load client profile'));
+      return;
+    }
+
+    resetPagination();
+    filter.value = FilterProvidersModel(active: true);
+
+    final result = await repository.getProviders(
+      clientId: clientId,
+      options: ProvidersPaginationOptions(
+        page: page,
+        limit: pageSize,
+        filter: filter.value,
+        clientLatitude: latitude,
+        clientLongitude: longitude,
+      ),
+    );
+
+    result.fold(
+      (error) => emit(ServiceProvidersError(error: error.message)),
+      (items) {
+        providers = items;
+        reachedMax = true;
+        emit(ServiceProvidersLoaded(
+          serviceProviders: providers,
+          reachedMax: reachedMax,
+        ));
+      },
+    );
+  }
 }

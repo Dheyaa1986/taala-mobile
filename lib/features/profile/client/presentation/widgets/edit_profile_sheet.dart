@@ -8,11 +8,13 @@ import 'package:go_router/go_router.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
+import 'package:taal/features/profile/client/presentation/widgets/change_password_sheet.dart';
 import 'package:taal/features/profile/data/models/user_profile_model.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 
 import '../../../../../core/app_config/app_strings.dart';
 import '../../../../../core/di/service_locator.dart';
+import '../../../../../core/helpers/messages.dart';
 import '../../../../../core/validations/validators.dart';
 import '../../../../../core/widgets/avatars/photo_avatar.dart';
 import '../../../../../core/widgets/bottom_sheets/image_sheet.dart';
@@ -20,17 +22,50 @@ import '../../../../../core/widgets/buttons/custom_button.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../custom_sheet.dart';
 
+Future<void> openMyProfileSheet(BuildContext context) async {
+  final cubit = context.read<ProfileCubit>();
+  UserProfileModel? profile;
+
+  final state = cubit.state;
+  if (state is ProfileLoaded) {
+    profile = state.profile;
+  } else if (state is ProfileUpdating) {
+    profile = state.profile;
+  } else {
+    AppMessages.showLoading(context);
+    await cubit.loadProfile();
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+    final loaded = cubit.state;
+    if (loaded is ProfileLoaded) {
+      profile = loaded.profile;
+    } else if (loaded is ProfileError && context.mounted) {
+      AppMessages.showError(context, loaded.message);
+      return;
+    }
+  }
+
+  if (profile != null && context.mounted) {
+    await showEditProfileSheet(context, profile: profile);
+  }
+}
+
 Future showEditProfileSheet(
   BuildContext context, {
   required UserProfileModel profile,
 }) async {
+  final profileCubit = context.read<ProfileCubit>();
   return await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
-    builder: (_) => EditProfileSheet(profile: profile),
+    builder: (sheetContext) => BlocProvider.value(
+      value: profileCubit,
+      child: EditProfileSheet(profile: profile),
+    ),
   );
 }
 
@@ -137,6 +172,11 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                         text: AppStrings.save.tr(),
                         onTap: _save,
                       ),
+                12.height,
+                CustomButton.outlined(
+                  text: AppStrings.changePassword.tr(),
+                  onTap: () => showChangePasswordSheet(context),
+                ),
               ],
             ),
           ),

@@ -51,7 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     right: 0,
                     child: CircleAvatar(
                       radius: 16.r,
-                      backgroundColor: const AppColors.primaryColor,
+                      backgroundColor: AppColors.primaryColor,
                       child: Icon(Icons.camera_alt,
                           size: 16.sp, color: Colors.white),
                     ),
@@ -73,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const AppColors.primaryColor,
+                  backgroundColor: AppColors.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
@@ -105,7 +105,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const AppColors.primaryColor),
+        prefixIcon: Icon(icon, color: AppColors.primaryColor),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),

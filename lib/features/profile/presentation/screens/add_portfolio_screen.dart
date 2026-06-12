@@ -91,7 +91,7 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                   height: 120.h,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: const AppColors.primaryColor),
+                    border: Border.all(color: AppColors.primaryColor),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -99,14 +99,14 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                       Icon(
                         Icons.add_photo_alternate_outlined,
                         size: 40.r,
-                        color: const AppColors.primaryColor,
+                        color: AppColors.primaryColor,
                       ),
                       8.verticalSpace,
                       Text(
                         "اضغط لإضافة صور",
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: const AppColors.primaryColor,
+                          color: AppColors.primaryColor,
                         ),
                       ),
                     ],
@@ -129,12 +129,12 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
                           height: 120.h,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(color: const AppColors.primaryColor),
+                            border: Border.all(color: AppColors.primaryColor),
                           ),
                           child: Icon(
                             Icons.add,
                             size: 40.r,
-                            color: const AppColors.primaryColor,
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       );
@@ -177,7 +177,7 @@ class _AddPortfolioScreenState extends State<AddPortfolioScreen> {
               height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const AppColors.primaryColor,
+                  backgroundColor: AppColors.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),

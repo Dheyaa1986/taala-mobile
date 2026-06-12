@@ -13,6 +13,8 @@ class ServiceProviderModel {
   String? address;
   String? lat;
   String? lng;
+  double? distanceKm;
+  int? etaMinutes;
   List<LocationModel> locations;
 
   ServiceProviderModel({
@@ -28,6 +30,8 @@ class ServiceProviderModel {
     this.address,
     this.lat,
     this.lng,
+    this.distanceKm,
+    this.etaMinutes,
   });
 
   factory ServiceProviderModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +63,8 @@ class ServiceProviderModel {
       address: json['address']?.toString(),
       lat: json['lat']?.toString(),
       lng: json['lng']?.toString(),
+      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
+      etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
     );
   }
 }

@@ -41,6 +41,40 @@ class ProfileRepository extends Repository {
     });
   }
 
+  Future<Either<CustomException, BaseResponseModel>> updateProviderAvailability({
+    required bool isAvailable,
+  }) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.providerUpdateProfile,
+          method: RequestMethod.patch,
+          body: {'providerStatus': isAvailable},
+        ),
+        mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
+  Future<Either<CustomException, BaseResponseModel>> updateProviderLiveLocation({
+    required double latitude,
+    required double longitude,
+  }) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.providerLiveLocation,
+          method: RequestMethod.patch,
+          body: {
+            'latitude': latitude,
+            'longitude': longitude,
+          },
+        ),
+        mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
   Future<Either<CustomException, BaseResponseModel>> updateProviderProfile({
     required String name,
     File? image,

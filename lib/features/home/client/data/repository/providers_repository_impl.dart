@@ -30,6 +30,10 @@ class ProvidersRepositoryImpl extends Repository implements ProviderRepository {
             if (filter?.governanceId != null)
               'governorateId': filter!.governanceId,
             if (filter?.active != null) 'providerStatus': filter!.active,
+            if (options.clientLatitude != null)
+              'clientLatitude': options.clientLatitude,
+            if (options.clientLongitude != null)
+              'clientLongitude': options.clientLongitude,
           },
         ),
       );

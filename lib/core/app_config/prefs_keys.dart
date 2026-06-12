@@ -11,4 +11,7 @@ class PrefsKeys {
   static const String selectedLanguage = 'selected_language';
   static const String clientLocationAddress = 'client_location_address';
   static const String clientLocationMapLink = 'client_location_map_link';
+  static const String clientLocationLat = 'client_location_lat';
+  static const String clientLocationLng = 'client_location_lng';
+  static const String clientLocationGovernorate = 'client_location_governorate';
 }
