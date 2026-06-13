@@ -23,6 +23,7 @@ import '../../features/theme/data/repositories/theme_repository_impl.dart';
 import '../../features/theme/presentation/cubit/theme_cubit.dart';
 import '../../features/support/data/repository/support_ticket_repository.dart';
 import '../../features/support/presentation/cubit/support_ticket_cubit.dart';
+import '../../features/service_orders/data/repository/service_order_repository.dart';
 import '../../features/notifications/presentation/cubit/notification_cubit.dart';
 import '../../features/profile/data/repository/profile_repository.dart';
 import '../../features/profile/presentation/cubit/profile_cubit.dart';
@@ -86,6 +87,8 @@ void _initRepositories() {
       () => NotificationRepository());
   getIt.registerLazySingleton<SupportTicketRepository>(
       () => SupportTicketRepository());
+  getIt.registerLazySingleton<ServiceOrderRepository>(
+      () => ServiceOrderRepositoryImpl());
   getIt.registerLazySingleton<ThemeRepository>(() => ThemeRepositoryImpl());
 }
 

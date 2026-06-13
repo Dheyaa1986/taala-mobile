@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -82,6 +84,13 @@ class _LocationsScreenState extends State<LocationsScreen> {
             titleFS: 24.sp,
             centerTitle: true,
             title: AppStrings.locations.tr(),
+            actions: [
+              IconButton(
+                tooltip: AppStrings.myServiceOrders.tr(),
+                icon: const Icon(Icons.assignment_outlined),
+                onPressed: () => context.pushNamed(Routes.serviceOrders),
+              ),
+            ],
           ),
           body: Padding(
             padding: REdgeInsets.symmetric(horizontal: 16.0),

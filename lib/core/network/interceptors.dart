@@ -22,7 +22,8 @@ class CustomInterceptor extends Interceptor {
     options.headers.addAll({
       HttpHeaders.acceptHeader: ContentType.json.mimeType,
       'Accept-Language':
-          AppRouter.appNavigatorKey.currentContext!.locale.languageCode,
+          AppRouter.appNavigatorKey.currentContext?.locale.languageCode ??
+              'ar',
       'time-zone': DateTime.now().timeZoneName,
     });
 

@@ -1,18 +1,11 @@
 import 'dart:io';
 
-import 'package:alice/alice.dart';
-import 'package:alice/model/alice_configuration.dart';
-import 'package:alice_dio/alice_dio_adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:go_router/go_router.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:taal/core/network/extensions.dart';
-
-import '../../config/routes/app_router.dart';
-import '../../config/routes/routes.dart';
 import '../app_config/app_urls.dart';
 import '../app_config/constants.dart';
 import '../app_config/prefs_keys.dart';
@@ -25,12 +18,7 @@ import 'network_service.dart';
 
 class DioService implements NetworkService {
   late Dio _dio;
-  static Alice alice = Alice(
-      configuration: AliceConfiguration(
-          showShareButton: true,
-          navigatorKey: AppRouter.appNavigatorKey,
-          showInspectorOnShake: true,
-          showNotification: true));
+
   DioService() {
     _initDio();
   }
@@ -60,11 +48,6 @@ class DioService implements NetworkService {
       };
     }
     if (kDebugMode) {
-      AliceDioAdapter aliceDioAdapter = AliceDioAdapter();
-
-      alice.addAdapter(aliceDioAdapter);
-
-      _dio.interceptors.add(aliceDioAdapter);
       _dio.interceptors.add(PrettyDioLogger(
         requestHeader: true,
         requestBody: true,

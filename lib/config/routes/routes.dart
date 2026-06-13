@@ -18,4 +18,6 @@ class Routes {
   static const String notifications = '/notifications';
   static const String supportTickets = '/supportTickets';
   static const String supportTicketDetail = '/supportTickets/:id';
+  static const String serviceOrderDetail = '/service-orders/:id';
+  static const String serviceOrders = '/serviceOrders';
 }

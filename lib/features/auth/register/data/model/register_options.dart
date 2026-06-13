@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -13,6 +14,7 @@ class RegisterOptions {
   final String countryImageSvg;
   final File image;
   final String? type;
+  final List<String>? serviceTypesIds;
 
   RegisterOptions({
     required this.username,
@@ -25,6 +27,7 @@ class RegisterOptions {
     required this.countryImageSvg,
     required this.image,
     this.type,
+    this.serviceTypesIds,
   });
 
   Future<FormData> toFormData() async {
@@ -36,6 +39,8 @@ class RegisterOptions {
       'address': address,
       'confirmPassword': confirmPassword,
       'type': type ?? 'client',
+      if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty)
+        'serviceTypesIds': jsonEncode(serviceTypesIds),
       'profile': await MultipartFile.fromFile(
         image.path,
         filename: image.path.split('/').last,

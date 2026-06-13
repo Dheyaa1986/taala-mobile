@@ -18,9 +18,12 @@ import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
+import 'package:taal/core/widgets/service_type_selector_grid.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
 import 'package:taal/features/auth/widgets/auth_header_widget.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
+import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 
 class ProviderRegisterStepsScreen extends StatefulWidget {
   const ProviderRegisterStepsScreen({super.key, required this.options});
@@ -36,8 +39,30 @@ class _ProviderRegisterStepsScreenState
     extends State<ProviderRegisterStepsScreen> {
   final _pageController = PageController();
   final _descriptionController = TextEditingController();
+  final _locationsRepository = getIt<LocationsRepository>();
   PickedLocation? _pickedLocation;
   int _step = 0;
+  Set<String> _selectedServiceTypeIds = {};
+  List<ServiceTypeModel> _serviceTypes = [];
+  bool _loadingServiceTypes = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServiceTypes();
+  }
+
+  Future<void> _loadServiceTypes() async {
+    final result = await _locationsRepository.getServiceTypes();
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loadingServiceTypes = false),
+      (data) => setState(() {
+        _serviceTypes = data;
+        _loadingServiceTypes = false;
+      }),
+    );
+  }
 
   @override
   void dispose() {
@@ -46,16 +71,34 @@ class _ProviderRegisterStepsScreenState
     super.dispose();
   }
 
+  String _stepSubtitle() {
+    switch (_step) {
+      case 0:
+        return AppStrings.providerRegisterStepServices.tr();
+      case 1:
+        return AppStrings.providerRegisterStep1.tr();
+      default:
+        return AppStrings.providerRegisterStep2.tr();
+    }
+  }
+
   void _nextStep() {
     if (_step == 0) {
+      if (_selectedServiceTypeIds.isEmpty) {
+        AppMessages.showError(context, AppStrings.selectServiceType.tr());
+        return;
+      }
+    }
+    if (_step == 1) {
       final description = _descriptionController.text.trim();
       if (description.isEmpty) {
         AppMessages.showError(context, AppStrings.requiredField.tr());
         return;
       }
     }
-    if (_step == 1) {
-      final locationError = CustomValidators.validatePickedLocation(_pickedLocation);
+    if (_step == 2) {
+      final locationError =
+          CustomValidators.validatePickedLocation(_pickedLocation);
       if (locationError != null) {
         AppMessages.showError(context, locationError);
         return;
@@ -87,6 +130,7 @@ class _ProviderRegisterStepsScreenState
       countryImageSvg: widget.options.countryImageSvg,
       image: widget.options.image,
       type: 'provider',
+      serviceTypesIds: _selectedServiceTypeIds.toList(),
     );
 
     context.read<RegisterCubit>().registerClient(options: options);
@@ -138,13 +182,11 @@ class _ProviderRegisterStepsScreenState
                   16.height,
                   AuthHeaderWidget(
                     title: AppStrings.providerRegisterTitle.tr(),
-                    subTitle: _step == 0
-                        ? AppStrings.providerRegisterStep1.tr()
-                        : AppStrings.providerRegisterStep2.tr(),
+                    subTitle: _stepSubtitle(),
                   ),
                   12.height,
                   Row(
-                    children: List.generate(2, (index) {
+                    children: List.generate(3, (index) {
                       final active = index <= _step;
                       return Expanded(
                         child: Container(
@@ -166,6 +208,17 @@ class _ProviderRegisterStepsScreenState
                       controller: _pageController,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
+                        _loadingServiceTypes
+                            ? const Center(child: CircularProgressIndicator())
+                            : SingleChildScrollView(
+                                child: ServiceTypeSelectorGrid(
+                                  items: _serviceTypes,
+                                  selectedIds: _selectedServiceTypeIds,
+                                  onChanged: (ids) => setState(
+                                    () => _selectedServiceTypeIds = ids,
+                                  ),
+                                ),
+                              ),
                         CustomTextField(
                           controller: _descriptionController,
                           label: AppStrings.providerServiceDescription.tr(),
@@ -182,7 +235,7 @@ class _ProviderRegisterStepsScreenState
                     ),
                   ),
                   CustomButton.filled(
-                    text: _step == 1
+                    text: _step == 2
                         ? AppStrings.signUp.tr()
                         : AppStrings.continueKey.tr(),
                     onTap: () => _nextStep(),

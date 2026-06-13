@@ -199,4 +199,22 @@ class AppStrings {
   static const String providerUnavailable = 'providerUnavailable';
   static const String etaMinutes = 'etaMinutes';
   static const String distanceKm = 'distanceKm';
+  static const String selectServiceType = 'selectServiceType';
+  static const String providerRegisterStepServices = 'providerRegisterStepServices';
+  static const String serviceOrder = 'serviceOrder';
+  static const String myServiceOrders = 'myServiceOrders';
+  static const String noServiceOrders = 'noServiceOrders';
+  static const String trackArrival = 'trackArrival';
+  static const String acceptOrder = 'acceptOrder';
+  static const String startTrip = 'startTrip';
+  static const String arrived = 'arrived';
+  static const String cancelOrder = 'cancelOrder';
+  static const String writeMessage = 'writeMessage';
+  static const String minutes = 'minutes';
+  static const String orderStatusPending = 'orderStatusPending';
+  static const String orderStatusAccepted = 'orderStatusAccepted';
+  static const String orderStatusEnRoute = 'orderStatusEnRoute';
+  static const String orderStatusArrived = 'orderStatusArrived';
+  static const String orderStatusCompleted = 'orderStatusCompleted';
+  static const String orderStatusCancelled = 'orderStatusCancelled';
 }

@@ -31,7 +31,13 @@ class _TaalaAppState extends State<TaalaApp> {
   void initState() {
     super.initState();
     _checkAuthStatus();
-    getIt<ThemeCubit>().loadActiveTheme();
+  }
+
+  void _scheduleThemeLoad() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      getIt<ThemeCubit>().loadActiveTheme();
+    });
   }
 
   Future<void> _checkAuthStatus() async {
@@ -45,6 +51,7 @@ class _TaalaAppState extends State<TaalaApp> {
         _initialRoute = '/login';
       }
     });
+    _scheduleThemeLoad();
   }
 
   @override

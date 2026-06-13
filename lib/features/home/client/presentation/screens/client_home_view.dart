@@ -23,7 +23,7 @@ import 'package:taal/core/widgets/yellow_highlight_card.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/home/client/presentation/cubit/service_providers_cubit.dart';
 import 'package:taal/features/home/client/presentation/widgets/service_provider_card.dart';
-import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
+import 'package:taal/features/service_orders/presentation/widgets/service_order_help_sheet.dart';
 
 class ClientHomeView extends StatefulWidget {
   const ClientHomeView({super.key});
@@ -394,7 +394,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                     24.height,
                     CustomButton.filled(
                       text: AppStrings.requestHelp.tr(),
-                      onTap: () => showSupportTicketSheet(context),
+                      onTap: () => showServiceOrderHelpSheet(context),
                       height: 52.h,
                     ),
                   ],

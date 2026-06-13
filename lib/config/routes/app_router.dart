@@ -18,6 +18,8 @@ import 'package:taal/features/splash/splash_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
 import 'package:taal/features/support/presentation/screens/support_ticket_detail_screen.dart';
 import 'package:taal/features/support/presentation/screens/support_tickets_screen.dart';
+import 'package:taal/features/service_orders/presentation/screens/service_order_detail_screen.dart';
+import 'package:taal/features/service_orders/presentation/screens/service_orders_screen.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/widgets/bottom_nav_bar/bottom_nav_bar.dart';
@@ -199,6 +201,28 @@ class AppRouter {
             ),
           ),
           routes: const [],
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.serviceOrders,
+          name: Routes.serviceOrders,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const ServiceOrdersScreen(),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.serviceOrderDetail,
+          name: Routes.serviceOrderDetail,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: ServiceOrderDetailScreen(
+              orderId: state.pathParameters['id']!,
+            ),
+          ),
         ),
         GoRoute(
           parentNavigatorKey: appNavigatorKey,

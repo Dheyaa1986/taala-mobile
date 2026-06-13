@@ -11,7 +11,7 @@ class ServiceTypeModel {
     return ServiceTypeModel(
       id: json['id']?.toString(),
       name: json['name']?.toString() ?? json['nameAr']?.toString(),
-      image: json['imageUrl']?.toString(),
+      image: json['iconUrl']?.toString() ?? json['imageUrl']?.toString(),
     );
   }
 }
