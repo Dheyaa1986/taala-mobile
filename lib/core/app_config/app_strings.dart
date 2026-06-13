@@ -219,4 +219,7 @@ class AppStrings {
   static const String orderStatusCancelled = 'orderStatusCancelled';
   static const String loginRequiredForHelp = 'loginRequiredForHelp';
   static const String helpRequestClientsOnly = 'helpRequestClientsOnly';
+  static const String noServiceTypesAvailable = 'noServiceTypesAvailable';
+  static const String providerPendingApprovalTitle = 'providerPendingApprovalTitle';
+  static const String providerPendingApprovalBody = 'providerPendingApprovalBody';
 }

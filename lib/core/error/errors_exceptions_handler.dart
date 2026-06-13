@@ -12,7 +12,12 @@ class ErrorsExceptionsHandler {
     String? errorMessage;
 
     if (data is Map<String, dynamic>) {
-      errorMessage = data['message']?.toString();
+      final message = data['message'];
+      if (message is List) {
+        errorMessage = message.map((e) => e.toString()).join(' • ');
+      } else {
+        errorMessage = message?.toString();
+      }
     }
     switch (error.type) {
       case DioExceptionType.connectionTimeout:

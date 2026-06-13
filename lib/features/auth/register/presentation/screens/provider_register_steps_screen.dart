@@ -160,6 +160,7 @@ class _ProviderRegisterStepsScreenState
           }
 
           if (state is RegisterSuccessState) {
+            if (mounted) setState(() => _submitting = false);
             await getIt<SharedPref>().set(
               key: PrefsKeys.isProviderAccount,
               value: true,
@@ -167,11 +168,34 @@ class _ProviderRegisterStepsScreenState
             if (!state.response.requiresApproval) {
               context.read<BottomNavigationCubit>().isProvider = true;
             }
-            AppMessages.showSuccess(
-              context,
-              state.response.message ?? AppStrings.signUp.tr(),
-            );
-            context.goNamed(Routes.login, extra: true);
+
+            if (state.response.requiresApproval && context.mounted) {
+              await showDialog<void>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(AppStrings.providerPendingApprovalTitle.tr()),
+                  content: Text(
+                    state.response.message ??
+                        AppStrings.providerPendingApprovalBody.tr(),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(AppStrings.continueKey.tr()),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              AppMessages.showSuccess(
+                context,
+                state.response.message ?? AppStrings.signUp.tr(),
+              );
+            }
+
+            if (context.mounted) {
+              context.goNamed(Routes.login, extra: true);
+            }
             return;
           }
 
@@ -223,7 +247,19 @@ class _ProviderRegisterStepsScreenState
                       children: [
                         _loadingServiceTypes
                             ? const Center(child: CircularProgressIndicator())
-                            : SingleChildScrollView(
+                            : _serviceTypes.isEmpty
+                                ? Padding(
+                                    padding: REdgeInsets.all(16),
+                                    child: Text(
+                                      AppStrings.noServiceTypesAvailable.tr(),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        color: AppColors.commentColor,
+                                      ),
+                                    ),
+                                  )
+                                : SingleChildScrollView(
                                 child: ServiceTypeSelectorGrid(
                                   items: _serviceTypes,
                                   selectedIds: _selectedServiceTypeIds,

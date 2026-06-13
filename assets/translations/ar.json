@@ -179,6 +179,9 @@
   "orderStatusCompleted": "مكتمل",
   "orderStatusCancelled": "ملغي",
   "loginRequiredForHelp": "يجب تسجيل الدخول كعميل لطلب المساعدة",
-  "helpRequestClientsOnly": "طلب المساعدة متاح للعملاء فقط. سجّل دخولك كعميل"
+  "helpRequestClientsOnly": "طلب المساعدة متاح للعملاء فقط. سجّل دخولك كعميل",
+  "noServiceTypesAvailable": "لا توجد أنواع خدمات مضافة بعد. أضفها من لوحة التحكم ثم حاول مجدداً",
+  "providerPendingApprovalTitle": "تم إرسال طلبك",
+  "providerPendingApprovalBody": "تم استلام طلب تسجيلك كمزود. سيتم تفعيل حسابك بعد موافقة الإدارة. يمكنك تسجيل الدخول لاحقاً بعد الموافقة."
 
 }

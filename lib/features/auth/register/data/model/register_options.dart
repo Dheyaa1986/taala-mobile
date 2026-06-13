@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -32,7 +31,7 @@ class RegisterOptions {
   });
 
   Future<FormData> toFormData() async {
-    return FormData.fromMap({
+    final map = <String, dynamic>{
       'name': username,
       'phone': phone,
       'email': email,
@@ -40,9 +39,13 @@ class RegisterOptions {
       'address': address,
       'confirmPassword': confirmPassword,
       'type': type ?? 'client',
-      if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty)
-        'serviceTypesIds': jsonEncode(serviceTypesIds),
       'profile': await fileToMultipartFile(image),
-    });
+    };
+
+    if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty) {
+      map['serviceTypesIds'] = serviceTypesIds;
+    }
+
+    return FormData.fromMap(map);
   }
 }

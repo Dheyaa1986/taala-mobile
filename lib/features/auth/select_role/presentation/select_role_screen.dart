@@ -82,14 +82,40 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                   context.read<BottomNavigationCubit>().isProvider =
                       isProvider;
                 }
-                AppMessages.showSuccess(
-                  context,
-                  state.response.message ?? AppStrings.signUp.tr(),
-                );
-                context.goNamed(
-                  Routes.login,
-                  extra: isProvider,
-                );
+
+                if (isProvider &&
+                    state.response.requiresApproval &&
+                    context.mounted) {
+                  await showDialog<void>(
+                    context: context,
+                    builder: (dialogContext) => AlertDialog(
+                      title:
+                          Text(AppStrings.providerPendingApprovalTitle.tr()),
+                      content: Text(
+                        state.response.message ??
+                            AppStrings.providerPendingApprovalBody.tr(),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          child: Text(AppStrings.continueKey.tr()),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  AppMessages.showSuccess(
+                    context,
+                    state.response.message ?? AppStrings.signUp.tr(),
+                  );
+                }
+
+                if (context.mounted) {
+                  context.goNamed(
+                    Routes.login,
+                    extra: isProvider,
+                  );
+                }
                 return;
               }
 
