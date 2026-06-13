@@ -72,14 +72,27 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<RegisterCubit, RegisterState>(
+      listenWhen: (previous, current) =>
+          current is RegisterLoadingState ||
+          current is RegisterSuccessState ||
+          current is RegisterErrorState,
       listener: (context, state) {
         if (state is RegisterLoadingState) {
           AppMessages.showLoading(context);
-        } else if (state is RegisterSuccessState) {
+          return;
+        }
+
+        if (Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        if (state is RegisterSuccessState) {
           AppMessages.showSuccess(context, state.response.message ?? '');
           context.pop();
-        } else if (state is RegisterErrorState) {
-          context.pop();
+          return;
+        }
+
+        if (state is RegisterErrorState) {
           AppMessages.showError(
             context,
             state.error,

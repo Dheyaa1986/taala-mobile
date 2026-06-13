@@ -177,6 +177,8 @@
   "orderStatusEnRoute": "في الطريق",
   "orderStatusArrived": "وصل المزود",
   "orderStatusCompleted": "مكتمل",
-  "orderStatusCancelled": "ملغي"
+  "orderStatusCancelled": "ملغي",
+  "loginRequiredForHelp": "يجب تسجيل الدخول كعميل لطلب المساعدة",
+  "helpRequestClientsOnly": "طلب المساعدة متاح للعملاء فقط. سجّل دخولك كعميل"
 
 }

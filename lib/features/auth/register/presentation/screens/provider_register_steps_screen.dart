@@ -45,6 +45,7 @@ class _ProviderRegisterStepsScreenState
   Set<String> _selectedServiceTypeIds = {};
   List<ServiceTypeModel> _serviceTypes = [];
   bool _loadingServiceTypes = true;
+  bool _submitting = false;
 
   @override
   void initState() {
@@ -114,6 +115,9 @@ class _ProviderRegisterStepsScreenState
   }
 
   void _submit(BuildContext context) {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+
     final description = _descriptionController.text.trim();
     final mapLink = _pickedLocation!.googleMapsUrl;
     final fullAddress =
@@ -141,30 +145,39 @@ class _ProviderRegisterStepsScreenState
     return BlocProvider(
       create: (_) => getIt<RegisterCubit>(),
       child: BlocListener<RegisterCubit, RegisterState>(
+        listenWhen: (previous, current) =>
+            current is RegisterLoadingState ||
+            current is RegisterSuccessState ||
+            current is RegisterErrorState,
         listener: (context, state) async {
           if (state is RegisterLoadingState) {
             AppMessages.showLoading(context);
-          } else {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
+            return;
+          }
+
+          if (Navigator.of(context, rootNavigator: true).canPop()) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          if (state is RegisterSuccessState) {
+            await getIt<SharedPref>().set(
+              key: PrefsKeys.isProviderAccount,
+              value: true,
+            );
+            if (!state.response.requiresApproval) {
+              context.read<BottomNavigationCubit>().isProvider = true;
             }
-            if (state is RegisterSuccessState) {
-              if (!state.response.requiresApproval) {
-                context.read<BottomNavigationCubit>().isProvider = true;
-                await getIt<SharedPref>().set(
-                  key: PrefsKeys.isProviderAccount,
-                  value: true,
-                );
-              }
-              AppMessages.showSuccess(
-                context,
-                state.response.message ?? AppStrings.signUp.tr(),
-              );
-              context.goNamed(Routes.login, extra: true);
-            }
-            if (state is RegisterErrorState) {
-              AppMessages.showError(context, state.error);
-            }
+            AppMessages.showSuccess(
+              context,
+              state.response.message ?? AppStrings.signUp.tr(),
+            );
+            context.goNamed(Routes.login, extra: true);
+            return;
+          }
+
+          if (state is RegisterErrorState) {
+            if (mounted) setState(() => _submitting = false);
+            AppMessages.showError(context, state.error);
           }
         },
         child: Scaffold(
@@ -238,7 +251,7 @@ class _ProviderRegisterStepsScreenState
                     text: _step == 2
                         ? AppStrings.signUp.tr()
                         : AppStrings.continueKey.tr(),
-                    onTap: () => _nextStep(),
+                    onTap: _submitting ? null : () => _nextStep(),
                   ),
                   16.height,
                 ],

@@ -58,38 +58,46 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
         body: SafeArea(
           child: Builder(builder: (context) {
           return BlocListener<RegisterCubit, RegisterState>(
+            listenWhen: (previous, current) =>
+                current is RegisterLoadingState ||
+                current is RegisterSuccessState ||
+                current is RegisterErrorState,
             listener: (context, state) async {
               if (state is RegisterLoadingState) {
                 AppMessages.showLoading(context);
-              } else {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
+                return;
+              }
+
+              if (Navigator.of(context, rootNavigator: true).canPop()) {
+                Navigator.of(context, rootNavigator: true).pop();
+              }
+
+              if (state is RegisterSuccessState) {
+                final isProvider = _role == UserRole.provider;
+                await getIt<SharedPref>().set(
+                  key: PrefsKeys.isProviderAccount,
+                  value: isProvider,
+                );
+                if (!state.response.requiresApproval) {
+                  context.read<BottomNavigationCubit>().isProvider =
+                      isProvider;
                 }
-                if (state is RegisterSuccessState) {
-                  final isProvider = _role == UserRole.provider;
-                  if (!state.response.requiresApproval) {
-                    context.read<BottomNavigationCubit>().isProvider =
-                        isProvider;
-                    await getIt<SharedPref>().set(
-                      key: PrefsKeys.isProviderAccount,
-                      value: isProvider,
-                    );
-                  }
-                  AppMessages.showSuccess(
-                    context,
-                    state.response.message ?? AppStrings.signUp.tr(),
-                  );
-                  context.goNamed(
-                    Routes.login,
-                    extra: isProvider,
-                  );
-                }
-                if (state is RegisterErrorState) {
-                  AppMessages.showError(
-                    context,
-                    state.error,
-                  );
-                }
+                AppMessages.showSuccess(
+                  context,
+                  state.response.message ?? AppStrings.signUp.tr(),
+                );
+                context.goNamed(
+                  Routes.login,
+                  extra: isProvider,
+                );
+                return;
+              }
+
+              if (state is RegisterErrorState) {
+                AppMessages.showError(
+                  context,
+                  state.error,
+                );
               }
             },
             child: Padding(

@@ -217,4 +217,6 @@ class AppStrings {
   static const String orderStatusArrived = 'orderStatusArrived';
   static const String orderStatusCompleted = 'orderStatusCompleted';
   static const String orderStatusCancelled = 'orderStatusCancelled';
+  static const String loginRequiredForHelp = 'loginRequiredForHelp';
+  static const String helpRequestClientsOnly = 'helpRequestClientsOnly';
 }

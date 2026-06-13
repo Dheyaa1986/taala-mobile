@@ -7,6 +7,7 @@ import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
@@ -80,6 +81,26 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.requiredField.tr())),
       );
+      return;
+    }
+
+    final isProvider =
+        getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
+    if (isProvider) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.helpRequestClientsOnly.tr())),
+      );
+      return;
+    }
+
+    final hasSession = await AuthSessionHelper.hasActiveSession();
+    if (!hasSession) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.loginRequiredForHelp.tr())),
+      );
+      Navigator.of(context).pop();
+      context.pushNamed(Routes.login, extra: false);
       return;
     }
 

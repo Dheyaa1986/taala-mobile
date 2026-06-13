@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:path/path.dart' as p;
 
 import 'network_request.dart';
 
@@ -50,8 +51,15 @@ extension NetworkRequestExtension on NetworkRequest {
 
 extension MultiPartFileConverter on File {
   Future<MultipartFile> toMultiPart() async {
-    return await MultipartFile.fromFile(path);
+    return fileToMultipartFile(this);
   }
+}
+
+Future<MultipartFile> fileToMultipartFile(File file) async {
+  return MultipartFile.fromFile(
+    file.path,
+    filename: p.basename(file.path),
+  );
 }
 
 extension MultiPartFileListConverter on List<File> {

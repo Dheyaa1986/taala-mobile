@@ -117,6 +117,11 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
 
     if (success) {
       context.pop();
+    } else if (context.read<ProfileCubit>().state is ProfileError) {
+      AppMessages.showError(
+        context,
+        (context.read<ProfileCubit>().state as ProfileError).message,
+      );
     }
   }
 

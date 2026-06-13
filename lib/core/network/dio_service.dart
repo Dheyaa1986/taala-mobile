@@ -54,8 +54,8 @@ class DioService implements NetworkService {
         responseHeader: true,
         responseBody: true,
       ));
-      _dio.interceptors.add(CustomInterceptor(dio: _dio));
     }
+    _dio.interceptors.add(CustomInterceptor(dio: _dio));
   }
 
   Future<void> logout() async {
@@ -79,17 +79,26 @@ class DioService implements NetworkService {
     return headers;
   }
 
+  Future<dynamic> _resolveRequestData(NetworkRequest networkRequest) async {
+    if (!networkRequest.hasBodyAndProgress()) {
+      return networkRequest.body;
+    }
+    if (networkRequest.formDataBody != null) {
+      return networkRequest.formDataBody;
+    }
+    if (networkRequest.isFormData && networkRequest.body != null) {
+      return FormData.fromMap(networkRequest.body!);
+    }
+    return networkRequest.body;
+  }
+
   @override
   Future<Model> callApi<Model>(NetworkRequest networkRequest,
       {Model Function(Map<String, dynamic> json)? mapper}) async {
     try {
       await networkRequest.prepareRequestData();
       final response = await _dio.request(networkRequest.path,
-          data: networkRequest.hasBodyAndProgress()
-              ? networkRequest.isFormData
-                  ? networkRequest.formDataBody
-                  : networkRequest.body
-              : networkRequest.body,
+          data: await _resolveRequestData(networkRequest),
           queryParameters: networkRequest.queryParameters,
           onSendProgress: networkRequest.hasBodyAndProgress()
               ? networkRequest.onSendProgress

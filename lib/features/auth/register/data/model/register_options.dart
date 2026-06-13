@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:taal/core/network/extensions.dart';
 
 class RegisterOptions {
   final String username;
@@ -41,10 +42,7 @@ class RegisterOptions {
       'type': type ?? 'client',
       if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty)
         'serviceTypesIds': jsonEncode(serviceTypesIds),
-      'profile': await MultipartFile.fromFile(
-        image.path,
-        filename: image.path.split('/').last,
-      ),
+      'profile': await fileToMultipartFile(image),
     });
   }
 }
