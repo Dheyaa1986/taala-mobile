@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -43,7 +44,7 @@ class RegisterOptions {
     };
 
     if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty) {
-      map['serviceTypesIds'] = serviceTypesIds;
+      map['serviceTypesIds'] = jsonEncode(serviceTypesIds);
     }
 
     return FormData.fromMap(map);

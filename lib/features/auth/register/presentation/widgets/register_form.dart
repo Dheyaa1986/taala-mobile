@@ -13,6 +13,7 @@ import '../../../../../config/routes/routes.dart';
 import '../../../../../core/app_config/app_colors.dart';
 import '../../../../../core/app_config/app_strings.dart';
 import '../../../../../core/countries/data/model/country_model.dart';
+import '../../../../../core/countries/presentation/cubit/countries_cubit.dart';
 import '../../../../../core/helpers/messages.dart';
 import '../../../../../core/helpers/phone_helper.dart';
 import '../../../../../core/validations/validators.dart';
@@ -51,19 +52,26 @@ class _RegisterFormState extends State<RegisterForm> {
       return;
     }
     if (_formKey.currentState!.validate()) {
+      final countriesState = context.read<CountriesCubit>().state;
+      final selectedCountry = countriesState is CountriesLoaded
+          ? countriesState.country
+          : _country;
+
       context.pushNamed(
         Routes.selectRoleScreen,
         arguments: RegisterOptions(
-          countryImageSvg: _country?.flagSvg ?? '',
+          countryImageSvg: selectedCountry?.flagSvg ?? '',
           confirmPassword: _confirmController.text,
           password: _passwordController.text,
           username: _nameController.text.trim().replaceAll(RegExp(r'\s+'), ' '),
-          phone:
-              PhoneFormatterHelper.formatPhone(_phoneController.text, _country),
+          phone: PhoneFormatterHelper.formatPhone(
+            _phoneController.text,
+            selectedCountry,
+          ),
           email: _emailController.text,
           address: _addressController.text,
           image: _image!,
-          country: _country?.name ?? '',
+          country: selectedCountry?.name ?? '',
         ),
       );
     }

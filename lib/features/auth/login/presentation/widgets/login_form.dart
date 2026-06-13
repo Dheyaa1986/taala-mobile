@@ -188,6 +188,10 @@ class _LoginFormState extends State<LoginForm> {
 
             AppMessages.showError(context, state.error);
 
+          } else if (state is AccountNotVerified) {
+
+            AppMessages.showError(context, state.error);
+
           }
 
         }

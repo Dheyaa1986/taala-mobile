@@ -40,6 +40,7 @@ class _ProviderRegisterStepsScreenState
   final _pageController = PageController();
   final _descriptionController = TextEditingController();
   final _locationsRepository = getIt<LocationsRepository>();
+  late final RegisterCubit _registerCubit;
   PickedLocation? _pickedLocation;
   int _step = 0;
   Set<String> _selectedServiceTypeIds = {};
@@ -50,6 +51,7 @@ class _ProviderRegisterStepsScreenState
   @override
   void initState() {
     super.initState();
+    _registerCubit = getIt<RegisterCubit>();
     _loadServiceTypes();
   }
 
@@ -104,7 +106,7 @@ class _ProviderRegisterStepsScreenState
         AppMessages.showError(context, locationError);
         return;
       }
-      _submit(context);
+      _submit();
       return;
     }
     _pageController.nextPage(
@@ -114,7 +116,7 @@ class _ProviderRegisterStepsScreenState
     setState(() => _step += 1);
   }
 
-  void _submit(BuildContext context) {
+  void _submit() {
     if (_submitting) return;
     setState(() => _submitting = true);
 
@@ -137,13 +139,13 @@ class _ProviderRegisterStepsScreenState
       serviceTypesIds: _selectedServiceTypeIds.toList(),
     );
 
-    context.read<RegisterCubit>().registerClient(options: options);
+    _registerCubit.registerClient(options: options);
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<RegisterCubit>(),
+    return BlocProvider.value(
+      value: _registerCubit,
       child: BlocListener<RegisterCubit, RegisterState>(
         listenWhen: (previous, current) =>
             current is RegisterLoadingState ||
@@ -260,14 +262,14 @@ class _ProviderRegisterStepsScreenState
                                     ),
                                   )
                                 : SingleChildScrollView(
-                                child: ServiceTypeSelectorGrid(
-                                  items: _serviceTypes,
-                                  selectedIds: _selectedServiceTypeIds,
-                                  onChanged: (ids) => setState(
-                                    () => _selectedServiceTypeIds = ids,
+                                    child: ServiceTypeSelectorGrid(
+                                      items: _serviceTypes,
+                                      selectedIds: _selectedServiceTypeIds,
+                                      onChanged: (ids) => setState(
+                                        () => _selectedServiceTypeIds = ids,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
                         CustomTextField(
                           controller: _descriptionController,
                           label: AppStrings.providerServiceDescription.tr(),
@@ -287,7 +289,7 @@ class _ProviderRegisterStepsScreenState
                     text: _step == 2
                         ? AppStrings.signUp.tr()
                         : AppStrings.continueKey.tr(),
-                    onTap: _submitting ? null : () => _nextStep(),
+                    onTap: _submitting ? null : _nextStep,
                   ),
                   16.height,
                 ],
