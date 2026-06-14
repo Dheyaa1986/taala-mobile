@@ -78,16 +78,24 @@ class CustomInterceptor extends Interceptor {
         _logout();
         return false;
       }
-      final accessToken = await SecureLocalStorage.read(PrefsKeys.token);
       dio.options.headers = {};
-      final response = await dio.post(AppUrls.refreshToken, data: {
-        'accessToken': accessToken,
-        'refreshToken': refreshToken,
-      });
+      final response = await dio.post(
+        AppUrls.refreshToken,
+        data: {'refreshToken': refreshToken},
+      );
 
       if (response.statusCode == 200) {
-        final String access = response.data['accessToken'];
-        final String refresh = response.data['refreshToken'];
+        final raw = response.data;
+        final payload = raw is Map<String, dynamic>
+            ? (raw['response'] as Map<String, dynamic>? ?? raw)
+            : <String, dynamic>{};
+        final access = payload['token']?.toString() ?? '';
+        final refresh = payload['refreshToken']?.toString() ?? '';
+
+        if (access.isEmpty || refresh.isEmpty) {
+          _logout();
+          return false;
+        }
 
         await _saveTokens(access, refresh);
 

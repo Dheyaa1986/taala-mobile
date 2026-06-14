@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/profile/data/models/portfolio_model.dart';
 
@@ -38,8 +39,7 @@ class PortfolioCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8).r,
               child: CachedNetworkImage(
-                imageUrl:
-                    portfolio.images.isEmpty ? "" : portfolio.images.first,
+                imageUrl: _resolveImage(portfolio.images),
                 errorWidget: (context, url, error) => const Icon(Icons.error),
                 fit: BoxFit.cover,
                 width: double.infinity,
@@ -50,5 +50,12 @@ class PortfolioCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _resolveImage(List<String> images) {
+    if (images.isEmpty) return '';
+    final image = images.first;
+    if (image.startsWith('http')) return image;
+    return AppUrls.imageLink(image);
   }
 }

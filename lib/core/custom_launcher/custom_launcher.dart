@@ -1,21 +1,20 @@
 import 'dart:io';
-import 'package:easy_localization/easy_localization.dart';
 
-import 'package:flutter/cupertino.dart';
 import 'package:map_launcher/map_launcher.dart';
-
-
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/routes/app_router.dart';
 import '../helpers/messages.dart';
+import '../helpers/phone_launcher_helper.dart';
 
 class CustomLauncher {
-
-  _showErrorToast(String message) {
-    AppMessages.showError(AppRouter.appNavigatorKey.currentContext!,message);
-
+  void _showErrorToast(String message) {
+    final context = AppRouter.appNavigatorKey.currentContext;
+    if (context != null) {
+      AppMessages.showError(context, message);
+    }
   }
+
   Future<void> openUrl(String url) async {
     try {
       final uri = Uri.parse(url);
@@ -29,35 +28,38 @@ class CustomLauncher {
     }
   }
 
-  openMaps(double lat, double lng, String address) async {
+  Future<void> openMaps(double lat, double lng, String address) async {
     try {
       final availableMaps = await MapLauncher.installedMaps;
       if (availableMaps.isEmpty) {
-        _showErrorToast("No maps installed");
+        _showErrorToast('No maps installed');
         return;
       }
       await availableMaps.first.showMarker(
         coords: Coords(lat, lng),
         title: address,
       );
-    } catch (e) {
+    } catch (_) {
       _showErrorToast("Can't open maps");
     }
   }
-  Future openFacebookPage(String username) async {
+
+  Future<void> openFacebookPage(String username) async {
     try {
-      await _launchSocialMediaAppIfInstalled(
-        url: 'https://www.facebook.com/$username', //FaceBook
+      await _launchUrl(
+        Uri.parse('https://www.facebook.com/$username'),
       );
     } on Exception {
       _showErrorToast("Can't open facebook");
     }
   }
-  Future call(String phoneNumber,String clientName) async {
+
+  Future<void> call(String phoneNumber, String clientName) async {
     try {
-      final call = Uri.parse('tel:$phoneNumber');
+      final normalized = PhoneLauncherHelper.forTel(phoneNumber);
+      final call = Uri.parse('tel:$normalized');
       if (await canLaunchUrl(call)) {
-        launchUrl(call);
+        await launchUrl(call, mode: LaunchMode.externalApplication);
       } else {
         throw clientName;
       }
@@ -65,11 +67,13 @@ class CustomLauncher {
       _showErrorToast("Can't call $clientName");
     }
   }
-  Future sendMessage(String phoneNumber,String clientName) async {
+
+  Future<void> sendMessage(String phoneNumber, String clientName) async {
     try {
-      final message = Uri.parse('sms:$phoneNumber');
+      final normalized = PhoneLauncherHelper.forTel(phoneNumber);
+      final message = Uri.parse('sms:$normalized');
       if (await canLaunchUrl(message)) {
-        launchUrl(message);
+        await launchUrl(message, mode: LaunchMode.externalApplication);
       } else {
         throw clientName;
       }
@@ -78,48 +82,54 @@ class CustomLauncher {
     }
   }
 
+  Future<void> openWhatsApp(String phone) async {
+    final digits = PhoneLauncherHelper.forWhatsApp(phone);
+    if (digits.isEmpty) {
+      _showErrorToast("Can't open whatsapp");
+      return;
+    }
 
-
-  Future openWhatsApp(String phone) async {
-    var androidUrl = "whatsapp://send?phone=$phone";
-    var iosUrl = "https://wa.me/$phone";
+    final webUrl = Uri.parse('https://wa.me/$digits');
+    final appUrl = Uri.parse('whatsapp://send?phone=$digits');
 
     try {
       if (Platform.isIOS) {
-        await _launchSocialMediaAppIfInstalled(url: iosUrl);
+        if (await canLaunchUrl(appUrl)) {
+          await launchUrl(appUrl, mode: LaunchMode.externalApplication);
+          return;
+        }
       } else {
-        await _launchSocialMediaAppIfInstalled(url: androidUrl);
+        if (await canLaunchUrl(appUrl)) {
+          await launchUrl(appUrl, mode: LaunchMode.externalApplication);
+          return;
+        }
       }
-    } on Exception {
-      _showErrorToast("Can't open  whatsapp");
+
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      try {
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        _showErrorToast("Can't open whatsapp");
+      }
     }
   }
-  Future lunchUrl(String url) async {
+
+  Future<void> lunchUrl(String url) async {
     try {
-      await _launchSocialMediaAppIfInstalled(
-        url: url,
-      );
+      await _launchUrl(Uri.parse(url));
     } on Exception {
       _showErrorToast("Can't open $url");
     }
   }
 
-
-  Future _launchSocialMediaAppIfInstalled({
-    required String url,
-  }) async {
-    final uri = Uri.parse(url);
-    try {
-      bool launched = await launchUrl(uri,
-          mode: LaunchMode.platformDefault); // Launch the app if installed!
-
-      if (!launched) {
-        launchUrl(uri); // Launch web view if app is not installed!
-      }
-    } catch (e) {
-      rethrow; // Launch web view if app is not installed!
+  Future<void> _launchUrl(Uri uri) async {
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!launched) {
+      throw Exception('launch failed');
     }
   }
-
-
 }

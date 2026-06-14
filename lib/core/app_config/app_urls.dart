@@ -1,7 +1,13 @@
 class AppUrls {
   const AppUrls._();
   static const String base = 'https://taala-back-production.up.railway.app';
-  static String imageLink(String image) => '$base$image';
+  static String imageLink(String image) {
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    final path = image.startsWith('/') ? image : '/$image';
+    return '$base$path';
+  }
   static const String baseApi = base;
   static const String _baseApi = baseApi;
   static const String clientLogin = '$_baseApi/auth/client/login';

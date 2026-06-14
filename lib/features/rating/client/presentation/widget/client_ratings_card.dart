@@ -79,8 +79,10 @@ class ClientRatingsCard extends StatelessWidget {
                   children: [
                     CustomIconButton(
                       onTap: () async {
-                        await getIt<CustomLauncher>()
-                            .call('+20111111111', 'Provider Name');
+                        await getIt<CustomLauncher>().call(
+                          model.serviceProviderModel?.phone ?? '',
+                          model.serviceProviderModel?.name ?? '',
+                        );
                       },
                       iconSize: 24.r,
                       padding: 12.r,
@@ -92,8 +94,9 @@ class ClientRatingsCard extends StatelessWidget {
                     14.width,
                     CustomIconButton(
                       onTap: () async {
-                        await getIt<CustomLauncher>()
-                            .openWhatsApp('+20111111111');
+                        await getIt<CustomLauncher>().openWhatsApp(
+                          model.serviceProviderModel?.phone ?? '',
+                        );
                       },
                       iconSize: 24.r,
                       padding: 12.r,

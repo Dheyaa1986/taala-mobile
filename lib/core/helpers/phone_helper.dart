@@ -1,15 +1,29 @@
-
 import '../countries/data/model/country_model.dart';
 
 class PhoneFormatterHelper {
- static String formatPhone(String phone, CountryModel? country) {
-    String formattedPhone = '';
-    if (phone.startsWith('0') && country?.code == "+20") {
-      formattedPhone = '${country?.code.substring(1)}${phone.substring(1)}';
-    } else {
-      formattedPhone = '${country?.code.substring(1)}$phone';
+  static String formatPhone(String phone, CountryModel? country) {
+    final trimmed = phone.trim();
+    if (trimmed.isEmpty) return '';
+
+    final digits = trimmed.replaceAll(RegExp(r'\s+'), '');
+    final countryCode = country?.code.replaceAll('+', '') ?? '';
+
+    if (countryCode.isEmpty) {
+      return digits.startsWith('0') ? digits.substring(1) : digits;
     }
 
-    return formattedPhone;
+    if (digits.startsWith('0')) {
+      return '$countryCode${digits.substring(1)}';
+    }
+
+    if (digits.startsWith(countryCode)) {
+      return digits;
+    }
+
+    if (digits.startsWith('+$countryCode')) {
+      return digits.substring(1);
+    }
+
+    return '$countryCode$digits';
   }
 }
