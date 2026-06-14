@@ -225,6 +225,8 @@ class AppStrings {
   static const String selectProvider = 'selectProvider';
   static const String openChat = 'openChat';
   static const String chatRequestDefault = 'chatRequestDefault';
+  static const String chatProviderUnavailable = 'chatProviderUnavailable';
+  static const String chatOpenFailed = 'chatOpenFailed';
   static const String approveOrder = 'approveOrder';
   static const String completeOrder = 'completeOrder';
   static const String agreedPrice = 'agreedPrice';

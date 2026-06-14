@@ -134,6 +134,8 @@
   "selectProvider": "Select Provider",
   "openChat": "Chat",
   "chatRequestDefault": "Contact request with provider",
+  "chatProviderUnavailable": "Unable to open chat with this provider",
+  "chatOpenFailed": "Unable to open chat. Please try again",
   "myServiceOrders": "My Orders",
   "noServiceOrders": "No orders yet",
   "serviceOrder": "Service Order",

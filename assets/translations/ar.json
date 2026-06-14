@@ -186,6 +186,8 @@
   "selectProvider": "اختر المزود",
   "openChat": "الدردشة",
   "chatRequestDefault": "طلب تواصل مع المزود",
+  "chatProviderUnavailable": "تعذر فتح الدردشة مع هذا المزود",
+  "chatOpenFailed": "تعذر فتح الدردشة. حاول مرة أخرى",
   "approveOrder": "الموافقة على الاتفاق",
   "completeOrder": "إتمام العملية",
   "agreedPrice": "السعر المتفق عليه",

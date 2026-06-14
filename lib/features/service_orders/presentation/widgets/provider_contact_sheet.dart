@@ -1,20 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
-import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/cached_network_image/custom_cached_network_image.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
-import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
 
 Future<void> showProviderContactSheet(
   BuildContext context, {
@@ -52,47 +48,21 @@ class ProviderContactSheet extends StatefulWidget {
 }
 
 class _ProviderContactSheetState extends State<ProviderContactSheet> {
-  final _ordersRepo = getIt<ServiceOrderRepository>();
   bool _creatingChat = false;
 
   Future<void> _openChat() async {
     if (_creatingChat) return;
     setState(() => _creatingChat = true);
 
-    final prefs = getIt<SharedPref>();
-    final address = await prefs.get(key: PrefsKeys.clientLocationAddress);
-    final lat = await prefs.get(key: PrefsKeys.clientLocationLat);
-    final lng = await prefs.get(key: PrefsKeys.clientLocationLng);
-
-    final result = await _ordersRepo.createOrder(
+    await ServiceOrderChatLauncher.startChat(
+      provider: widget.provider,
       serviceTypeId: widget.serviceTypeId,
       description: widget.description,
-      providerId: widget.provider.id,
-      clientAddress: address is String ? address : null,
-      clientLatitude: lat is String ? double.tryParse(lat) : null,
-      clientLongitude: lng is String ? double.tryParse(lng) : null,
+      sheetsToClose: 2,
     );
 
     if (!mounted) return;
     setState(() => _creatingChat = false);
-
-    result.fold(
-      (error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      ),
-      (order) {
-        Navigator.of(context).pop();
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-        if (order.id != null) {
-          context.pushNamed(
-            Routes.serviceOrderDetail,
-            pathParameters: {'id': order.id!},
-          );
-        }
-      },
-    );
   }
 
   @override

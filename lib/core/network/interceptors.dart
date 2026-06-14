@@ -44,7 +44,11 @@ class CustomInterceptor extends Interceptor {
         isRefreshing = true;
         final refreshSuccess = await _refreshToken(err, handler);
         if (!refreshSuccess) {
-          handler.reject(err);
+          for (final failed in _failedRequests) {
+            failed['handler'].reject(err);
+          }
+          _failedRequests.clear();
+          isRefreshing = false;
         }
       }
     } else {

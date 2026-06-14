@@ -13,7 +13,7 @@ import '../../../../../core/custom_launcher/custom_launcher.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/buttons/view_map_button.dart';
 import '../../../../rating/client/presentation/widget/view_profile.dart';
-import '../../../../service_orders/presentation/widgets/provider_contact_sheet.dart';
+import '../../../../service_orders/presentation/utils/service_order_chat_launcher.dart';
 import '../../data/model/service_provider_model/service_provider_model.dart';
 import '../../data/model/service_provider_model/service_type_model.dart';
 
@@ -71,8 +71,7 @@ class ServiceProviderCard extends StatelessWidget {
     }
 
     if (!context.mounted) return;
-    await showProviderContactSheet(
-      context,
+    await ServiceOrderChatLauncher.startChat(
       provider: model,
       serviceTypeId: selected.id!,
       description: AppStrings.chatRequestDefault.tr(),
