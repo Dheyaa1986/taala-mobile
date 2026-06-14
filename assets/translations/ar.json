@@ -182,6 +182,12 @@
   "helpRequestClientsOnly": "طلب المساعدة متاح للعملاء فقط. سجّل دخولك كعميل",
   "noServiceTypesAvailable": "لا توجد أنواع خدمات مضافة بعد. أضفها من لوحة التحكم ثم حاول مجدداً",
   "providerPendingApprovalTitle": "تم إرسال طلبك",
-  "providerPendingApprovalBody": "تم استلام طلب تسجيلك كمزود. سيتم تفعيل حسابك بعد موافقة الإدارة. يمكنك تسجيل الدخول لاحقاً بعد الموافقة."
-
+  "providerPendingApprovalBody": "تم استلام طلب تسجيلك كمزود. سيتم تفعيل حسابك بعد موافقة الإدارة. يمكنك تسجيل الدخول لاحقاً بعد الموافقة.",
+  "selectProvider": "اختر المزود",
+  "openChat": "الدردشة",
+  "approveOrder": "الموافقة على الاتفاق",
+  "completeOrder": "إتمام العملية",
+  "agreedPrice": "السعر المتفق عليه",
+  "enterAgreedPrice": "أدخل السعر (اختياري)",
+  "back": "رجوع"
 }

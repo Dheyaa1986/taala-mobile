@@ -12,6 +12,7 @@ abstract class ServiceOrderRepository {
     String? clientAddress,
     double? clientLatitude,
     double? clientLongitude,
+    String? providerId,
   });
 
   Future<Either<CustomException, ServiceOrderModel>> getOrder(String id);
@@ -46,6 +47,7 @@ class ServiceOrderRepositoryImpl extends Repository
     String? clientAddress,
     double? clientLatitude,
     double? clientLongitude,
+    String? providerId,
   }) {
     return exceptionHandler(() async {
       final json = await dioService.callApi<Map<String, dynamic>>(
@@ -58,6 +60,7 @@ class ServiceOrderRepositoryImpl extends Repository
             if (clientAddress != null) 'clientAddress': clientAddress,
             if (clientLatitude != null) 'clientLatitude': clientLatitude,
             if (clientLongitude != null) 'clientLongitude': clientLongitude,
+            if (providerId != null) 'providerId': providerId,
           },
         ),
       );

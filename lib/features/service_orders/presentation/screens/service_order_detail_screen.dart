@@ -11,6 +11,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
+import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 
@@ -34,7 +35,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   bool _loading = true;
   bool _sending = false;
   bool _isProvider = false;
+  String? _myUserId;
   Timer? _trackingTimer;
+  Timer? _messagesTimer;
 
   @override
   void initState() {
@@ -44,40 +47,50 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     _trackingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _loadTracking();
     });
+    _messagesTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _load(silent: true);
+    });
   }
 
   @override
   void dispose() {
     _trackingTimer?.cancel();
+    _messagesTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _loadRole() async {
-    final value =
-        await getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount);
-    if (mounted) {
-      setState(() => _isProvider = value == true);
-    }
+    final prefs = getIt<SharedPref>();
+    final isProvider =
+        await prefs.get(key: PrefsKeys.isProviderAccount) == true;
+    final profile = await getIt<ProfileRepository>().getMyProfile();
+    if (!mounted) return;
+    setState(() {
+      _isProvider = isProvider;
+      profile.fold((_) {}, (p) => _myUserId = p.id);
+    });
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool silent = false}) async {
     final result = await _repository.getOrder(widget.orderId);
     if (!mounted) return;
     result.fold(
       (error) {
-        setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message)),
-        );
+        if (!silent) {
+          setState(() => _loading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.message)),
+          );
+        }
       },
       (order) {
         setState(() {
           _order = order;
           _loading = false;
         });
-        _loadTracking();
+        if (!silent) _loadTracking();
       },
     );
   }
@@ -111,10 +124,11 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
-  Future<void> _updateStatus(String status) async {
+  Future<void> _updateStatus(String status, {double? agreedPrice}) async {
     final result = await _repository.updateStatus(
       orderId: widget.orderId,
       status: status,
+      agreedPrice: agreedPrice,
     );
     if (!mounted) return;
     result.fold(
@@ -125,8 +139,59 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
+  Future<void> _approveOrder() async {
+    final priceController = TextEditingController();
+    final agreed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.approveOrder.tr()),
+        content: CustomTextField(
+          controller: priceController,
+          label: AppStrings.agreedPrice.tr(),
+          hint: AppStrings.enterAgreedPrice.tr(),
+          keyboardType: TextInputType.number,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppStrings.cancelOrder.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppStrings.approveOrder.tr()),
+          ),
+        ],
+      ),
+    );
+    if (agreed == true) {
+      final price = double.tryParse(priceController.text.trim());
+      await _updateStatus('accepted', agreedPrice: price);
+    }
+    priceController.dispose();
+  }
+
+  String _statusLabel(String? status) {
+    switch (status) {
+      case 'accepted':
+        return AppStrings.orderStatusAccepted.tr();
+      case 'en_route':
+        return AppStrings.orderStatusEnRoute.tr();
+      case 'arrived':
+        return AppStrings.orderStatusArrived.tr();
+      case 'completed':
+        return AppStrings.orderStatusCompleted.tr();
+      case 'cancelled':
+        return AppStrings.orderStatusCancelled.tr();
+      default:
+        return AppStrings.orderStatusPending.tr();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final order = _order;
+    final canChat = order?.status != 'cancelled' && order?.status != 'completed';
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.serviceOrder.tr()),
@@ -135,12 +200,60 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                if (order != null)
+                  Container(
+                    width: double.infinity,
+                    margin: REdgeInsets.all(12),
+                    padding: REdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE5E5EA)),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isProvider
+                              ? (order.clientName ?? '')
+                              : (order.providerName ?? ''),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15.sp,
+                          ),
+                        ),
+                        4.height,
+                        Text(
+                          order.serviceType?.name ?? order.description ?? '',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppColors.commentColor,
+                          ),
+                        ),
+                        6.height,
+                        Text(
+                          _statusLabel(order.status),
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        if (order.agreedPrice != null) ...[
+                          4.height,
+                          Text(
+                            '${AppStrings.agreedPrice.tr()}: ${order.agreedPrice}',
+                            style: TextStyle(fontSize: 12.sp),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 if (_tracking != null &&
                     (_tracking!.distanceKm != null ||
                         _tracking!.etaMinutes != null))
                   Container(
                     width: double.infinity,
-                    margin: REdgeInsets.all(12),
+                    margin: REdgeInsets.symmetric(horizontal: 12),
                     padding: REdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.primaryColor.withValues(alpha: 0.1),
@@ -160,7 +273,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         Text(
                           [
                             if (_tracking!.distanceKm != null)
-                              '${_tracking!.distanceKm!.toStringAsFixed(1)} كم',
+                              '${_tracking!.distanceKm!.toStringAsFixed(1)} ${AppStrings.distanceKm.tr()}',
                             if (_tracking!.etaMinutes != null)
                               '${_tracking!.etaMinutes} ${AppStrings.minutes.tr()}',
                           ].join(' • '),
@@ -173,7 +286,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       ],
                     ),
                   ),
-                if (_isProvider && _order?.status == 'pending')
+                8.height,
+                if (_isProvider && order?.status == 'pending')
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
@@ -181,7 +295,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       onTap: () => _updateStatus('accepted'),
                     ),
                   ),
-                if (_isProvider && _order?.status == 'accepted')
+                if (_isProvider && order?.status == 'accepted')
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
@@ -189,7 +303,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       onTap: () => _updateStatus('en_route'),
                     ),
                   ),
-                if (_isProvider && _order?.status == 'en_route')
+                if (_isProvider && order?.status == 'en_route')
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
@@ -197,12 +311,31 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       onTap: () => _updateStatus('arrived'),
                     ),
                   ),
-                if (!_isProvider && _order?.status == 'pending')
+                if (!_isProvider && order?.status == 'pending') ...[
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
+                      text: AppStrings.approveOrder.tr(),
+                      onTap: _approveOrder,
+                    ),
+                  ),
+                  8.height,
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: CustomButton.outlined(
                       text: AppStrings.cancelOrder.tr(),
                       onTap: () => _updateStatus('cancelled'),
+                    ),
+                  ),
+                ],
+                if (!_isProvider &&
+                    (order?.status == 'arrived' ||
+                        order?.status == 'accepted'))
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: CustomButton.filled(
+                      text: AppStrings.completeOrder.tr(),
+                      onTap: () => _updateStatus('completed'),
                     ),
                   ),
                 8.height,
@@ -210,22 +343,28 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: REdgeInsets.all(12),
-                    itemCount: _order?.messages.length ?? 0,
+                    itemCount: order?.messages.length ?? 0,
                     itemBuilder: (context, index) {
-                      final message = _order!.messages[index];
+                      final message = order!.messages[index];
+                      final isMine = message.senderId == _myUserId;
                       return Align(
-                        alignment: AlignmentDirectional.centerStart,
+                        alignment: isMine
+                            ? AlignmentDirectional.centerEnd
+                            : AlignmentDirectional.centerStart,
                         child: Container(
                           margin: EdgeInsets.only(bottom: 8.h),
                           padding: REdgeInsets.all(10),
+                          constraints: BoxConstraints(maxWidth: 0.78.sw),
                           decoration: BoxDecoration(
-                            color: AppColors.textFieldFillColor,
+                            color: isMine
+                                ? AppColors.primaryColor.withValues(alpha: 0.15)
+                                : AppColors.textFieldFillColor,
                             borderRadius: BorderRadius.circular(10.r),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (message.senderName != null)
+                              if (message.senderName != null && !isMine)
                                 Text(
                                   message.senderName!,
                                   style: TextStyle(
@@ -241,30 +380,32 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     },
                   ),
                 ),
-                Padding(
-                  padding: REdgeInsets.fromLTRB(12, 0, 12, 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _messageController,
-                          hint: AppStrings.writeMessage.tr(),
+                if (canChat)
+                  Padding(
+                    padding: REdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomTextField(
+                            controller: _messageController,
+                            hint: AppStrings.writeMessage.tr(),
+                          ),
                         ),
-                      ),
-                      8.width,
-                      IconButton(
-                        onPressed: _sending ? null : _sendMessage,
-                        icon: _sending
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.send),
-                      ),
-                    ],
+                        8.width,
+                        IconButton(
+                          onPressed: _sending ? null : _sendMessage,
+                          icon: _sending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.send),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
     );
