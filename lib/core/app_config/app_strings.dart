@@ -224,6 +224,7 @@ class AppStrings {
   static const String providerPendingApprovalBody = 'providerPendingApprovalBody';
   static const String selectProvider = 'selectProvider';
   static const String openChat = 'openChat';
+  static const String chatRequestDefault = 'chatRequestDefault';
   static const String approveOrder = 'approveOrder';
   static const String completeOrder = 'completeOrder';
   static const String agreedPrice = 'agreedPrice';

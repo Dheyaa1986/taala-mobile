@@ -13,11 +13,72 @@ import '../../../../../core/custom_launcher/custom_launcher.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/buttons/view_map_button.dart';
 import '../../../../rating/client/presentation/widget/view_profile.dart';
+import '../../../../service_orders/presentation/widgets/provider_contact_sheet.dart';
 import '../../data/model/service_provider_model/service_provider_model.dart';
+import '../../data/model/service_provider_model/service_type_model.dart';
 
 class ServiceProviderCard extends StatelessWidget {
   const ServiceProviderCard({super.key, required this.model});
   final ServiceProviderModel model;
+
+  Future<void> _openChat(BuildContext context) async {
+    final types = model.serviceTypes
+        .where((type) => type.id != null && type.id!.isNotEmpty)
+        .toList();
+
+    if (types.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.noServiceTypesAvailable.tr())),
+      );
+      return;
+    }
+
+    ServiceTypeModel selected = types.first;
+    if (types.length > 1) {
+      final picked = await showModalBottomSheet<ServiceTypeModel>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (sheetContext) => SafeArea(
+          child: Padding(
+            padding: REdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  AppStrings.selectServiceType.tr(),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                12.height,
+                ...types.map(
+                  (type) => ListTile(
+                    title: Text(type.name ?? ''),
+                    onTap: () => Navigator.of(sheetContext).pop(type),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (picked == null) return;
+      selected = picked;
+    }
+
+    if (!context.mounted) return;
+    await showProviderContactSheet(
+      context,
+      provider: model,
+      serviceTypeId: selected.id!,
+      description: AppStrings.chatRequestDefault.tr(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -145,6 +206,12 @@ class ServiceProviderCard extends StatelessWidget {
                     }),
               ),
             ],
+          ),
+          8.height,
+          CustomButton.filled(
+            radius: Radius.circular(16.r),
+            text: AppStrings.openChat.tr(),
+            onTap: () => _openChat(context),
           ),
         ]),
       ),

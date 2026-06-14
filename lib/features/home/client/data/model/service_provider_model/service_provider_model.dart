@@ -1,4 +1,5 @@
 import 'package:taal/core/app_config/app_urls.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 
 class ServiceProviderModel {
@@ -8,6 +9,7 @@ class ServiceProviderModel {
   int? totalRatings;
   String? email;
   List<String> services;
+  List<ServiceTypeModel> serviceTypes;
   String? phone;
   String? image;
   String? address;
@@ -25,6 +27,7 @@ class ServiceProviderModel {
     this.locations = const [],
     this.email,
     this.services = const [],
+    this.serviceTypes = const [],
     this.phone,
     this.image,
     this.address,
@@ -36,6 +39,14 @@ class ServiceProviderModel {
 
   factory ServiceProviderModel.fromJson(Map<String, dynamic> json) {
     final serviceTypes = json['serviceTypes'] as List<dynamic>? ?? [];
+    final parsedServiceTypes = serviceTypes
+        .map(
+          (item) => ServiceTypeModel.fromJson(
+            item as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+
     final imageUrl = json['imageUrl']?.toString() ?? json['image']?.toString();
 
     return ServiceProviderModel(
@@ -45,13 +56,11 @@ class ServiceProviderModel {
       rate: (json['averageRating'] as num?)?.toDouble() ??
           (json['rate'] as num?)?.toDouble(),
       totalRatings: json['ratersCount'] as int? ?? json['totalRatings'] as int?,
-      services: serviceTypes
-          .map((e) =>
-              (e as Map<String, dynamic>)['name']?.toString() ??
-              e['nameEn']?.toString() ??
-              '')
-          .where((e) => e.isNotEmpty)
+      services: parsedServiceTypes
+          .map((item) => item.name ?? '')
+          .where((name) => name.isNotEmpty)
           .toList(),
+      serviceTypes: parsedServiceTypes,
       locations: json['locations'] != null
           ? List<LocationModel>.from((json['locations'] as List)
               .map((x) => LocationModel.fromJson(x as Map<String, dynamic>)))

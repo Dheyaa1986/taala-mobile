@@ -185,6 +185,7 @@
   "providerPendingApprovalBody": "تم استلام طلب تسجيلك كمزود. سيتم تفعيل حسابك بعد موافقة الإدارة. يمكنك تسجيل الدخول لاحقاً بعد الموافقة.",
   "selectProvider": "اختر المزود",
   "openChat": "الدردشة",
+  "chatRequestDefault": "طلب تواصل مع المزود",
   "approveOrder": "الموافقة على الاتفاق",
   "completeOrder": "إتمام العملية",
   "agreedPrice": "السعر المتفق عليه",
