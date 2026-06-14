@@ -227,6 +227,9 @@ class AppStrings {
   static const String chatRequestDefault = 'chatRequestDefault';
   static const String chatProviderUnavailable = 'chatProviderUnavailable';
   static const String chatOpenFailed = 'chatOpenFailed';
+  static const String genericError = 'genericError';
+  static const String providerIncomingOrders = 'providerIncomingOrders';
+  static const String viewAllOrders = 'viewAllOrders';
   static const String approveOrder = 'approveOrder';
   static const String completeOrder = 'completeOrder';
   static const String agreedPrice = 'agreedPrice';

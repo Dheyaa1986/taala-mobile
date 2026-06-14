@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:taal/config/routes/app_router.dart';
 import 'package:taal/core/network/extensions.dart';
 import '../app_config/app_urls.dart';
 import '../app_config/constants.dart';
@@ -64,10 +65,12 @@ class DioService implements NetworkService {
   }
 
   Future<Map<String, dynamic>> _getDefaultHeaders(bool isWithoutToken) async {
+    final locale =
+        AppRouter.appNavigatorKey.currentContext?.locale.languageCode ?? 'ar';
     final Map<String, dynamic> headers = {};
     headers.addAll({
       HttpHeaders.acceptHeader: ContentType.json.mimeType,
-      'accept-language': 'ar',
+      'accept-language': locale,
       'time-zone': 'Asia/Baghdad',
     });
     if (isWithoutToken != true) {

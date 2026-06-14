@@ -17,6 +17,7 @@ import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/presentation/cubit/locations/location_cubit.dart';
 import 'package:taal/features/home/provider/presentation/widgets/add_location_sheet.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:taal/features/service_orders/presentation/widgets/provider_service_orders_panel.dart';
 
 import '../../../../../core/widgets/appbar/logo_skip_appbar.dart';
 import '../widgets/locations_list.dart';
@@ -149,6 +150,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
                     ],
                   ),
                 ),
+                16.height,
+                const ProviderServiceOrdersPanel(),
                 16.height,
                 GestureDetector(
                   onTap: () async {

@@ -1,3 +1,4 @@
+import 'package:taal/core/network/api_response_helper.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 
 class ServiceOrderMessageModel {
@@ -66,11 +67,11 @@ class ServiceOrderModel {
       description: json['description']?.toString(),
       status: json['status']?.toString(),
       clientAddress: json['clientAddress']?.toString(),
-      clientLatitude: (json['clientLatitude'] as num?)?.toDouble(),
-      clientLongitude: (json['clientLongitude'] as num?)?.toDouble(),
-      agreedPrice: (json['agreedPrice'] as num?)?.toDouble(),
-      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
-      etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
+      clientLatitude: ApiResponseHelper.parseDouble(json['clientLatitude']),
+      clientLongitude: ApiResponseHelper.parseDouble(json['clientLongitude']),
+      agreedPrice: ApiResponseHelper.parseDouble(json['agreedPrice']),
+      distanceKm: ApiResponseHelper.parseDouble(json['distanceKm']),
+      etaMinutes: ApiResponseHelper.parseInt(json['etaMinutes']),
       providerName: json['provider']?['name']?.toString(),
       clientName: json['client']?['name']?.toString(),
       serviceType: json['serviceType'] != null
@@ -110,10 +111,10 @@ class ServiceOrderTrackingModel {
     return ServiceOrderTrackingModel(
       orderId: json['orderId']?.toString(),
       status: json['status']?.toString(),
-      providerLatitude: (json['providerLatitude'] as num?)?.toDouble(),
-      providerLongitude: (json['providerLongitude'] as num?)?.toDouble(),
-      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
-      etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
+      providerLatitude: ApiResponseHelper.parseDouble(json['providerLatitude']),
+      providerLongitude: ApiResponseHelper.parseDouble(json['providerLongitude']),
+      distanceKm: ApiResponseHelper.parseDouble(json['distanceKm']),
+      etaMinutes: ApiResponseHelper.parseInt(json['etaMinutes']),
     );
   }
 }

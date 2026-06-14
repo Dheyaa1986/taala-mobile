@@ -11,6 +11,7 @@ import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/notifications/data/models/notification_model.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/notifications/presentation/widgets/notification_card.dart';
+import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -29,6 +30,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _onNotificationTap(NotificationModel item) {
     if (!item.isRead) {
       context.read<NotificationCubit>().markAsRead(item.id);
+    }
+
+    final orderId = item.linkedServiceOrderId;
+    if (orderId != null && orderId.isNotEmpty) {
+      ServiceOrderNavigation.openDetail(orderId);
+      return;
     }
 
     final ticketId = item.supportTicketId;

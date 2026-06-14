@@ -24,7 +24,7 @@ class CustomInterceptor extends Interceptor {
       'Accept-Language':
           AppRouter.appNavigatorKey.currentContext?.locale.languageCode ??
               'ar',
-      'time-zone': DateTime.now().timeZoneName,
+      'time-zone': 'Asia/Baghdad',
     });
 
     super.onRequest(options, handler);

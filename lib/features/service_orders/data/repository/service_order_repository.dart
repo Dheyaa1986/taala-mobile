@@ -1,3 +1,4 @@
+import 'package:taal/core/network/api_response_helper.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/network/network_request.dart';
 import 'package:taal/core/repository/repository.dart';
@@ -50,7 +51,7 @@ class ServiceOrderRepositoryImpl extends Repository
     String? providerId,
   }) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi<Map<String, dynamic>>(
+      final json = await dioService.callApi(
         NetworkRequest(
           AppUrls.serviceOrders,
           method: RequestMethod.post,
@@ -64,21 +65,17 @@ class ServiceOrderRepositoryImpl extends Repository
           },
         ),
       );
-      return ServiceOrderModel.fromJson(
-        (json['response'] ?? json) as Map<String, dynamic>,
-      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
     });
   }
 
   @override
   Future<Either<CustomException, ServiceOrderModel>> getOrder(String id) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi<Map<String, dynamic>>(
+      final json = await dioService.callApi(
         NetworkRequest('${AppUrls.serviceOrders}/$id', method: RequestMethod.get),
       );
-      return ServiceOrderModel.fromJson(
-        (json['response'] ?? json) as Map<String, dynamic>,
-      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
     });
   }
 
@@ -87,15 +84,13 @@ class ServiceOrderRepositoryImpl extends Repository
     String id,
   ) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi<Map<String, dynamic>>(
+      final json = await dioService.callApi(
         NetworkRequest(
           AppUrls.serviceOrderTracking(id),
           method: RequestMethod.get,
         ),
       );
-      return ServiceOrderTrackingModel.fromJson(
-        (json['response'] ?? json) as Map<String, dynamic>,
-      );
+      return ServiceOrderTrackingModel.fromJson(ApiResponseHelper.unwrap(json));
     });
   }
 
@@ -105,16 +100,14 @@ class ServiceOrderRepositoryImpl extends Repository
     required String message,
   }) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi<Map<String, dynamic>>(
+      final json = await dioService.callApi(
         NetworkRequest(
           AppUrls.serviceOrderMessages(orderId),
           method: RequestMethod.post,
           body: {'message': message},
         ),
       );
-      return ServiceOrderModel.fromJson(
-        (json['response'] ?? json) as Map<String, dynamic>,
-      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
     });
   }
 
@@ -125,7 +118,7 @@ class ServiceOrderRepositoryImpl extends Repository
     double? agreedPrice,
   }) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi<Map<String, dynamic>>(
+      final json = await dioService.callApi(
         NetworkRequest(
           AppUrls.serviceOrderStatus(orderId),
           method: RequestMethod.patch,
@@ -135,9 +128,7 @@ class ServiceOrderRepositoryImpl extends Repository
           },
         ),
       );
-      return ServiceOrderModel.fromJson(
-        (json['response'] ?? json) as Map<String, dynamic>,
-      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
     });
   }
 
@@ -147,18 +138,20 @@ class ServiceOrderRepositoryImpl extends Repository
     int limit = 20,
   }) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi<Map<String, dynamic>>(
+      final json = await dioService.callApi(
         NetworkRequest(
           AppUrls.serviceOrdersMe,
           method: RequestMethod.get,
           queryParameters: {'page': page, 'limit': limit},
         ),
       );
-      final response = json['response'] as Map<String, dynamic>? ?? json;
+      final response = ApiResponseHelper.unwrap(json);
       final data = response['data'] as List<dynamic>? ?? [];
       return data
           .map(
-            (item) => ServiceOrderModel.fromJson(item as Map<String, dynamic>),
+            (item) => ServiceOrderModel.fromJson(
+              ApiResponseHelper.asMap(item),
+            ),
           )
           .toList();
     });

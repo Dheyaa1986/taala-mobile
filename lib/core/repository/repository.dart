@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../app_config/app_strings.dart';
 import '../di/service_locator.dart';
-import '../error/errors_exceptions_handler.dart';
 import '../error/exceptions.dart';
 import '../network/dio_service.dart';
 
@@ -19,15 +19,14 @@ abstract class Repository {
       return Left(
         e,
       );
+    } on FormatException catch (e) {
+      debugPrint(e.toString());
+      return Left(CustomException(AppStrings.genericError.tr()));
     } catch (e, trace) {
       debugPrint(e.toString());
       debugPrint(trace.toString());
       return Left(
-        CustomException(
-          (e is CustomException)
-              ? e.message.toString()
-              : "Something went wrong, please try again later.",
-        ),
+        CustomException(AppStrings.genericError.tr()),
       );
     }
   }

@@ -7,6 +7,7 @@ class NotificationModel extends Equatable {
   final bool isRead;
   final DateTime? createdAt;
   final String? supportTicketId;
+  final String? serviceOrderId;
 
   const NotificationModel({
     required this.id,
@@ -15,6 +16,7 @@ class NotificationModel extends Equatable {
     required this.isRead,
     this.createdAt,
     this.supportTicketId,
+    this.serviceOrderId,
   });
 
   NotificationModel copyWith({
@@ -24,6 +26,7 @@ class NotificationModel extends Equatable {
     bool? isRead,
     DateTime? createdAt,
     String? supportTicketId,
+    String? serviceOrderId,
   }) {
     return NotificationModel(
       id: id ?? this.id,
@@ -32,7 +35,24 @@ class NotificationModel extends Equatable {
       isRead: isRead ?? this.isRead,
       createdAt: createdAt ?? this.createdAt,
       supportTicketId: supportTicketId ?? this.supportTicketId,
+      serviceOrderId: serviceOrderId ?? this.serviceOrderId,
     );
+  }
+
+  String? get linkedServiceOrderId {
+    if (serviceOrderId != null && serviceOrderId!.isNotEmpty) {
+      return serviceOrderId;
+    }
+    if (_isServiceOrderNotification && supportTicketId != null) {
+      return supportTicketId;
+    }
+    return null;
+  }
+
+  bool get _isServiceOrderNotification {
+    return title.contains('طلب خدمة') ||
+        title.contains('رسالة جديدة في طلب الخدمة') ||
+        title.contains('تحديث حالة الطلب');
   }
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -47,12 +67,13 @@ class NotificationModel extends Equatable {
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
       supportTicketId: json['supportTicketId']?.toString(),
+      serviceOrderId: json['serviceOrderId']?.toString(),
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, title, message, isRead, createdAt, supportTicketId];
+      [id, title, message, isRead, createdAt, supportTicketId, serviceOrderId];
 }
 
 class NotificationsPageModel {
