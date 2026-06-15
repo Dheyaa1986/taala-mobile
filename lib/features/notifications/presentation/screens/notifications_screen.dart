@@ -11,6 +11,10 @@ import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/notifications/data/models/notification_model.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/notifications/presentation/widgets/notification_card.dart';
+import 'package:taal/core/app_config/prefs_keys.dart';
+import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/shared_pref_local_storage.dart';
+import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -27,14 +31,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     context.read<NotificationCubit>().loadNotifications();
   }
 
-  void _onNotificationTap(NotificationModel item) {
+  void _onNotificationTap(NotificationModel item) async {
     if (!item.isRead) {
       context.read<NotificationCubit>().markAsRead(item.id);
     }
 
     final orderId = item.linkedServiceOrderId;
     if (orderId != null && orderId.isNotEmpty) {
-      ServiceOrderNavigation.openDetail(orderId);
+      final isProvider =
+          getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
+      if (isProvider) {
+        await ServiceOrderLocalStateHelper.undismiss(orderId);
+        await ServiceOrderLocalStateHelper.markRead(orderId);
+      }
+      ServiceOrderNavigation.openDetail(orderId, openChat: true);
       return;
     }
 

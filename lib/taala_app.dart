@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'config/routes/app_router.dart';
 import 'config/themes/theme.dart';
+import 'core/alerts/app_alert_monitor.dart';
 import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
@@ -88,6 +89,7 @@ class _TaalaAppState extends State<TaalaApp> {
                   if (token != null && token.isNotEmpty) {
                     cubit.loadProfile();
                     getIt<NotificationCubit>().loadUnreadCount();
+                    getIt<AppAlertMonitor>().start();
                   }
                 });
                 return cubit;

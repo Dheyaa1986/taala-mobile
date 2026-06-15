@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
@@ -17,9 +18,14 @@ import 'package:taal/features/service_orders/data/repository/service_order_repos
 import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
 
 class ServiceOrderDetailScreen extends StatefulWidget {
-  const ServiceOrderDetailScreen({super.key, required this.orderId});
+  const ServiceOrderDetailScreen({
+    super.key,
+    required this.orderId,
+    this.openChatOnStart = false,
+  });
 
   final String orderId;
+  final bool openChatOnStart;
 
   @override
   State<ServiceOrderDetailScreen> createState() =>
@@ -28,6 +34,7 @@ class ServiceOrderDetailScreen extends StatefulWidget {
 
 class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   final _messageController = TextEditingController();
+  final _messageFocusNode = FocusNode();
   final _repository = getIt<ServiceOrderRepository>();
   final _scrollController = ScrollController();
 
@@ -48,7 +55,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     _trackingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _loadTracking();
     });
-    _messagesTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _messagesTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _load(silent: true);
     });
   }
@@ -58,6 +65,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     _trackingTimer?.cancel();
     _messagesTimer?.cancel();
     _messageController.dispose();
+    _messageFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -91,11 +99,29 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         }
       },
       (order) {
+        if (silent) {
+          final previousCount = _order?.messages.length ?? 0;
+          final newCount = order.messages.length;
+          if (newCount > previousCount) {
+            final incoming = order.messages
+                .skip(previousCount)
+                .any((message) => message.senderId != _myUserId);
+            if (incoming) {
+              getIt<AppAlertSoundService>().play();
+            }
+          }
+        }
+
         setState(() {
           _order = order;
           _loading = false;
         });
-        if (!silent) _loadTracking();
+        if (!silent) {
+          _loadTracking();
+          if (widget.openChatOnStart) {
+            _focusChat();
+          }
+        }
       },
     );
   }
@@ -140,8 +166,31 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       (error) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.message)),
       ),
-      (order) => setState(() => _order = order),
+      (order) {
+        setState(() => _order = order);
+        if (_isProvider && status == 'accepted') {
+          _focusChat();
+        }
+      },
     );
+  }
+
+  void _focusChat() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+      _messageFocusNode.requestFocus();
+    });
+  }
+
+  Future<void> _acceptOrder() async {
+    await _updateStatus('accepted');
   }
 
   Future<void> _approveOrder() async {
@@ -296,8 +345,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
-                      text: AppStrings.acceptOrder.tr(),
-                      onTap: () => _updateStatus('accepted'),
+                      text: AppStrings.acceptAndChat.tr(),
+                      onTap: _acceptOrder,
                     ),
                   ),
                 if (_isProvider && order?.status == 'accepted')
@@ -394,6 +443,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           child: CustomTextField(
                             controller: _messageController,
                             hint: AppStrings.writeMessage.tr(),
+                            focusNode: _messageFocusNode,
                           ),
                         ),
                         8.width,

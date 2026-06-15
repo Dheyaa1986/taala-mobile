@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../../../core/app_config/prefs_keys.dart';
+import '../../../../../../core/alerts/app_alert_monitor.dart';
 import '../../../../../../core/di/service_locator.dart';
 import '../../../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../../../core/helpers/secure_local_storage.dart';
@@ -50,6 +51,7 @@ class LoginCubit extends Cubit<LoginState> {
         await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: true);
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().loadUnreadCount();
+        getIt<AppAlertMonitor>().start();
 
         emit(LoginSuccess(response: response));
       },

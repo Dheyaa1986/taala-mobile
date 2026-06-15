@@ -21,6 +21,7 @@ class CustomTextField extends StatefulWidget {
   final TextStyle? textStyle, labelStyle;
   final Function(String)? onChanged;
   final double? borderRadius;
+  final FocusNode? focusNode;
   const CustomTextField(
       {super.key,
       this.label,
@@ -42,6 +43,7 @@ class CustomTextField extends StatefulWidget {
       this.onChanged,
       this.labelStyle,
       this.borderRadius,
+      this.focusNode,
       this.enabled = true});
 
   @override
@@ -100,6 +102,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         ),
         TextFormField(
           enabled: widget.enabled,
+          focusNode: widget.focusNode,
           onTapOutside: (_) => FocusScope.of(context).unfocus(),
           onChanged: widget.onChanged,
           onTap: widget.onTap,

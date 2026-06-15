@@ -33,5 +33,11 @@ class ServiceOrderLocalStateHelper {
     await _saveIdSet(_dismissedIdsKey, ids);
   }
 
+  static Future<void> undismiss(String orderId) async {
+    final ids = _getIdSet(_dismissedIdsKey);
+    ids.remove(orderId);
+    await _saveIdSet(_dismissedIdsKey, ids);
+  }
+
   static Set<String> dismissedIds() => _getIdSet(_dismissedIdsKey);
 }

@@ -221,6 +221,7 @@ class AppRouter {
             state: state,
             child: ServiceOrderDetailScreen(
               orderId: state.pathParameters['id']!,
+              openChatOnStart: state.extra == true,
             ),
           ),
         ),

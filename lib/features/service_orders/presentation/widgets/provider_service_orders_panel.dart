@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
@@ -21,18 +24,42 @@ class ProviderServiceOrdersPanel extends StatefulWidget {
       _ProviderServiceOrdersPanelState();
 }
 
-class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel> {
+class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
+    with WidgetsBindingObserver {
   final _repository = getIt<ServiceOrderRepository>();
   List<ServiceOrderModel> _orders = [];
   Set<String> _readIds = {};
   Set<String> _dismissedIds = {};
   bool _loading = true;
   bool _routeActive = true;
+  String? _acceptingOrderId;
+  late final AppAlertMonitor _alertMonitor;
 
   @override
   void initState() {
     super.initState();
+    _alertMonitor = getIt<AppAlertMonitor>();
+    WidgetsBinding.instance.addObserver(this);
+    _alertMonitor.ordersRefreshTick.addListener(_onOrdersRefreshTick);
     _load();
+  }
+
+  void _onOrdersRefreshTick() {
+    if (mounted) _load();
+  }
+
+  @override
+  void dispose() {
+    _alertMonitor.ordersRefreshTick.removeListener(_onOrdersRefreshTick);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _load();
+    }
   }
 
   @override
@@ -45,14 +72,23 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
     _routeActive = isCurrent;
   }
 
+  bool _isActiveOrder(ServiceOrderModel order) {
+    return order.status != 'completed' && order.status != 'cancelled';
+  }
+
   Future<void> _load() async {
-    final dismissed = ServiceOrderLocalStateHelper.dismissedIds();
-    final result = await _repository.getMyOrders(limit: 10);
+    final result = await _repository.getMyOrders(limit: 20);
     if (!mounted) return;
 
     result.fold(
-      (_) => setState(() => _loading = false),
+      (error) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      },
       (orders) {
+        final dismissed = ServiceOrderLocalStateHelper.dismissedIds();
         final readIds = orders
             .where(
               (order) =>
@@ -62,6 +98,7 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
             .map((order) => order.id!)
             .toSet();
 
+        if (!mounted) return;
         setState(() {
           _readIds = readIds;
           _dismissedIds = dismissed;
@@ -70,11 +107,15 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
                 (order) =>
                     order.id != null &&
                     !_dismissedIds.contains(order.id) &&
-                    order.status != 'completed' &&
-                    order.status != 'cancelled',
+                    _isActiveOrder(order),
               )
-              .take(5)
-              .toList();
+              .toList()
+            ..sort((a, b) {
+              if (a.status == 'pending' && b.status != 'pending') return -1;
+              if (a.status != 'pending' && b.status == 'pending') return 1;
+              return 0;
+            });
+          _orders = _orders.take(5).toList();
           _loading = false;
         });
       },
@@ -88,7 +129,38 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
     await ServiceOrderLocalStateHelper.markRead(id);
     if (!mounted) return;
     setState(() => _readIds = {..._readIds, id});
-    ServiceOrderNavigation.openDetail(id);
+    ServiceOrderNavigation.openDetail(id, openChat: true);
+  }
+
+  Future<void> _acceptOrder(ServiceOrderModel order) async {
+    final id = order.id;
+    if (id == null || _acceptingOrderId != null) return;
+
+    setState(() => _acceptingOrderId = id);
+    final result = await _repository.updateStatus(
+      orderId: id,
+      status: 'accepted',
+    );
+    if (!mounted) return;
+
+    await result.fold(
+      (error) async {
+        setState(() => _acceptingOrderId = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      },
+      (acceptedOrder) async {
+        await ServiceOrderLocalStateHelper.markRead(id);
+        if (!mounted) return;
+        setState(() {
+          _acceptingOrderId = null;
+          _readIds = {..._readIds, id};
+        });
+        ServiceOrderNavigation.openDetail(id, openChat: true);
+        await _load();
+      },
+    );
   }
 
   Future<void> _confirmDelete(ServiceOrderModel order) async {
@@ -164,6 +236,10 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
                 order: order,
                 isRead: order.id != null && _readIds.contains(order.id),
                 onTap: () => _openOrder(order),
+                onAccept: order.status == 'pending'
+                    ? () => _acceptOrder(order)
+                    : null,
+                acceptEnabled: _acceptingOrderId != order.id,
                 onDelete: () => _confirmDelete(order),
               ),
             ),

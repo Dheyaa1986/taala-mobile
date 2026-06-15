@@ -147,13 +147,17 @@ class ServiceOrderRepositoryImpl extends Repository
       );
       final response = ApiResponseHelper.unwrap(json);
       final data = response['data'] as List<dynamic>? ?? [];
-      return data
-          .map(
-            (item) => ServiceOrderModel.fromJson(
-              ApiResponseHelper.asMap(item),
-            ),
-          )
-          .toList();
+      final orders = <ServiceOrderModel>[];
+      for (final item in data) {
+        try {
+          orders.add(
+            ServiceOrderModel.fromJson(ApiResponseHelper.asMap(item)),
+          );
+        } catch (_) {
+          continue;
+        }
+      }
+      return orders;
     });
   }
 }

@@ -150,6 +150,11 @@ class AppStrings {
   static const save = 'save';
   static const rateApp = 'rateApp';
   static const rateAppTitle = 'rateAppTitle';
+  static const String appAlertSound = 'appAlertSound';
+  static const String appAlertSoundSubtitle = 'appAlertSoundSubtitle';
+  static const String appAlertSoundVolume = 'appAlertSoundVolume';
+  static const String testAlertSound = 'testAlertSound';
+  static const String appAlertVibration = 'appAlertVibration';
   static const submitSupportTicket = 'submitSupportTicket';
   static const complaint = 'complaint';
   static const request = 'request';
@@ -208,6 +213,7 @@ class AppStrings {
   static const String noServiceOrders = 'noServiceOrders';
   static const String trackArrival = 'trackArrival';
   static const String acceptOrder = 'acceptOrder';
+  static const String acceptAndChat = 'acceptAndChat';
   static const String startTrip = 'startTrip';
   static const String arrived = 'arrived';
   static const String cancelOrder = 'cancelOrder';

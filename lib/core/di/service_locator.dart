@@ -34,6 +34,8 @@ import '../../features/auth/register/data/repository/register_repository.dart';
 import '../../features/auth/register/data/repository/register_repository_impl.dart';
 import '../../features/auth/register/presentation/cubit/register_cubit.dart';
 import '../countries/data/services/countries_services.dart';
+import '../alerts/app_alert_monitor.dart';
+import '../alerts/app_alert_sound_service.dart';
 import '../helpers/shared_pref_local_storage.dart';
 import '../network/dio_service.dart';
 
@@ -61,6 +63,17 @@ Future<void> _initExternals() async {
   );
   getIt.registerLazySingleton<ProviderLiveLocationService>(
     () => ProviderLiveLocationService(),
+  );
+  getIt.registerLazySingleton<AppAlertSoundService>(
+    () => AppAlertSoundService(),
+  );
+  getIt.registerLazySingleton<AppAlertMonitor>(
+    () => AppAlertMonitor(
+      getIt(),
+      getIt(),
+      getIt(),
+      getIt(),
+    ),
   );
 
 }

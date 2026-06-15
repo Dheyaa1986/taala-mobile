@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/config/routes/app_router.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
@@ -54,6 +55,7 @@ class ServiceOrderChatLauncher {
     result.fold(
       (error) => _showMessage(error.message),
       (order) {
+        getIt<AppAlertSoundService>().play(force: true);
         final orderId = order.id;
         if (orderId == null || orderId.isEmpty) {
           _showMessage(AppStrings.chatOpenFailed.tr());

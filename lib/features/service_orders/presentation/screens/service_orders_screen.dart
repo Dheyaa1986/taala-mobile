@@ -27,6 +27,7 @@ class _ServiceOrdersScreenState extends State<ServiceOrdersScreen> {
   Set<String> _dismissedIds = {};
   bool _loading = true;
   bool _isProvider = false;
+  String? _acceptingOrderId;
 
   @override
   void initState() {
@@ -37,7 +38,6 @@ class _ServiceOrdersScreenState extends State<ServiceOrdersScreen> {
   }
 
   Future<void> _load() async {
-    final dismissed = ServiceOrderLocalStateHelper.dismissedIds();
     final result = await _repository.getMyOrders();
     if (!mounted) return;
 
@@ -49,15 +49,12 @@ class _ServiceOrdersScreenState extends State<ServiceOrdersScreen> {
         );
       },
       (orders) {
-        final visibleOrders = _isProvider
-            ? orders
-                .where(
-                  (order) =>
-                      order.id == null ||
-                      !dismissed.contains(order.id),
-                )
-                .toList()
-            : orders;
+        final dismissed = ServiceOrderLocalStateHelper.dismissedIds();
+        final visibleOrders = orders
+            .where(
+              (order) => order.id == null || !dismissed.contains(order.id),
+            )
+            .toList();
 
         final readIds = visibleOrders
             .where(
@@ -68,6 +65,7 @@ class _ServiceOrdersScreenState extends State<ServiceOrdersScreen> {
             .map((order) => order.id!)
             .toSet();
 
+        if (!mounted) return;
         setState(() {
           _dismissedIds = dismissed;
           _readIds = readIds;
@@ -86,9 +84,42 @@ class _ServiceOrdersScreenState extends State<ServiceOrdersScreen> {
       await ServiceOrderLocalStateHelper.markRead(id);
       if (!mounted) return;
       setState(() => _readIds = {..._readIds, id});
+      ServiceOrderNavigation.openDetail(id, openChat: true);
+      return;
     }
 
     ServiceOrderNavigation.openDetail(id);
+  }
+
+  Future<void> _acceptOrder(ServiceOrderModel order) async {
+    final id = order.id;
+    if (id == null || _acceptingOrderId != null) return;
+
+    setState(() => _acceptingOrderId = id);
+    final result = await _repository.updateStatus(
+      orderId: id,
+      status: 'accepted',
+    );
+    if (!mounted) return;
+
+    await result.fold(
+      (error) async {
+        setState(() => _acceptingOrderId = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      },
+      (_) async {
+        await ServiceOrderLocalStateHelper.markRead(id);
+        if (!mounted) return;
+        setState(() {
+          _acceptingOrderId = null;
+          _readIds = {..._readIds, id};
+        });
+        ServiceOrderNavigation.openDetail(id, openChat: true);
+        await _load();
+      },
+    );
   }
 
   Future<void> _confirmDelete(ServiceOrderModel order) async {
@@ -149,9 +180,11 @@ class _ServiceOrdersScreenState extends State<ServiceOrdersScreen> {
                         isRead: isRead,
                         showCounterpartyAsTitle: _isProvider,
                         onTap: () => _openOrder(order),
-                        onDelete: _isProvider
-                            ? () => _confirmDelete(order)
+                        onAccept: _isProvider && order.status == 'pending'
+                            ? () => _acceptOrder(order)
                             : null,
+                        acceptEnabled: _acceptingOrderId != order.id,
+                        onDelete: () => _confirmDelete(order),
                       );
                     },
                   ),
