@@ -23,6 +23,7 @@ import '../../../../../core/app_config/app_icons.dart';
 import '../../../../../core/app_config/app_strings.dart';
 
 import '../../../../../core/app_config/prefs_keys.dart';
+import '../../../../../core/alerts/push_notification_service.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/extensions/device_insets_extension.dart';
 import '../../../../../core/helpers/messages.dart';
@@ -181,6 +182,7 @@ class _LoginFormState extends State<LoginForm> {
           if (state is LoginSuccess) {
             context.read<BottomNavigationCubit>().isProvider =
                 _role == UserRole.provider;
+            PushNotificationService.instance.syncTokenIfLoggedIn();
             context.pushNamedAndRemoveUntil(
               Routes.home,
               predicate: (_) => false,

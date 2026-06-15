@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'config/routes/app_router.dart';
 import 'config/themes/theme.dart';
 import 'core/alerts/app_alert_monitor.dart';
+import 'core/alerts/push_notification_service.dart';
 import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
@@ -90,6 +91,7 @@ class _TaalaAppState extends State<TaalaApp> {
                     cubit.loadProfile();
                     getIt<NotificationCubit>().loadUnreadCount();
                     getIt<AppAlertMonitor>().start();
+                    PushNotificationService.instance.syncTokenIfLoggedIn();
                   }
                 });
                 return cubit;

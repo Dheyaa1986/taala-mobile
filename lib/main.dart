@@ -1,4 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +9,7 @@ import 'package:taal/taala_app.dart';
 
 import 'config/locale/locales.dart';
 import 'config/routes/app_router.dart';
+import 'core/alerts/firebase_background_handler.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/bloc_observer.dart';
 import 'core/helpers/locale_helper.dart';
@@ -21,6 +24,10 @@ void main() async {
   Bloc.observer = MyBlocObserver();
 
   await EasyLocalization.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  } catch (_) {}
   await setupServiceLocator();
   debugRepaintRainbowEnabled = false;
 

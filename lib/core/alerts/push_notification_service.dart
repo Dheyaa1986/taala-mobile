@@ -1,5 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:taal/core/alerts/app_alert_sound_service.dart';
+import 'package:taal/core/app_config/app_urls.dart';
+import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/secure_local_storage.dart';
+import 'package:taal/core/app_config/prefs_keys.dart';
+import 'package:taal/core/network/dio_service.dart';
+import 'package:taal/core/network/network_request.dart';
 
 class PushNotificationService {
   PushNotificationService._();
@@ -7,10 +16,18 @@ class PushNotificationService {
   static final PushNotificationService instance = PushNotificationService._();
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
-  bool _initialized = false;
+  bool _localReady = false;
+  bool _firebaseReady = false;
 
-  Future<void> initialize() async {
-    if (_initialized) return;
+  Future<bool> initialize() async {
+    await ensureLocalNotificationsReady();
+    if (_firebaseReady) return true;
+    _firebaseReady = await _setupFirebaseMessaging();
+    return _firebaseReady;
+  }
+
+  Future<void> ensureLocalNotificationsReady() async {
+    if (_localReady) return;
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -31,37 +48,119 @@ class PushNotificationService {
     final androidPlugin =
         _plugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.createNotificationChannel(
       const AndroidNotificationChannel(
         'taala_urgent_orders',
         'طلبات ورسائل عاجلة',
-        description: 'تنبيهات الطلبات والرسائل الجديدة',
+        description: 'تنبيهات الطلبات والرسائل — مثل المكالمة',
         importance: Importance.max,
         playSound: true,
         enableVibration: true,
       ),
     );
 
-    _initialized = true;
+    _localReady = true;
+  }
+
+  Future<bool> _setupFirebaseMessaging() async {
+    try {
+      await Firebase.initializeApp();
+
+      final messaging = FirebaseMessaging.instance;
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        criticalAlert: true,
+        provisional: false,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        return false;
+      }
+
+      FirebaseMessaging.onMessage.listen((message) async {
+        await showUrgentAlert(
+          title: message.notification?.title ?? 'تنبيه طلاء',
+          body: message.notification?.body ?? 'لديك إشعار جديد',
+        );
+        await getIt<AppAlertSoundService>().play();
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((_) {});
+
+      final token = await messaging.getToken();
+      if (token != null) {
+        await _registerTokenWithBackend(token);
+      }
+
+      messaging.onTokenRefresh.listen(_registerTokenWithBackend);
+      return true;
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('Firebase messaging setup failed: $error');
+      }
+      return false;
+    }
+  }
+
+  Future<void> syncTokenIfLoggedIn() async {
+    if (!_firebaseReady) {
+      await initialize();
+    }
+    if (!_firebaseReady) return;
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await _registerTokenWithBackend(token);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _registerTokenWithBackend(String token) async {
+    final accessToken = await SecureLocalStorage.read(PrefsKeys.token);
+    if (accessToken == null || accessToken.isEmpty) return;
+
+    try {
+      await getIt<DioService>().callApi(
+        NetworkRequest(
+          AppUrls.notificationsFcmToken,
+          method: RequestMethod.post,
+          body: {'token': token},
+        ),
+      );
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('FCM token registration failed: $error');
+      }
+    }
   }
 
   Future<void> showUrgentAlert({
     required String title,
     required String body,
   }) async {
-    if (!_initialized) return;
+    await ensureLocalNotificationsReady();
 
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
         'taala_urgent_orders',
         'طلبات ورسائل عاجلة',
-        channelDescription: 'تنبيهات الطلبات والرسائل الجديدة',
+        channelDescription: 'تنبيهات الطلبات والرسائل — مثل المكالمة',
         importance: Importance.max,
         priority: Priority.max,
         playSound: true,
         enableVibration: true,
         category: AndroidNotificationCategory.call,
         fullScreenIntent: true,
+        visibility: NotificationVisibility.public,
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
