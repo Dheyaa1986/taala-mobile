@@ -101,7 +101,7 @@ class AppAlertMonitor {
     final result = await _notificationRepository.getMyNotifications(limit: 30);
     result.fold((_) {}, (page) {
       for (final item in page.items) {
-        if (_isProvider && item.linkedServiceOrderId != null) {
+        if (item.linkedServiceOrderId != null) {
           _knownNotificationIds.add(item.id);
           continue;
         }

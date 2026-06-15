@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:taal/firebase_options.dart';
 import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -65,7 +66,11 @@ class PushNotificationService {
 
   Future<bool> _setupFirebaseMessaging() async {
     try {
-      await Firebase.initializeApp();
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
 
       final messaging = FirebaseMessaging.instance;
       await messaging.setForegroundNotificationPresentationOptions(
@@ -83,6 +88,7 @@ class PushNotificationService {
       );
 
       if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        debugPrint('FCM permission denied');
         return false;
       }
 
@@ -96,19 +102,22 @@ class PushNotificationService {
 
       FirebaseMessaging.onMessageOpenedApp.listen((_) {});
 
-      final token = await messaging.getToken();
-      if (token != null) {
-        await _registerTokenWithBackend(token);
-      }
-
+      await _registerCurrentToken(messaging);
       messaging.onTokenRefresh.listen(_registerTokenWithBackend);
       return true;
     } catch (error) {
-      if (kDebugMode) {
-        debugPrint('Firebase messaging setup failed: $error');
-      }
+      debugPrint('Firebase messaging setup failed: $error');
       return false;
     }
+  }
+
+  Future<void> _registerCurrentToken(FirebaseMessaging messaging) async {
+    final token = await messaging.getToken();
+    if (token == null || token.isEmpty) {
+      debugPrint('FCM token is empty');
+      return;
+    }
+    await _registerTokenWithBackend(token);
   }
 
   Future<void> syncTokenIfLoggedIn() async {
@@ -116,17 +125,27 @@ class PushNotificationService {
       await initialize();
     }
     if (!_firebaseReady) return;
-    try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        await _registerTokenWithBackend(token);
+
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final token = await FirebaseMessaging.instance.getToken();
+        if (token != null && token.isNotEmpty) {
+          await _registerTokenWithBackend(token);
+          return;
+        }
+      } catch (error) {
+        debugPrint('FCM token sync attempt ${attempt + 1} failed: $error');
       }
-    } catch (_) {}
+      await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+    }
   }
 
   Future<void> _registerTokenWithBackend(String token) async {
     final accessToken = await SecureLocalStorage.read(PrefsKeys.token);
-    if (accessToken == null || accessToken.isEmpty) return;
+    if (accessToken == null || accessToken.isEmpty) {
+      debugPrint('Skip FCM register: user not logged in');
+      return;
+    }
 
     try {
       await getIt<DioService>().callApi(
@@ -136,10 +155,9 @@ class PushNotificationService {
           body: {'token': token},
         ),
       );
+      debugPrint('FCM token registered with backend');
     } catch (error) {
-      if (kDebugMode) {
-        debugPrint('FCM token registration failed: $error');
-      }
+      debugPrint('FCM token registration failed: $error');
     }
   }
 

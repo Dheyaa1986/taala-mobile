@@ -1,7 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:taal/core/app_config/prefs_keys.dart';
-import 'package:taal/core/di/service_locator.dart';
-import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/features/notifications/data/models/notification_model.dart';
 import 'package:taal/features/notifications/data/repository/notification_repository.dart';
 
@@ -15,11 +12,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   int _countUnread(List<NotificationModel> items) =>
       items.where((item) => !item.isRead).length;
 
-  bool get _isProvider =>
-      getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
-
   List<NotificationModel> _filterForRole(List<NotificationModel> items) {
-    if (!_isProvider) return items;
     return items
         .where((item) => item.linkedServiceOrderId == null)
         .toList();
@@ -47,10 +40,7 @@ class NotificationCubit extends Cubit<NotificationState> {
         final items = _filterForRole(page.items);
         final unreadFromItems = _countUnread(items);
         final unread =
-            countResult.fold((_) => unreadFromItems, (count) {
-          if (_isProvider) return unreadFromItems;
-          return count;
-        });
+            countResult.fold((_) => unreadFromItems, (count) => unreadFromItems);
         emit(NotificationLoaded(
           items: items,
           unreadCount: unread,
@@ -60,11 +50,6 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   Future<void> loadUnreadCount() async {
-    if (_isProvider) {
-      await loadNotifications();
-      return;
-    }
-
     final countResult = await _repository.getUnreadCount();
     countResult.fold((_) {}, (count) {
       final current = state;

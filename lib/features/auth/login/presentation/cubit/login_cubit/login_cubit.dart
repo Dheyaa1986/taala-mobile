@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../../../core/alerts/push_notification_service.dart';
 import '../../../../../../core/app_config/prefs_keys.dart';
 import '../../../../../../core/alerts/app_alert_monitor.dart';
 import '../../../../../../core/di/service_locator.dart';
@@ -63,6 +64,7 @@ class LoginCubit extends Cubit<LoginState> {
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().loadUnreadCount();
         getIt<AppAlertMonitor>().start();
+        await PushNotificationService.instance.syncTokenIfLoggedIn();
 
         emit(LoginSuccess(response: response));
       },

@@ -91,7 +91,10 @@ class _TaalaAppState extends State<TaalaApp> {
                     cubit.loadProfile();
                     getIt<NotificationCubit>().loadUnreadCount();
                     getIt<AppAlertMonitor>().start();
-                    PushNotificationService.instance.syncTokenIfLoggedIn();
+                    Future<void>.delayed(
+                      const Duration(seconds: 2),
+                      PushNotificationService.instance.syncTokenIfLoggedIn,
+                    );
                   }
                 });
                 return cubit;

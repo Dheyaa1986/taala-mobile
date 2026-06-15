@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "105251793425",
+    "project_id": "taal-c4eb3",
+    "storage_bucket": "taal-c4eb3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105251793425:android:bdc84c6a2f599edbd31fb0",
+        "android_client_info": {
+          "package_name": "com.mintops.taala"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHp0t4gqAUXYI8UpteRMvnKyfFI_ZA4Tk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
