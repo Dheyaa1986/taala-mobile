@@ -23,7 +23,6 @@ import '../../features/theme/data/repositories/theme_repository_impl.dart';
 import '../../features/theme/presentation/cubit/theme_cubit.dart';
 import '../../features/support/data/repository/support_ticket_repository.dart';
 import '../../features/support/presentation/cubit/support_ticket_cubit.dart';
-import '../../features/support/data/repository/support_ticket_repository.dart';
 import '../../features/notifications/presentation/cubit/notification_cubit.dart';
 import '../../features/profile/data/repository/profile_repository.dart';
 import '../../features/profile/presentation/cubit/profile_cubit.dart';
@@ -33,6 +32,7 @@ import '../../features/auth/login/presentation/cubit/login_cubit/login_cubit.dar
 import '../../features/auth/register/data/repository/register_repository.dart';
 import '../../features/auth/register/data/repository/register_repository_impl.dart';
 import '../../features/auth/register/presentation/cubit/register_cubit.dart';
+import '../../features/service_orders/data/repository/service_order_repository.dart';
 import '../countries/data/services/countries_services.dart';
 import '../alerts/app_alert_monitor.dart';
 import '../alerts/app_alert_sound_service.dart';
