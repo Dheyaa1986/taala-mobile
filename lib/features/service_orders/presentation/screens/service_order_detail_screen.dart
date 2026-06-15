@@ -9,7 +9,9 @@ import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/helpers/conversation_history_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
+import 'package:taal/core/widgets/grouped_conversation_box.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
@@ -116,6 +118,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           _order = order;
           _loading = false;
         });
+        _persistHistory(order);
         if (!silent) {
           _loadTracking();
           if (widget.openChatOnStart) {
@@ -124,6 +127,68 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         }
       },
     );
+  }
+
+  void _persistHistory(ServiceOrderModel order) {
+    final myLines = order.messages
+        .where((message) => message.senderId == _myUserId)
+        .map(
+          (message) => ConversationLine(
+            text: message.message ?? '',
+            time: message.createdAt,
+          ),
+        )
+        .toList();
+    final theirLines = order.messages
+        .where((message) => message.senderId != _myUserId)
+        .map(
+          (message) => ConversationLine(
+            text: message.message ?? '',
+            time: message.createdAt,
+          ),
+        )
+        .toList();
+
+    if (myLines.isEmpty && theirLines.isEmpty) return;
+
+    final title = _isProvider
+        ? (order.clientName ?? AppStrings.serviceOrder.tr())
+        : (order.providerName ?? order.serviceType?.name ?? AppStrings.serviceOrder.tr());
+
+    ConversationHistoryHelper.save(
+      ConversationHistoryEntry(
+        id: 'order_${order.id}',
+        type: 'order',
+        title: title,
+        myLines: myLines,
+        theirLines: theirLines,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  List<ConversationLine> _theirLines(ServiceOrderModel order) {
+    return order.messages
+        .where((message) => message.senderId != _myUserId)
+        .map(
+          (message) => ConversationLine(
+            text: message.message ?? '',
+            time: message.createdAt,
+          ),
+        )
+        .toList();
+  }
+
+  List<ConversationLine> _myLines(ServiceOrderModel order) {
+    return order.messages
+        .where((message) => message.senderId == _myUserId)
+        .map(
+          (message) => ConversationLine(
+            text: message.message ?? '',
+            time: message.createdAt,
+          ),
+        )
+        .toList();
   }
 
   Future<void> _loadTracking() async {
@@ -394,44 +459,23 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   ),
                 8.height,
                 Expanded(
-                  child: ListView.builder(
+                  child: ListView(
                     controller: _scrollController,
                     padding: REdgeInsets.all(12),
-                    itemCount: order?.messages.length ?? 0,
-                    itemBuilder: (context, index) {
-                      final message = order!.messages[index];
-                      final isMine = message.senderId == _myUserId;
-                      return Align(
-                        alignment: isMine
-                            ? AlignmentDirectional.centerEnd
-                            : AlignmentDirectional.centerStart,
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: 8.h),
-                          padding: REdgeInsets.all(10),
-                          constraints: BoxConstraints(maxWidth: 0.78.sw),
-                          decoration: BoxDecoration(
-                            color: isMine
-                                ? AppColors.primaryColor.withValues(alpha: 0.15)
-                                : AppColors.textFieldFillColor,
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (message.senderName != null && !isMine)
-                                Text(
-                                  message.senderName!,
-                                  style: TextStyle(
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              Text(message.message ?? ''),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                    children: [
+                      GroupedConversationBox(
+                        title: _isProvider
+                            ? (order?.clientName ?? AppStrings.incomingReplies.tr())
+                            : (order?.providerName ?? AppStrings.incomingReplies.tr()),
+                        lines: order == null ? const [] : _theirLines(order),
+                        isMine: false,
+                      ),
+                      GroupedConversationBox(
+                        title: AppStrings.you.tr(),
+                        lines: order == null ? const [] : _myLines(order),
+                        isMine: true,
+                      ),
+                    ],
                   ),
                 ),
                 if (canChat)

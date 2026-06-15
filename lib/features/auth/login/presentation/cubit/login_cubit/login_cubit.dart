@@ -22,6 +22,7 @@ class LoginCubit extends Cubit<LoginState> {
     required String email,
     required String password,
     bool isProvider = false,
+    bool rememberMe = true,
   }) async {
     emit(LoginLoading());
 
@@ -48,7 +49,17 @@ class LoginCubit extends Cubit<LoginState> {
         await SecureLocalStorage.write(PrefsKeys.token, response.token);
         await SecureLocalStorage.write(
             PrefsKeys.refreshToken, response.refreshToken);
-        await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: true);
+        await getIt<SharedPref>().set(
+          key: PrefsKeys.rememberMe,
+          value: rememberMe,
+        );
+        if (rememberMe) {
+          await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
+          await SecureLocalStorage.write(PrefsKeys.password, password);
+        } else {
+          await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
+          await SecureLocalStorage.delete(PrefsKeys.password);
+        }
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().loadUnreadCount();
         getIt<AppAlertMonitor>().start();

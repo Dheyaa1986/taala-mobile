@@ -72,8 +72,11 @@ class AppAlertSoundService {
   Future<void> _playSound() async {
     try {
       await _player.stop();
-      await _player.setVolume(volume);
-      await _player.play(AssetSource('sounds/notification.wav'));
+      await _player.setVolume(1.0);
+      await _player.play(
+        AssetSource('sounds/notification.wav'),
+        volume: volume,
+      );
     } catch (_) {}
   }
 
@@ -84,12 +87,12 @@ class AppAlertSoundService {
         final hasAmplitude = await Vibration.hasAmplitudeControl();
         if (hasAmplitude == true) {
           await Vibration.vibrate(
-            pattern: [0, 180, 80, 220, 80, 260],
+            pattern: [0, 220, 90, 280, 90, 320],
             intensities: [0, 255, 0, 255, 0, 255],
           );
         } else {
           await Vibration.vibrate(
-            pattern: [0, 180, 80, 220, 80, 260],
+            pattern: [0, 220, 90, 280, 90, 320],
           );
         }
         return;

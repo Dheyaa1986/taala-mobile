@@ -1,15 +1,21 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/helpers/conversation_history_helper.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
-import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
+import 'package:taal/core/widgets/grouped_conversation_box.dart';
+import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
+import 'package:taal/features/support/data/models/support_ticket_model.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
 
 class SupportTicketDetailScreen extends StatefulWidget {
@@ -25,15 +31,21 @@ class SupportTicketDetailScreen extends StatefulWidget {
 class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
   final _replyController = TextEditingController();
   final _scrollController = ScrollController();
+  Timer? _refreshTimer;
+  int _knownAdminMessages = 0;
 
   @override
   void initState() {
     super.initState();
     context.read<SupportTicketCubit>().loadTicketDetail(widget.ticketId);
+    _refreshTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      context.read<SupportTicketCubit>().loadTicketDetail(widget.ticketId);
+    });
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _replyController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -60,6 +72,47 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     }
   }
 
+  void _handleTicketUpdate(SupportTicketModel ticket) {
+    final adminCount =
+        ticket.messages.where((message) => message.isFromAdmin).length;
+    if (_knownAdminMessages > 0 && adminCount > _knownAdminMessages) {
+      getIt<AppAlertSoundService>().play();
+    }
+    _knownAdminMessages = adminCount;
+
+    final myLines = <ConversationLine>[
+      ConversationLine(text: ticket.description, time: ticket.createdAt),
+      ...ticket.messages
+          .where((message) => !message.isFromAdmin)
+          .map(
+            (message) => ConversationLine(
+              text: message.body,
+              time: message.createdAt,
+            ),
+          ),
+    ];
+    final theirLines = ticket.messages
+        .where((message) => message.isFromAdmin)
+        .map(
+          (message) => ConversationLine(
+            text: message.body,
+            time: message.createdAt,
+          ),
+        )
+        .toList();
+
+    ConversationHistoryHelper.save(
+      ConversationHistoryEntry(
+        id: 'support_${ticket.id}',
+        type: 'support',
+        title: ticket.title,
+        myLines: myLines,
+        theirLines: theirLines,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -69,131 +122,96 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         }
       },
       child: Scaffold(
-      appBar: CustomAppBar.backAppBar(title: AppStrings.supportChat.tr()),
-      body: BlocBuilder<SupportTicketCubit, SupportTicketState>(
-        builder: (context, state) {
-          if (state is SupportTicketDetailLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is SupportTicketDetailError) {
-            return Center(child: Text(state.message));
-          }
-          if (state is! SupportTicketDetailLoaded) {
-            return const SizedBox.shrink();
-          }
+        appBar: CustomAppBar.backAppBar(title: AppStrings.supportChat.tr()),
+        body: BlocConsumer<SupportTicketCubit, SupportTicketState>(
+          listener: (context, state) {
+            if (state is SupportTicketDetailLoaded) {
+              _handleTicketUpdate(state.ticket);
+            }
+          },
+          builder: (context, state) {
+            if (state is SupportTicketDetailLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is SupportTicketDetailError) {
+              return Center(child: Text(state.message));
+            }
+            if (state is! SupportTicketDetailLoaded) {
+              return const SizedBox.shrink();
+            }
 
-          final ticket = state.ticket;
+            final ticket = state.ticket;
 
-          return Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  controller: _scrollController,
-                  padding: REdgeInsets.all(16),
-                  children: [
-                    _MessageBubble(
-                      sender: AppStrings.you.tr(),
-                      body: ticket.description,
-                      isMine: true,
-                      time: ticket.createdAt,
+            final myLines = <ConversationLine>[
+              ConversationLine(text: ticket.description, time: ticket.createdAt),
+              ...ticket.messages
+                  .where((message) => !message.isFromAdmin)
+                  .map(
+                    (message) => ConversationLine(
+                      text: message.body,
+                      time: message.createdAt,
                     ),
-                    ...ticket.messages.map(
-                      (msg) => _MessageBubble(
-                        sender: msg.isFromAdmin
-                            ? msg.senderName
-                            : msg.senderName,
-                        body: msg.body,
-                        isMine: !msg.isFromAdmin,
-                        time: msg.createdAt,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!ticket.isClosed)
-                Padding(
-                  padding: REdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
+                  ),
+            ];
+            final theirLines = ticket.messages
+                .where((message) => message.isFromAdmin)
+                .map(
+                  (message) => ConversationLine(
+                    text: message.body,
+                    time: message.createdAt,
+                  ),
+                )
+                .toList();
+
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    controller: _scrollController,
+                    padding: REdgeInsets.all(16),
                     children: [
-                      CustomTextField(
-                        controller: _replyController,
-                        hint: AppStrings.typeReply.tr(),
-                        maxLines: 3,
+                      GroupedConversationBox(
+                        title: AppStrings.supportTeam.tr(),
+                        lines: theirLines,
+                        isMine: false,
                       ),
-                      12.height,
-                      CustomButton.filled(
-                        text: AppStrings.sendReply.tr(),
-                        onTap: _sendReply,
+                      GroupedConversationBox(
+                        title: AppStrings.you.tr(),
+                        lines: myLines,
+                        isMine: true,
                       ),
                     ],
                   ),
-                )
-              else
-                Padding(
-                  padding: REdgeInsets.all(16),
-                  child: Text(
-                    AppStrings.ticketClosed.tr(),
-                    style: TextStyle(color: AppColors.greyText),
-                  ),
                 ),
-            ],
-          );
-        },
-      ),
-    ),
-    );
-  }
-}
-
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({
-    required this.sender,
-    required this.body,
-    required this.isMine,
-    this.time,
-  });
-
-  final String sender;
-  final String body;
-  final bool isMine;
-  final DateTime? time;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: REdgeInsets.only(bottom: 12),
-        padding: REdgeInsets.all(12),
-        constraints: BoxConstraints(maxWidth: 0.82.sw),
-        decoration: BoxDecoration(
-          color: isMine
-              ? AppColors.primaryColor.withValues(alpha: 0.12)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: AppColors.lightGreyDividerColor),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              sender,
-              style: TextStyle(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.greyText,
-              ),
-            ),
-            6.height,
-            Text(body),
-            if (time != null) ...[
-              6.height,
-              Text(
-                DateFormat.yMMMd().add_jm().format(time!),
-                style: TextStyle(fontSize: 10.sp, color: AppColors.greyText),
-              ),
-            ],
-          ],
+                if (!ticket.isClosed)
+                  Padding(
+                    padding: REdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          controller: _replyController,
+                          hint: AppStrings.typeReply.tr(),
+                          maxLines: 3,
+                        ),
+                        12.height,
+                        CustomButton.filled(
+                          text: AppStrings.sendReply.tr(),
+                          onTap: _sendReply,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: REdgeInsets.all(16),
+                    child: Text(
+                      AppStrings.ticketClosed.tr(),
+                      style: TextStyle(color: AppColors.greyText),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

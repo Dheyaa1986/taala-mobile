@@ -73,6 +73,7 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
 
   UserRole? _role;
+  bool _rememberMe = true;
 
 
 
@@ -126,7 +127,11 @@ class _LoginFormState extends State<LoginForm> {
 
       bool? rememberMe = getIt<SharedPref>().get(key: PrefsKeys.rememberMe);
 
-      if (rememberMe != false) {
+      if (rememberMe is bool) {
+        _rememberMe = rememberMe;
+      }
+
+      if (_rememberMe) {
 
         _passwordController.text =
 
@@ -340,6 +345,32 @@ class _LoginFormState extends State<LoginForm> {
 
                       14.height,
 
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            activeColor: AppColors.primaryColor,
+                            onChanged: (value) {
+                              setState(() => _rememberMe = value ?? true);
+                              context
+                                  .read<LoginCubit>()
+                                  .toggleRememberMe(_rememberMe);
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              AppStrings.rememberMe.tr(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(color: AppColors.lightTText),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      14.height,
+
                     ],
 
                   ),
@@ -439,6 +470,8 @@ class _LoginFormState extends State<LoginForm> {
           password: _passwordController.text,
 
           isProvider: isProvider,
+
+          rememberMe: _rememberMe,
 
         );
 

@@ -155,6 +155,16 @@ class AppStrings {
   static const String appAlertSoundVolume = 'appAlertSoundVolume';
   static const String testAlertSound = 'testAlertSound';
   static const String appAlertVibration = 'appAlertVibration';
+  static const String rememberMe = 'rememberMe';
+  static const String conversationHistory = 'conversationHistory';
+  static const String conversationHistorySubtitle = 'conversationHistorySubtitle';
+  static const String noConversationHistory = 'noConversationHistory';
+  static const String deleteConversationHistory = 'deleteConversationHistory';
+  static const String deleteConversationHistorySubtitle =
+      'deleteConversationHistorySubtitle';
+  static const String incomingReplies = 'incomingReplies';
+  static const String myMessages = 'myMessages';
+  static const String supportTeam = 'supportTeam';
   static const submitSupportTicket = 'submitSupportTicket';
   static const complaint = 'complaint';
   static const request = 'request';

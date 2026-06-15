@@ -9,18 +9,21 @@ import 'package:taal/features/notifications/data/repository/notification_reposit
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/support/data/repository/support_ticket_repository.dart';
 
 class AppAlertMonitor {
   AppAlertMonitor(
     this._soundService,
     this._notificationRepository,
     this._orderRepository,
+    this._supportRepository,
     this._profileRepository,
   );
 
   final AppAlertSoundService _soundService;
   final NotificationRepository _notificationRepository;
   final ServiceOrderRepository _orderRepository;
+  final SupportTicketRepository _supportRepository;
   final ProfileRepository _profileRepository;
 
   static const _pollInterval = Duration(seconds: 4);
@@ -33,7 +36,7 @@ class AppAlertMonitor {
   final Set<String> _knownNotificationIds = {};
   final Set<String> _knownOrderIds = {};
   final Map<String, int> _knownMessageCounts = {};
-  final Map<String, String?> _knownOrderStatuses = {};
+  final Map<String, int> _knownSupportMessageCounts = {};
 
   final ValueNotifier<int> ordersRefreshTick = ValueNotifier<int>(0);
 
@@ -46,7 +49,7 @@ class AppAlertMonitor {
     _knownNotificationIds.clear();
     _knownOrderIds.clear();
     _knownMessageCounts.clear();
-    _knownOrderStatuses.clear();
+    _knownSupportMessageCounts.clear();
     _timer = Timer.periodic(_pollInterval, (_) => _tick());
     _tick();
   }
@@ -73,6 +76,7 @@ class AppAlertMonitor {
       var shouldAlert = false;
       shouldAlert = await _checkNotifications() || shouldAlert;
       shouldAlert = await _checkOrders() || shouldAlert;
+      shouldAlert = await _checkSupportTickets() || shouldAlert;
 
       await getIt<NotificationCubit>().loadUnreadCount();
       ordersRefreshTick.value++;
@@ -120,17 +124,11 @@ class AppAlertMonitor {
 
         final isNewOrder = !_knownOrderIds.contains(id);
         if (isNewOrder) {
-          if (_initialized) changed = true;
+          if (_initialized && _isProvider && order.status == 'pending') {
+            changed = true;
+          }
           _knownOrderIds.add(id);
         }
-
-        final previousStatus = _knownOrderStatuses[id];
-        if (_initialized &&
-            previousStatus != null &&
-            previousStatus != order.status) {
-          changed = true;
-        }
-        _knownOrderStatuses[id] = order.status;
 
         if (order.status == 'completed' ||
             order.status == 'cancelled' ||
@@ -150,6 +148,28 @@ class AppAlertMonitor {
             if (incoming) changed = true;
           }
           _knownMessageCounts[id] = count;
+        });
+      }
+    });
+    return changed;
+  }
+
+  Future<bool> _checkSupportTickets() async {
+    var changed = false;
+    final listResult = await _supportRepository.getMyTickets(limit: 20);
+    await listResult.fold((_) async {}, (page) async {
+      for (final ticket in page.items) {
+        if (ticket.isClosed) continue;
+
+        final detailResult = await _supportRepository.getTicketById(ticket.id);
+        detailResult.fold((_) {}, (detail) {
+          final adminCount =
+              detail.messages.where((message) => message.isFromAdmin).length;
+          final previousCount = _knownSupportMessageCounts[ticket.id] ?? 0;
+          if (adminCount > previousCount && _initialized) {
+            changed = true;
+          }
+          _knownSupportMessageCounts[ticket.id] = adminCount;
         });
       }
     });
