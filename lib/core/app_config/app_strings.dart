@@ -252,5 +252,13 @@ class AppStrings {
   static const String completeOrder = 'completeOrder';
   static const String agreedPrice = 'agreedPrice';
   static const String enterAgreedPrice = 'enterAgreedPrice';
+  static const String proposePrice = 'proposePrice';
+  static const String sendPrice = 'sendPrice';
+  static const String proposedPrice = 'proposedPrice';
+  static const String waitForProviderPrice = 'waitForProviderPrice';
+  static const String providerAcceptedChat = 'providerAcceptedChat';
+  static const String trackProviderOnMap = 'trackProviderOnMap';
+  static const String activeOrderBlockingSearch = 'activeOrderBlockingSearch';
+  static const String openActiveOrder = 'openActiveOrder';
   static const String back = 'back';
 }

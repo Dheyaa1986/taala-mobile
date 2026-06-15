@@ -182,13 +182,14 @@ class CustomButton extends StatelessWidget {
       opacity: enabled ? 1 : 0.5,
       child: IgnorePointer(
         ignoring: !enabled,
-        child: GestureDetector(
+          child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onTap,
           child: Container(
             alignment: Alignment.center,
             padding: padding ?? EdgeInsets.symmetric(vertical: 16.h),
             width: width ?? double.infinity,
-            height: height,
+            constraints: BoxConstraints(minHeight: height ?? 48.h),
             decoration: BoxDecoration(
               gradient: isBackgroundGradient
                   ? gradient ?? AppColors.primaryGradient

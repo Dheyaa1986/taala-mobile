@@ -14,6 +14,7 @@ import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/grouped_conversation_box.dart';
+import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/support/data/models/support_ticket_model.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
@@ -122,6 +123,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: CustomAppBar.backAppBar(title: AppStrings.supportChat.tr()),
         body: BlocConsumer<SupportTicketCubit, SupportTicketState>(
           listener: (context, state) {
@@ -184,9 +186,11 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                   ),
                 ),
                 if (!ticket.isClosed)
-                  Padding(
-                    padding: REdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: Column(
+                  BottomSafeArea(
+                    includeKeyboard: true,
+                    child: Padding(
+                      padding: REdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
                       children: [
                         CustomTextField(
                           controller: _replyController,
@@ -200,13 +204,16 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                         ),
                       ],
                     ),
+                    ),
                   )
                 else
-                  Padding(
-                    padding: REdgeInsets.all(16),
-                    child: Text(
+                  BottomSafeArea(
+                    child: Padding(
+                      padding: REdgeInsets.all(16),
+                      child: Text(
                       AppStrings.ticketClosed.tr(),
                       style: TextStyle(color: AppColors.greyText),
+                    ),
                     ),
                   ),
               ],

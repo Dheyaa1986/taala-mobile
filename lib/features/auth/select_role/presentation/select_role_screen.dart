@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
@@ -203,6 +204,7 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                   const Spacer(
                     flex: 1,
                   ),
+                  SizedBox(height: context.safeBottomInset),
                 ],
               ),
             ),

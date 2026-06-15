@@ -18,11 +18,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocProvider(
       create: (context) => getIt<LoginCubit>(),
       child: Builder(builder: (context) {
-        return  Scaffold(
-          resizeToAvoidBottomInset: false,
-          body: Padding(
-            padding: EdgeInsets.only(bottom: 0),
-           child: LoginForm(initialIsProvider: widget.initialIsProvider),
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
+            child: LoginForm(initialIsProvider: widget.initialIsProvider),
           ),
         );
       }),

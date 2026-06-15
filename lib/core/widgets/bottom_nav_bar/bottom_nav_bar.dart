@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/extensions/space_extension.dart';
@@ -11,7 +10,6 @@ import '../../app_config/app_icons.dart';
 import '../../app_config/app_strings.dart';
 import '../dialog/exit_app_dialog.dart';
 import '../svg_image/svg_image_widget.dart';
-import 'cubit/bottom_navigation_cubit.dart';
 
 class BottomNavBar extends StatefulWidget {
   final StatefulNavigationShell shell;
@@ -21,26 +19,7 @@ class BottomNavBar extends StatefulWidget {
   State<BottomNavBar> createState() => _BottomNavBarState();
 }
 
-class _BottomNavBarState extends State<BottomNavBar>
-    with SingleTickerProviderStateMixin {
-  late BottomNavigationCubit _bottomNavigationCubit;
-  late final AnimationController _animationController;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _bottomNavigationCubit = context.read<BottomNavigationCubit>();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOutCubic,
-    );
-  }
-
+class _BottomNavBarState extends State<BottomNavBar> {
   void _onItemTapped(int index) {
     if (index == widget.shell.currentIndex && index == 0) {
       HapticFeedback.lightImpact();
@@ -53,24 +32,8 @@ class _BottomNavBarState extends State<BottomNavBar>
     );
   }
 
-  void _goToHomeScreen() {
-    _onItemTapped(0);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isBaseRoute = widget.shell.currentIndex == 0;
-
-    if (isBaseRoute) {
-      if (_animationController.status == AnimationStatus.dismissed) {
-        _animationController.forward();
-      }
-    } else {
-      if (_animationController.status == AnimationStatus.completed) {
-        _animationController.reverse();
-      }
-    }
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -86,31 +49,26 @@ class _BottomNavBarState extends State<BottomNavBar>
       child: Scaffold(
         appBar: null,
         body: widget.shell,
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: AppColors.lightBGColor,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.lightSecMainText.withOpacity(0.15),
-                spreadRadius: 0,
-                blurRadius: 12,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            height: 80.h + MediaQuery.of(context).padding.bottom,
-            child: Localizations.override(
-              context: context,
-              locale: context.locale,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(
-                  _navItems.length,
-                  (index) => _buildNavItem(
-                    item: _navItems[index],
-                    index: index,
-                    isSelected: widget.shell.currentIndex == index,
+        bottomNavigationBar: Material(
+          elevation: 8,
+          color: AppColors.lightBGColor,
+          child: SafeArea(
+            top: false,
+            minimum: EdgeInsets.only(bottom: 6.h),
+            child: SizedBox(
+              height: 64.h,
+              child: Localizations.override(
+                context: context,
+                locale: context.locale,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: List.generate(
+                    _navItems.length,
+                    (index) => _buildNavItem(
+                      item: _navItems[index],
+                      index: index,
+                      isSelected: widget.shell.currentIndex == index,
+                    ),
                   ),
                 ),
               ),
@@ -126,37 +84,20 @@ class _BottomNavBarState extends State<BottomNavBar>
     required int index,
     required bool isSelected,
   }) {
-    return GestureDetector(
-      onTapDown: (_) {
-        setState(() {});
-      },
-      onTapUp: (_) {
-        _onItemTapped(index);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        width: 89.w,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AnimatedOpacity(
-              opacity: isSelected ? 0.15 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: Container(
-                width: 48.r,
-                height: 48.r,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryColor.withOpacity(0.15),
-                ),
-              ),
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _onItemTapped(index),
+          splashColor: AppColors.primaryColor.withValues(alpha: 0.12),
+          highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
+          child: SizedBox(
+            height: 64.h,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0, end: isSelected ? 89.w : 0),
+                  tween: Tween<double>(begin: 0, end: isSelected ? 40.w : 0),
                   duration: const Duration(milliseconds: 450),
                   curve: Curves.easeInOutCubicEmphasized,
                   builder: (context, value, child) {
@@ -167,7 +108,7 @@ class _BottomNavBarState extends State<BottomNavBar>
                         gradient: isSelected
                             ? LinearGradient(
                                 colors: [
-                                  AppColors.primaryColor.withOpacity(0.7),
+                                  AppColors.primaryColor.withValues(alpha: 0.7),
                                   AppColors.primaryColor,
                                 ],
                                 begin: Alignment.centerLeft,
@@ -179,44 +120,23 @@ class _BottomNavBarState extends State<BottomNavBar>
                     );
                   },
                 ),
-
-                SizedBox(
-                    height: 16.h + MediaQuery.of(context).padding.bottom / 2),
-                AnimatedScale(
-                  scale: 1.0,
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.bounceOut,
-                  child: item.icon,
-                ),
+                6.height,
+                item.icon,
                 4.height,
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  child: AnimatedSlide(
-                    offset: Offset.zero,
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    child: AnimatedScale(
-                      scale: isSelected ? 1.0 : 0.8,
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      child: Text(
-                        item.label!,
-                        style: TextStyle(
-                          color: isSelected ? AppColors.primaryColor : null,
-                          fontSize: 12.sp,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ),
+                Text(
+                  item.label!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.primaryColor : null,
+                    fontSize: 11.sp,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
-                const Spacer(),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -261,11 +181,5 @@ class _BottomNavBarState extends State<BottomNavBar>
       icon: icon,
       label: title,
     );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 }

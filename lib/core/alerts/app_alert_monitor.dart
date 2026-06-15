@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:taal/core/alerts/app_alert_sound_service.dart';
+import 'package:taal/core/alerts/push_notification_service.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -83,6 +84,10 @@ class AppAlertMonitor {
 
       if (_initialized && shouldAlert) {
         await _soundService.play();
+        await PushNotificationService.instance.showUrgentAlert(
+          title: 'تنبيه طلاء',
+          body: 'لديك إشعار أو طلب جديد',
+        );
       }
 
       _initialized = true;

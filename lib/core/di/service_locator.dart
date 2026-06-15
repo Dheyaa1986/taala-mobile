@@ -36,6 +36,7 @@ import '../../features/service_orders/data/repository/service_order_repository.d
 import '../countries/data/services/countries_services.dart';
 import '../alerts/app_alert_monitor.dart';
 import '../alerts/app_alert_sound_service.dart';
+import '../alerts/push_notification_service.dart';
 import '../helpers/shared_pref_local_storage.dart';
 import '../network/dio_service.dart';
 
@@ -43,6 +44,7 @@ final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
   await _initExternals();
+  await PushNotificationService.instance.initialize();
 
   _initRemoteDataSources();
   _initRepositories();

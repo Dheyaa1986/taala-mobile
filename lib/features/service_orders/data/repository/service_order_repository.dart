@@ -33,6 +33,13 @@ abstract class ServiceOrderRepository {
     double? agreedPrice,
   });
 
+  Future<Either<CustomException, ServiceOrderModel>> proposePrice({
+    required String orderId,
+    required double agreedPrice,
+  });
+
+  Future<Either<CustomException, ServiceOrderModel?>> getActiveOrder();
+
   Future<Either<CustomException, List<ServiceOrderModel>>> getMyOrders({
     int page = 1,
     int limit = 20,
@@ -108,6 +115,41 @@ class ServiceOrderRepositoryImpl extends Repository
         ),
       );
       return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
+    });
+  }
+
+  @override
+  Future<Either<CustomException, ServiceOrderModel>> proposePrice({
+    required String orderId,
+    required double agreedPrice,
+  }) {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi(
+        NetworkRequest(
+          AppUrls.serviceOrderPrice(orderId),
+          method: RequestMethod.patch,
+          body: {'agreedPrice': agreedPrice},
+        ),
+      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
+    });
+  }
+
+  @override
+  Future<Either<CustomException, ServiceOrderModel?>> getActiveOrder() {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi(
+        NetworkRequest(
+          AppUrls.serviceOrdersMeActive,
+          method: RequestMethod.get,
+        ),
+      );
+      final response = ApiResponseHelper.unwrap(json);
+      if (response == null) return null;
+      if (response is Map<String, dynamic> && response.isEmpty) return null;
+      return ServiceOrderModel.fromJson(
+        response is Map<String, dynamic> ? response : ApiResponseHelper.asMap(response),
+      );
     });
   }
 

@@ -9,6 +9,7 @@ import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/data/iraq_governorates.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -24,6 +25,9 @@ import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/home/client/presentation/cubit/service_providers_cubit.dart';
+import 'package:taal/features/service_orders/data/model/service_order_model.dart';
+import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 import 'package:taal/features/home/client/presentation/widgets/service_provider_card.dart';
 import 'package:taal/features/service_orders/presentation/widgets/service_order_help_sheet.dart';
 
@@ -227,10 +231,19 @@ class _ClientHomeBody extends StatefulWidget {
 }
 
 class _ClientHomeBodyState extends State<_ClientHomeBody> {
+  ServiceOrderModel? _activeOrder;
+
   @override
   void initState() {
     super.initState();
+    _loadActiveOrder();
     _loadProvidersIfNeeded(widget.pickedLocation, force: widget.initialLoad);
+  }
+
+  Future<void> _loadActiveOrder() async {
+    final result = await getIt<ServiceOrderRepository>().getActiveOrder();
+    if (!mounted) return;
+    result.fold((_) {}, (order) => setState(() => _activeOrder = order));
   }
 
   @override
@@ -254,6 +267,8 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
 
   @override
   Widget build(BuildContext context) {
+    final hasActiveOrder = _activeOrder?.id != null;
+
     return Scaffold(
             appBar: CustomAppBar.langAppBar(
               showProfileIcon: true,
@@ -268,12 +283,43 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
               ],
             ),
             body: SingleChildScrollView(
-              padding: REdgeInsets.all(16),
+              padding: REdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                16 + context.safeBottomInset,
+              ),
               child: Form(
                 key: widget.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (hasActiveOrder) ...[
+                      YellowHighlightCard(
+                        isHighlighted: true,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              AppStrings.activeOrderBlockingSearch.tr(),
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            12.height,
+                            CustomButton.filled(
+                              text: AppStrings.openActiveOrder.tr(),
+                              onTap: () => ServiceOrderNavigation.openDetail(
+                                _activeOrder!.id!,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      20.height,
+                    ],
+                    if (!hasActiveOrder) ...[
                     Text(
                       AppStrings.clientHomeWelcome.tr(),
                       style: TextStyle(
@@ -406,6 +452,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                       onTap: () => showServiceOrderHelpSheet(context),
                       height: 52.h,
                     ),
+                    ],
                   ],
                 ),
               ),

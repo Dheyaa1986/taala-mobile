@@ -17,7 +17,10 @@ class SplashScreen extends StatelessWidget {
   final bool? isProvider;
 
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
-    await Future.delayed(const Duration(seconds: 2));
+    final hasSession = await AuthSessionHelper.hasActiveSession();
+    if (!hasSession) {
+      await Future.delayed(const Duration(milliseconds: 800));
+    }
 
     if (!context.mounted) return;
 

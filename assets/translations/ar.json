@@ -212,5 +212,13 @@
   "completeOrder": "إتمام العملية",
   "agreedPrice": "السعر المتفق عليه",
   "enterAgreedPrice": "أدخل السعر (اختياري)",
+  "proposePrice": "إرسال السعر للعميل",
+  "sendPrice": "إرسال السعر",
+  "proposedPrice": "السعر المقترح",
+  "waitForProviderPrice": "انتظر حتى يرسل المزود السعر",
+  "providerAcceptedChat": "قبلت الطلب وجاهز للدردشة",
+  "trackProviderOnMap": "تتبع المزود على الخريطة",
+  "activeOrderBlockingSearch": "لديك طلب نشط. أكمله قبل البحث عن مزود جديد",
+  "openActiveOrder": "فتح الطلب النشط",
   "back": "رجوع"
 }

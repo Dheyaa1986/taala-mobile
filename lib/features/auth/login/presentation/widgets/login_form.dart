@@ -23,9 +23,8 @@ import '../../../../../core/app_config/app_icons.dart';
 import '../../../../../core/app_config/app_strings.dart';
 
 import '../../../../../core/app_config/prefs_keys.dart';
-
 import '../../../../../core/di/service_locator.dart';
-
+import '../../../../../core/extensions/device_insets_extension.dart';
 import '../../../../../core/helpers/messages.dart';
 
 import '../../../../../core/helpers/secure_local_storage.dart';
@@ -180,15 +179,12 @@ class _LoginFormState extends State<LoginForm> {
           context.pop();
 
           if (state is LoginSuccess) {
-
+            context.read<BottomNavigationCubit>().isProvider =
+                _role == UserRole.provider;
             context.pushNamedAndRemoveUntil(
-
-              Routes.splashScreen,
-
-              predicate: (route) => false,
-
+              Routes.home,
+              predicate: (_) => false,
             );
-
           } else if (state is LoginError) {
 
             AppMessages.showError(context, state.error);
@@ -427,7 +423,7 @@ class _LoginFormState extends State<LoginForm> {
 
               ),
 
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 16.h),
+              SizedBox(height: context.safeBottomInset + 16.h),
 
             ],
 

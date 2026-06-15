@@ -137,30 +137,11 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
     if (id == null || _acceptingOrderId != null) return;
 
     setState(() => _acceptingOrderId = id);
-    final result = await _repository.updateStatus(
-      orderId: id,
-      status: 'accepted',
-    );
+    await ServiceOrderLocalStateHelper.markRead(id);
     if (!mounted) return;
-
-    await result.fold(
-      (error) async {
-        setState(() => _acceptingOrderId = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message)),
-        );
-      },
-      (acceptedOrder) async {
-        await ServiceOrderLocalStateHelper.markRead(id);
-        if (!mounted) return;
-        setState(() {
-          _acceptingOrderId = null;
-          _readIds = {..._readIds, id};
-        });
-        ServiceOrderNavigation.openDetail(id, openChat: true);
-        await _load();
-      },
-    );
+    setState(() => _acceptingOrderId = null);
+    ServiceOrderNavigation.openDetail(id, openChat: true);
+    await _load();
   }
 
   Future<void> _confirmDelete(ServiceOrderModel order) async {

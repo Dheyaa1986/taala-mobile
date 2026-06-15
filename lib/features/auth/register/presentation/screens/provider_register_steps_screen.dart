@@ -15,6 +15,7 @@ import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'package:taal/core/widgets/buttons/back_button.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
@@ -285,13 +286,14 @@ class _ProviderRegisterStepsScreenState
                       ],
                     ),
                   ),
-                  CustomButton.filled(
-                    text: _step == 2
-                        ? AppStrings.signUp.tr()
-                        : AppStrings.continueKey.tr(),
-                    onTap: _submitting ? null : _nextStep,
+                  BottomSafeArea(
+                    child: CustomButton.filled(
+                      text: _step == 2
+                          ? AppStrings.signUp.tr()
+                          : AppStrings.continueKey.tr(),
+                      onTap: _submitting ? null : _nextStep,
+                    ),
                   ),
-                  16.height,
                 ],
               ),
             ),

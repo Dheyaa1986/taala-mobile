@@ -33,6 +33,8 @@ class AppUrls {
       '$_baseApi/notifications/me/unread-count';
   static const String notificationsReadAll =
       '$_baseApi/notifications/me/read-all';
+  static const String notificationsFcmToken =
+      '$_baseApi/notifications/me/fcm-token';
   static String notificationRead(String id) =>
       '$_baseApi/notifications/$id/read';
   static String notificationDelete(String id) =>
@@ -58,12 +60,14 @@ class AppUrls {
   static const String serviceTypesList = '/service-types/list';
   static const String serviceOrders = '/service-orders';
   static const String serviceOrdersMe = '/service-orders/me';
+  static const String serviceOrdersMeActive = '/service-orders/me/active';
   static String serviceOrderTracking(String id) =>
       '/service-orders/$id/tracking';
   static String serviceOrderMessages(String id) =>
       '/service-orders/$id/messages';
   static String serviceOrderStatus(String id) =>
       '/service-orders/$id/status';
+  static String serviceOrderPrice(String id) => '/service-orders/$id/price';
   static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
   static const String providerUpdateProfile = '$_baseApi/providers/profile';
   static const String providerLiveLocation = '/providers/live-location';

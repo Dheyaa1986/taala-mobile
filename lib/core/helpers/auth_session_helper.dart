@@ -35,7 +35,6 @@ class AuthSessionHelper {
         await SecureLocalStorage.read(PrefsKeys.refreshToken);
     if (refreshToken == null || refreshToken.isEmpty) return false;
 
-    final accessToken = await SecureLocalStorage.read(PrefsKeys.token);
     try {
       final dio = Dio(
         BaseOptions(
@@ -50,19 +49,18 @@ class AuthSessionHelper {
       );
       final response = await dio.post(
         AppUrls.refreshToken,
-        data: {
-          'accessToken': accessToken ?? '',
-          'refreshToken': refreshToken,
-        },
+        data: {'refreshToken': refreshToken},
       );
       if (response.statusCode != 200) return false;
 
-      final data = response.data;
-      if (data is! Map<String, dynamic>) return false;
+      final raw = response.data;
+      if (raw is! Map<String, dynamic>) return false;
 
-      final access = data['accessToken'] as String?;
-      final refresh = data['refreshToken'] as String?;
-      if (access == null || access.isEmpty || refresh == null || refresh.isEmpty) {
+      final payload =
+          raw['response'] as Map<String, dynamic>? ?? raw;
+      final access = payload['token']?.toString() ?? '';
+      final refresh = payload['refreshToken']?.toString() ?? '';
+      if (access.isEmpty || refresh.isEmpty) {
         return false;
       }
 
@@ -74,10 +72,13 @@ class AuthSessionHelper {
     }
   }
 
-  static Future<void> clearSession() async {
+  static Future<void> clearSession({bool clearRememberedCredentials = false}) async {
     await SecureLocalStorage.delete(PrefsKeys.token);
     await SecureLocalStorage.delete(PrefsKeys.refreshToken);
-    await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: true);
+    if (clearRememberedCredentials) {
+      await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
+      await SecureLocalStorage.delete(PrefsKeys.password);
+    }
   }
 
   static Future<void> logout() async {
