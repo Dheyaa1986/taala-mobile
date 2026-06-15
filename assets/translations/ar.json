@@ -133,6 +133,8 @@
   "delete": "حذف",
   "deleteNotification": "حذف الإشعار",
   "deleteNotificationSubtitle": "هل تريد حذف هذا الإشعار؟",
+  "deleteOrder": "حذف الطلب",
+  "deleteOrderSubtitle": "هل تريد إخفاء هذا الطلب من القائمة؟",
   "deleteTicket": "حذف الشكوى",
   "deleteTicketSubtitle": "هل تريد حذف هذه الشكوى المكتملة؟",
   "clientHomeWelcome": "نحن هنا لمساعدتك",

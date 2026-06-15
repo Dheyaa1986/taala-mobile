@@ -137,6 +137,8 @@
   "chatProviderUnavailable": "Unable to open chat with this provider",
   "chatOpenFailed": "Unable to open chat. Please try again",
   "genericError": "Something went wrong, please try again later",
+  "deleteOrder": "Delete order",
+  "deleteOrderSubtitle": "Hide this order from your list?",
   "providerIncomingOrders": "Client requests",
   "viewAllOrders": "View all",
   "myServiceOrders": "My Orders",

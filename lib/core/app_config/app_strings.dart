@@ -96,6 +96,8 @@ class AppStrings {
   static const String markAllRead = "markAllRead";
   static const String deleteNotification = "deleteNotification";
   static const String deleteNotificationSubtitle = "deleteNotificationSubtitle";
+  static const String deleteOrder = "deleteOrder";
+  static const String deleteOrderSubtitle = "deleteOrderSubtitle";
   static const String deleteTicket = "deleteTicket";
   static const String deleteTicketSubtitle = "deleteTicketSubtitle";
 

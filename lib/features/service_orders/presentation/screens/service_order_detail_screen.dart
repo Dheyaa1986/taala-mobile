@@ -14,6 +14,7 @@ import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
 
 class ServiceOrderDetailScreen extends StatefulWidget {
   const ServiceOrderDetailScreen({super.key, required this.orderId});
@@ -71,6 +72,10 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       _isProvider = isProvider;
       profile.fold((_) {}, (p) => _myUserId = p.id);
     });
+
+    if (isProvider) {
+      await ServiceOrderLocalStateHelper.markRead(widget.orderId);
+    }
   }
 
   Future<void> _load({bool silent = false}) async {
