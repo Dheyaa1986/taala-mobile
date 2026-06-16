@@ -7,7 +7,6 @@ import 'config/routes/app_router.dart';
 import 'config/themes/theme.dart';
 import 'core/alerts/alert_delivery_bootstrap.dart';
 import 'core/alerts/app_alert_monitor.dart';
-import 'core/alerts/push_notification_service.dart';
 import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
@@ -69,6 +68,9 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
       }
     });
     _scheduleThemeLoad();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AlertDeliveryBootstrap.ensureReady();
+    });
   }
 
   @override
@@ -106,10 +108,6 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
                     cubit.loadProfile();
                     getIt<NotificationCubit>().loadUnreadCount();
                     getIt<AppAlertMonitor>().start();
-                    Future<void>.delayed(
-                      const Duration(seconds: 2),
-                      AlertDeliveryBootstrap.ensureReady,
-                    );
                   }
                 });
                 return cubit;

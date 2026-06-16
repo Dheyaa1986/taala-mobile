@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:taal/core/alerts/push_notification_service.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/secure_local_storage.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 
 class AlertDeliveryBootstrap {
@@ -13,6 +14,7 @@ class AlertDeliveryBootstrap {
 
   static const _channel = MethodChannel('com.mintops.taala/alerts');
   static bool _running = false;
+  static bool _nativeExtrasScheduled = false;
 
   static Future<void> ensureReady() async {
     if (_running) return;
@@ -20,21 +22,43 @@ class AlertDeliveryBootstrap {
 
     try {
       await PushNotificationService.instance.initialize();
-
-      if (Platform.isAndroid) {
-        await _channel.invokeMethod<void>('ensureChannels');
-        await _ensureAndroidPermissions();
-        await _syncPendingNativeToken();
-        await _channel.invokeMethod<void>('startKeepAlive');
-        await _openVendorSettingsOnce();
-      } else if (Platform.isIOS) {
-        await _ensureIosPermissions();
-      }
-
       await PushNotificationService.instance.syncTokenIfLoggedIn();
+
+      if (Platform.isIOS) {
+        await _ensureIosPermissions();
+      } else if (Platform.isAndroid) {
+        _scheduleAndroidExtras();
+      }
     } finally {
       _running = false;
     }
+  }
+
+  static void _scheduleAndroidExtras() {
+    if (_nativeExtrasScheduled) return;
+    _nativeExtrasScheduled = true;
+
+    Future<void>.delayed(const Duration(seconds: 4), () async {
+      final token = await SecureLocalStorage.read(PrefsKeys.token);
+      if (token == null || token.isEmpty) return;
+
+      try {
+        await _channel.invokeMethod<void>('ensureChannels');
+      } catch (error) {
+        debugPrint('ensureChannels failed: $error');
+      }
+
+      await _ensureAndroidPermissions();
+      await _syncPendingNativeToken();
+
+      try {
+        await _channel.invokeMethod<void>('startKeepAlive');
+      } catch (error) {
+        debugPrint('startKeepAlive failed: $error');
+      }
+
+      await _openVendorSettingsOnce();
+    });
   }
 
   static Future<void> stop() async {

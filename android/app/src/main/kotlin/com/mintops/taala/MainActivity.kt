@@ -50,11 +50,15 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun startKeepAliveService() {
-        val intent = Intent(this, TaalaAlertForegroundService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        try {
+            val intent = Intent(this, TaalaAlertForegroundService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        } catch (_: Exception) {
+            // May fail if called before the activity is visible on newer Android versions.
         }
     }
 
@@ -71,7 +75,6 @@ class MainActivity : FlutterActivity() {
         return try {
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = Uri.parse("package:$packageName")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(intent)
             true

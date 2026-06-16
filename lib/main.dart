@@ -10,7 +10,6 @@ import 'package:taal/taala_app.dart';
 
 import 'config/locale/locales.dart';
 import 'config/routes/app_router.dart';
-import 'core/alerts/alert_delivery_bootstrap.dart';
 import 'core/alerts/firebase_background_handler.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/bloc_observer.dart';
@@ -35,7 +34,6 @@ void main() async {
     debugPrint('Firebase init failed: $error');
   }
   await setupServiceLocator();
-  await AlertDeliveryBootstrap.ensureReady();
   debugRepaintRainbowEnabled = false;
 
   runApp(
