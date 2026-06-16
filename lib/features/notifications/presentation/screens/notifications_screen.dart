@@ -86,7 +86,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) {
-          context.read<NotificationCubit>().loadUnreadCount();
+          context.read<NotificationCubit>().refreshInbox(reloadList: true);
         }
       },
       child: Scaffold(

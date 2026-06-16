@@ -1,11 +1,9 @@
 package com.mintops.taala
 
 import android.app.ActivityManager
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -16,10 +14,6 @@ class TaalaFirebaseMessagingService : FirebaseMessagingService() {
         NotificationChannelHelper.ensureChannels(this)
 
         if (isAppInForeground()) {
-            return
-        }
-
-        if (message.notification != null) {
             return
         }
 
@@ -60,7 +54,7 @@ class TaalaFirebaseMessagingService : FirebaseMessagingService() {
             .setContentText(body)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)

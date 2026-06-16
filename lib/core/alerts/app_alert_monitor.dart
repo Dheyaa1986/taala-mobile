@@ -92,7 +92,7 @@ class AppAlertMonitor {
       }
       _lastUnreadInboxCount = unreadInboxCount;
 
-      await getIt<NotificationCubit>().loadUnreadCount();
+      await getIt<NotificationCubit>().refreshInbox();
       ordersRefreshTick.value++;
 
       if (_initialized && shouldAlert) {

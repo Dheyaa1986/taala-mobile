@@ -62,7 +62,7 @@ class LoginCubit extends Cubit<LoginState> {
           await SecureLocalStorage.delete(PrefsKeys.password);
         }
         await getIt<ProfileCubit>().loadProfile();
-        await getIt<NotificationCubit>().loadUnreadCount();
+        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
         await AlertDeliveryBootstrap.ensureReady();
 

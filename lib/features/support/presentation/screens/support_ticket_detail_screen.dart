@@ -119,7 +119,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) {
-          getIt<NotificationCubit>().loadUnreadCount();
+          getIt<NotificationCubit>().refreshInbox(reloadList: true);
         }
       },
       child: Scaffold(

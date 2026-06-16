@@ -1,14 +1,15 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:taal/firebase_options.dart';
 import 'package:taal/core/alerts/app_alert_sound_service.dart';
+import 'package:taal/core/alerts/app_icon_badge_service.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/secure_local_storage.dart';
-import 'package:app_badge_plus/app_badge_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/network/network_request.dart';
@@ -57,7 +58,7 @@ class PushNotificationService {
       const AndroidNotificationChannel(
         'taala_urgent_orders',
         'طلبات ورسائل عاجلة',
-        description: 'تنبيهات الطلبات والرسائل — مثل المكالمة',
+        description: 'تنبيهات الطلبات والرسائل',
         importance: Importance.max,
         playSound: true,
         enableVibration: true,
@@ -95,12 +96,10 @@ class PushNotificationService {
         return false;
       }
 
-      FirebaseMessaging.onMessage.listen((message) async {
-        await handleIncomingMessage(message);
-      });
+      FirebaseMessaging.onMessage.listen(handleIncomingMessage);
 
-      FirebaseMessaging.onMessageOpenedApp.listen((message) async {
-        await getIt<NotificationCubit>().loadUnreadCount();
+      FirebaseMessaging.onMessageOpenedApp.listen((_) async {
+        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
       });
 
       await _registerCurrentToken(messaging);
@@ -176,50 +175,35 @@ class PushNotificationService {
     final body = message.notification?.body ??
         message.data['body'] ??
         'لديك إشعار جديد';
+    final badge = int.tryParse(message.data['badge'] ?? '');
+
+    if (badge != null) {
+      await AppIconBadgeService.applyCount(badge);
+    }
 
     if (background) {
-      await _incrementBackgroundBadge(message);
+      if (Platform.isAndroid) {
+        return;
+      }
       await showUrgentAlert(
         title: title,
         body: body,
-        badgeNumber: await _readBackgroundBadgeCount(),
+        badgeNumber: badge,
       );
       return;
     }
 
-    await showUrgentAlert(title: title, body: body);
+    await showUrgentAlert(
+      title: title,
+      body: body,
+      badgeNumber: badge,
+    );
     await getIt<AppAlertSoundService>().play(force: true);
 
     try {
-      await getIt<NotificationCubit>().loadUnreadCount();
+      await getIt<NotificationCubit>().refreshInbox(reloadList: true);
     } catch (error) {
-      debugPrint('Notification badge refresh failed: $error');
-    }
-  }
-
-  Future<void> _incrementBackgroundBadge(RemoteMessage message) async {
-    if (message.data['type'] == 'service_order') return;
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final current = prefs.getInt(PrefsKeys.appIconBadgeCount) ?? 0;
-      final next = current + 1;
-      await prefs.setInt(PrefsKeys.appIconBadgeCount, next);
-
-      if (await AppBadgePlus.isSupported()) {
-        await AppBadgePlus.updateBadge(next);
-      }
-    } catch (error) {
-      debugPrint('Background app icon badge update failed: $error');
-    }
-  }
-
-  Future<int?> _readBackgroundBadgeCount() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getInt(PrefsKeys.appIconBadgeCount);
-    } catch (_) {
-      return null;
+      debugPrint('Notification refresh failed: $error');
     }
   }
 
@@ -234,13 +218,12 @@ class PushNotificationService {
       android: AndroidNotificationDetails(
         'taala_urgent_orders',
         'طلبات ورسائل عاجلة',
-        channelDescription: 'تنبيهات الطلبات والرسائل — مثل المكالمة',
+        channelDescription: 'تنبيهات الطلبات والرسائل',
         importance: Importance.max,
         priority: Priority.max,
         playSound: true,
         enableVibration: true,
-        category: AndroidNotificationCategory.call,
-        fullScreenIntent: true,
+        category: AndroidNotificationCategory.message,
         visibility: NotificationVisibility.public,
       ),
       iOS: DarwinNotificationDetails(

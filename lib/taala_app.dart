@@ -46,6 +46,11 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       AlertDeliveryBootstrap.ensureReady();
+      SecureLocalStorage.read(PrefsKeys.token).then((token) {
+        if (token != null && token.isNotEmpty) {
+          getIt<NotificationCubit>().refreshInbox(reloadList: true);
+        }
+      });
     }
   }
 
@@ -106,7 +111,7 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
                 SecureLocalStorage.read(PrefsKeys.token).then((token) {
                   if (token != null && token.isNotEmpty) {
                     cubit.loadProfile();
-                    getIt<NotificationCubit>().loadUnreadCount();
+                    getIt<NotificationCubit>().refreshInbox(reloadList: true);
                     getIt<AppAlertMonitor>().start();
                   }
                 });
