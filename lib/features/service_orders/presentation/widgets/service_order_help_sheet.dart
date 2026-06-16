@@ -11,18 +11,14 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/options/pagination_options.dart';
-import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
-import 'package:taal/core/widgets/cached_network_image/custom_cached_network_image.dart';
-import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/service_type_selector_grid.dart';
-import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
-import 'package:taal/features/service_orders/presentation/widgets/provider_contact_sheet.dart';
+import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
 
 Future<void> showServiceOrderHelpSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -43,16 +39,13 @@ class ServiceOrderHelpSheet extends StatefulWidget {
 }
 
 class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
-  final _descriptionController = TextEditingController();
   final _locationsRepository = getIt<LocationsRepository>();
   final _providersRepository = getIt<ProviderRepository>();
 
   List<ServiceTypeModel> _serviceTypes = [];
-  List<ServiceProviderModel> _providers = [];
   String? _selectedServiceTypeId;
   bool _loadingTypes = true;
-  bool _loadingProviders = false;
-  int _step = 0;
+  bool _submitting = false;
 
   @override
   void initState() {
@@ -72,27 +65,15 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
     );
   }
 
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
   Future<String?> _resolveClientId() async {
     final result = await getIt<ProfileRepository>().getMyProfile();
     return result.fold((_) => null, (profile) => profile.id);
   }
 
-  Future<void> _goToProviderStep() async {
+  Future<void> _requestHelp() async {
     if (_selectedServiceTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.selectServiceType.tr())),
-      );
-      return;
-    }
-    if (_descriptionController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.requiredField.tr())),
       );
       return;
     }
@@ -117,15 +98,12 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
       return;
     }
 
-    setState(() {
-      _step = 1;
-      _loadingProviders = true;
-    });
+    setState(() => _submitting = true);
 
     final clientId = await _resolveClientId();
     if (clientId == null) {
       if (!mounted) return;
-      setState(() => _loadingProviders = false);
+      setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.loginRequiredForHelp.tr())),
       );
@@ -140,7 +118,7 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
       clientId: clientId,
       options: ProvidersPaginationOptions(
         page: 1,
-        limit: 20,
+        limit: 1,
         filter: FilterProvidersModel(
           serviceTypeId: _selectedServiceTypeId,
           active: true,
@@ -151,29 +129,34 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
     );
 
     if (!mounted) return;
-    result.fold(
-      (error) {
-        setState(() {
-          _loadingProviders = false;
-          _providers = [];
-        });
+
+    await result.fold(
+      (error) async {
+        setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.message)),
         );
       },
-      (items) => setState(() {
-        _providers = items;
-        _loadingProviders = false;
-      }),
-    );
-  }
+      (providers) async {
+        if (providers.isEmpty) {
+          setState(() => _submitting = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppStrings.noProvidersNearby.tr())),
+          );
+          return;
+        }
 
-  void _onProviderTap(ServiceProviderModel provider) {
-    showProviderContactSheet(
-      context,
-      provider: provider,
-      serviceTypeId: _selectedServiceTypeId!,
-      description: _descriptionController.text.trim(),
+        await ServiceOrderChatLauncher.startChat(
+          provider: providers.first,
+          serviceTypeId: _selectedServiceTypeId!,
+          description: AppStrings.chatRequestDefault.tr(),
+          sheetsToClose: 1,
+        );
+
+        if (mounted) {
+          setState(() => _submitting = false);
+        }
+      },
     );
   }
 
@@ -190,147 +173,43 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SheetHeader(
-              title: _step == 0
-                  ? AppStrings.requestHelp.tr()
-                  : AppStrings.selectProvider.tr(),
-            ),
-            if (_step == 1) ...[
-              8.height,
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton(
-                  onPressed: () => setState(() => _step = 0),
-                  child: Text(AppStrings.back.tr()),
-                ),
-              ),
-            ],
+            SheetHeader(title: AppStrings.requestHelp.tr()),
             12.height,
-            if (_step == 0) ...[
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  AppStrings.selectServiceType.tr(),
-                  style:
-                      TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                AppStrings.selectServiceType.tr(),
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+              ),
+            ),
+            12.height,
+            if (_loadingTypes)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              )
+            else
+              ServiceTypeSelectorGrid(
+                items: _serviceTypes,
+                selectedIds: _selectedServiceTypeId == null
+                    ? {}
+                    : {_selectedServiceTypeId!},
+                multiSelect: false,
+                onChanged: (ids) => setState(
+                  () => _selectedServiceTypeId =
+                      ids.isEmpty ? null : ids.first,
                 ),
               ),
-              12.height,
-              if (_loadingTypes)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                )
-              else
-                ServiceTypeSelectorGrid(
-                  items: _serviceTypes,
-                  selectedIds: _selectedServiceTypeId == null
-                      ? {}
-                      : {_selectedServiceTypeId!},
-                  multiSelect: false,
-                  onChanged: (ids) => setState(
-                    () => _selectedServiceTypeId =
-                        ids.isEmpty ? null : ids.first,
+            20.height,
+            _submitting
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: CircularProgressIndicator(),
+                  )
+                : CustomButton.filled(
+                    text: AppStrings.requestHelp.tr(),
+                    onTap: _requestHelp,
                   ),
-                ),
-              16.height,
-              CustomTextField(
-                controller: _descriptionController,
-                label: AppStrings.supportTicketDescription.tr(),
-                hint: AppStrings.enterDescription.tr(),
-                maxLines: 4,
-                validator: CustomValidators.validateEmpty,
-              ),
-              20.height,
-              CustomButton(
-                text: AppStrings.continueKey.tr(),
-                onTap: _goToProviderStep,
-              ),
-            ] else ...[
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  AppStrings.nearestProviders.tr(),
-                  style:
-                      TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
-                ),
-              ),
-              12.height,
-              if (_loadingProviders)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                )
-              else if (_providers.isEmpty)
-                Text(
-                  AppStrings.noProvidersNearby.tr(),
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: AppColors.commentColor,
-                  ),
-                )
-              else
-                ..._providers.map(
-                  (provider) => Padding(
-                    padding: EdgeInsets.only(bottom: 10.h),
-                    child: InkWell(
-                      onTap: () => _onProviderTap(provider),
-                      borderRadius: BorderRadius.circular(12.r),
-                      child: Container(
-                        padding: REdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFE5E5EA)),
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        child: Row(
-                          children: [
-                            CustomCachedNetworkImage(
-                              url: provider.image,
-                              radius: 100.r,
-                              width: 48.w,
-                              height: 48.h,
-                            ),
-                            12.width,
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    provider.name ?? '',
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  4.height,
-                                  Text(
-                                    provider.services.join(', '),
-                                    style: TextStyle(
-                                      fontSize: 11.sp,
-                                      color: AppColors.commentColor,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (provider.distanceKm != null)
-                              Text(
-                                '${provider.distanceKm!.toStringAsFixed(1)} ${AppStrings.distanceKm.tr()}',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
           ],
         ),
       ),
