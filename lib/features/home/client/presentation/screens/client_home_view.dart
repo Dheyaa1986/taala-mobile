@@ -27,6 +27,7 @@ import 'package:taal/features/home/client/data/repository/providers_repository.d
 import 'package:taal/features/home/client/presentation/cubit/service_providers_cubit.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 import 'package:taal/features/home/client/presentation/widgets/service_provider_card.dart';
 import 'package:taal/features/service_orders/presentation/widgets/service_order_help_sheet.dart';
@@ -232,18 +233,35 @@ class _ClientHomeBody extends StatefulWidget {
 
 class _ClientHomeBodyState extends State<_ClientHomeBody> {
   ServiceOrderModel? _activeOrder;
+  final _activeOrderRefresh = getIt<ActiveOrderRefreshNotifier>();
 
   @override
   void initState() {
     super.initState();
+    _activeOrderRefresh.addListener(_loadActiveOrder);
     _loadActiveOrder();
     _loadProvidersIfNeeded(widget.pickedLocation, force: widget.initialLoad);
+  }
+
+  @override
+  void dispose() {
+    _activeOrderRefresh.removeListener(_loadActiveOrder);
+    super.dispose();
   }
 
   Future<void> _loadActiveOrder() async {
     final result = await getIt<ServiceOrderRepository>().getActiveOrder();
     if (!mounted) return;
-    result.fold((_) {}, (order) => setState(() => _activeOrder = order));
+    result.fold(
+      (_) => setState(() => _activeOrder = null),
+      (order) => setState(() => _activeOrder = order),
+    );
+  }
+
+  void _showActiveOrderBlockedMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppStrings.activeOrderBlockingSearch.tr())),
+    );
   }
 
   @override
@@ -312,6 +330,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                               text: AppStrings.openActiveOrder.tr(),
                               onTap: () => ServiceOrderNavigation.openDetail(
                                 _activeOrder!.id!,
+                                openChat: true,
                               ),
                             ),
                           ],
@@ -319,7 +338,6 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                       ),
                       20.height,
                     ],
-                    if (!hasActiveOrder) ...[
                     Text(
                       AppStrings.clientHomeWelcome.tr(),
                       style: TextStyle(
@@ -437,7 +455,10 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                                 .map(
                                   (provider) => Padding(
                                     padding: EdgeInsets.only(bottom: 12.h),
-                                    child: ServiceProviderCard(model: provider),
+                                    child: ServiceProviderCard(
+                                      model: provider,
+                                      canStartOrder: !hasActiveOrder,
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -449,10 +470,12 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                     24.height,
                     CustomButton.filled(
                       text: AppStrings.requestHelp.tr(),
-                      onTap: () => showServiceOrderHelpSheet(context),
+                      onTap: hasActiveOrder
+                          ? _showActiveOrderBlockedMessage
+                          : () => showServiceOrderHelpSheet(context),
+                      enabled: !hasActiveOrder,
                       height: 52.h,
                     ),
-                    ],
                   ],
                 ),
               ),

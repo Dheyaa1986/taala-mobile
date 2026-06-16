@@ -18,10 +18,21 @@ import '../../data/model/service_provider_model/service_provider_model.dart';
 import '../../data/model/service_provider_model/service_type_model.dart';
 
 class ServiceProviderCard extends StatelessWidget {
-  const ServiceProviderCard({super.key, required this.model});
+  const ServiceProviderCard({
+    super.key,
+    required this.model,
+    this.canStartOrder = true,
+  });
   final ServiceProviderModel model;
+  final bool canStartOrder;
 
   Future<void> _openChat(BuildContext context) async {
+    if (!canStartOrder) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.activeOrderBlockingSearch.tr())),
+      );
+      return;
+    }
     final types = model.serviceTypes
         .where((type) => type.id != null && type.id!.isNotEmpty)
         .toList();
@@ -210,7 +221,8 @@ class ServiceProviderCard extends StatelessWidget {
           CustomButton.filled(
             radius: Radius.circular(16.r),
             text: AppStrings.openChat.tr(),
-            onTap: () => _openChat(context),
+            onTap: canStartOrder ? () => _openChat(context) : null,
+            enabled: canStartOrder,
           ),
         ]),
       ),

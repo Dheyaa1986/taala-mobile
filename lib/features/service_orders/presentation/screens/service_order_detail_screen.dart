@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -18,6 +19,7 @@ import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_tracking_map.dart';
 
@@ -237,6 +239,12 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         setState(() => _order = order);
         if (_isProvider && status == 'accepted') {
           _focusChat();
+        }
+        if (status == 'completed' || status == 'cancelled') {
+          getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+          if (!_isProvider && context.mounted) {
+            context.pop();
+          }
         }
       },
     );

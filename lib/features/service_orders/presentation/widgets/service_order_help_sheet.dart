@@ -17,6 +17,7 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
+import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
 
 Future<void> showServiceOrderHelpSheet(BuildContext context) {
@@ -94,6 +95,20 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
       );
       Navigator.of(context).pop();
       context.pushNamed(Routes.login, extra: false);
+      return;
+    }
+
+    final activeOrder =
+        await getIt<ServiceOrderRepository>().getActiveOrder();
+    if (!mounted) return;
+    final blocked = activeOrder.fold(
+      (_) => false,
+      (order) => order?.id != null,
+    );
+    if (blocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.activeOrderBlockingSearch.tr())),
+      );
       return;
     }
 

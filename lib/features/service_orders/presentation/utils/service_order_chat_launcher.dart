@@ -8,6 +8,7 @@ import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 
 class ServiceOrderChatLauncher {
@@ -69,6 +70,7 @@ class ServiceOrderChatLauncher {
         } else {
           ServiceOrderNavigation.openDetail(orderId, openChat: true);
         }
+        getIt<ActiveOrderRefreshNotifier>().notifyChanged();
       },
     );
   }
