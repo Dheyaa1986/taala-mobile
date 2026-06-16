@@ -27,6 +27,8 @@ class AlertDeliveryBootstrap {
         await _syncPendingNativeToken();
         await _channel.invokeMethod<void>('startKeepAlive');
         await _openVendorSettingsOnce();
+      } else if (Platform.isIOS) {
+        await _ensureIosPermissions();
       }
 
       await PushNotificationService.instance.syncTokenIfLoggedIn();
@@ -52,6 +54,12 @@ class AlertDeliveryBootstrap {
       }
     } catch (error) {
       debugPrint('Pending FCM token sync failed: $error');
+    }
+  }
+
+  static Future<void> _ensureIosPermissions() async {
+    if (!await Permission.notification.isGranted) {
+      await Permission.notification.request();
     }
   }
 
