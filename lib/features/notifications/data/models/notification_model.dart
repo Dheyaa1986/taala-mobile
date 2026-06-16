@@ -39,6 +39,16 @@ class NotificationModel extends Equatable {
     );
   }
 
+  bool get isOrderNotification {
+    if (serviceOrderId != null && serviceOrderId!.isNotEmpty) {
+      return true;
+    }
+    return title.contains('طلب خدمة') ||
+        title.contains('رسالة جديدة في طلب الخدمة') ||
+        title.contains('تحديث حالة الطلب') ||
+        title.contains('عرض سعر من المزود');
+  }
+
   String? get linkedServiceOrderId {
     if (serviceOrderId != null && serviceOrderId!.isNotEmpty) {
       return serviceOrderId;

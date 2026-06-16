@@ -5,9 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:taal/core/alerts/push_notification_service.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
-import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/secure_local_storage.dart';
-import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 
 class AlertDeliveryBootstrap {
   AlertDeliveryBootstrap._();
@@ -56,8 +54,6 @@ class AlertDeliveryBootstrap {
       } catch (error) {
         debugPrint('startKeepAlive failed: $error');
       }
-
-      await _openVendorSettingsOnce();
     });
   }
 
@@ -105,23 +101,6 @@ class AlertDeliveryBootstrap {
       }
     } catch (error) {
       debugPrint('Battery optimization request failed: $error');
-    }
-  }
-
-  static Future<void> _openVendorSettingsOnce() async {
-    final prompted = getIt<SharedPref>().get(
-      key: PrefsKeys.alertVendorSetupDone,
-    );
-    if (prompted == true) return;
-
-    try {
-      await _channel.invokeMethod<bool>('openVendorAutoStartSettings');
-      await getIt<SharedPref>().set(
-        key: PrefsKeys.alertVendorSetupDone,
-        value: true,
-      );
-    } catch (error) {
-      debugPrint('Vendor autostart setup failed: $error');
     }
   }
 }

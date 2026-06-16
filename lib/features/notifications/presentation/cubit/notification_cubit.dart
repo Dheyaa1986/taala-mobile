@@ -12,10 +12,25 @@ class NotificationCubit extends Cubit<NotificationState> {
   int _countUnread(List<NotificationModel> items) =>
       items.where((item) => !item.isRead).length;
 
-  List<NotificationModel> _filterForRole(List<NotificationModel> items) {
-    return items
-        .where((item) => item.linkedServiceOrderId == null)
-        .toList();
+  List<NotificationModel> _filterInbox(List<NotificationModel> items) {
+    return items.where((item) => !item.isOrderNotification).toList();
+  }
+
+  Future<void> loadUnreadCount() async {
+    final result = await _repository.getMyNotifications(limit: 50);
+    result.fold((_) {}, (page) {
+      final items = _filterInbox(page.items);
+      final unread = _countUnread(items);
+      final current = state;
+      if (current is NotificationLoaded) {
+        emit(NotificationLoaded(
+          items: current.items.isNotEmpty ? current.items : items,
+          unreadCount: unread,
+        ));
+      } else {
+        emit(NotificationLoaded(items: items, unreadCount: unread));
+      }
+    });
   }
 
   Future<void> loadNotifications() async {
@@ -32,36 +47,16 @@ class NotificationCubit extends Cubit<NotificationState> {
     }
 
     final notificationsResult = await _repository.getMyNotifications();
-    final countResult = await _repository.getUnreadCount();
-
     notificationsResult.fold(
       (error) => emit(NotificationError(error.message)),
       (page) {
-        final items = _filterForRole(page.items);
-        final unreadFromItems = _countUnread(items);
-        final unread =
-            countResult.fold((_) => unreadFromItems, (count) => unreadFromItems);
+        final items = _filterInbox(page.items);
         emit(NotificationLoaded(
           items: items,
-          unreadCount: unread,
+          unreadCount: _countUnread(items),
         ));
       },
     );
-  }
-
-  Future<void> loadUnreadCount() async {
-    final countResult = await _repository.getUnreadCount();
-    countResult.fold((_) {}, (count) {
-      final current = state;
-      if (current is NotificationLoaded) {
-        emit(NotificationLoaded(
-          items: current.items,
-          unreadCount: count,
-        ));
-      } else {
-        emit(NotificationLoaded(items: const [], unreadCount: count));
-      }
-    });
   }
 
   Future<void> markAsRead(String id) async {
@@ -78,23 +73,14 @@ class NotificationCubit extends Cubit<NotificationState> {
     ));
 
     final result = await _repository.markAsRead(id);
-    await result.fold(
-      (_) async {
+    result.fold(
+      (_) {
         emit(NotificationLoaded(
           items: current.items,
           unreadCount: current.unreadCount,
         ));
       },
-      (_) async {
-        final countResult = await _repository.getUnreadCount();
-        countResult.fold(
-          (_) {},
-          (count) => emit(NotificationLoaded(
-            items: updatedItems,
-            unreadCount: count,
-          )),
-        );
-      },
+      (_) {},
     );
   }
 
@@ -108,14 +94,14 @@ class NotificationCubit extends Cubit<NotificationState> {
     emit(NotificationLoaded(items: updatedItems, unreadCount: 0));
 
     final result = await _repository.markAllAsRead();
-    await result.fold(
-      (_) async {
+    result.fold(
+      (_) {
         emit(NotificationLoaded(
           items: current.items,
           unreadCount: current.unreadCount,
         ));
       },
-      (_) async => loadUnreadCount(),
+      (_) {},
     );
   }
 
@@ -133,13 +119,13 @@ class NotificationCubit extends Cubit<NotificationState> {
 
     final result = await _repository.deleteNotification(id);
     result.fold(
-      (_) async {
+      (_) {
         emit(NotificationLoaded(
           items: current.items,
           unreadCount: current.unreadCount,
         ));
       },
-      (_) async => loadUnreadCount(),
+      (_) {},
     );
   }
 }
