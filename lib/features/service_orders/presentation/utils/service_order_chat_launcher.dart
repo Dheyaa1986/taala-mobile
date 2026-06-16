@@ -64,9 +64,10 @@ class ServiceOrderChatLauncher {
           ServiceOrderNavigation.closeSheetsThenOpenDetail(
             orderId,
             sheetsToClose: sheetsToClose,
+            openChat: true,
           );
         } else {
-          ServiceOrderNavigation.openDetail(orderId);
+          ServiceOrderNavigation.openDetail(orderId, openChat: true);
         }
       },
     );
