@@ -8,6 +8,7 @@ import '../../config/routes/app_router.dart';
 import '../../config/routes/routes.dart';
 import '../app_config/app_urls.dart';
 import '../app_config/prefs_keys.dart';
+import '../alerts/alert_delivery_bootstrap.dart';
 import '../di/service_locator.dart';
 import 'secure_local_storage.dart';
 import 'shared_pref_local_storage.dart';
@@ -82,6 +83,7 @@ class AuthSessionHelper {
   }
 
   static Future<void> logout() async {
+    await AlertDeliveryBootstrap.stop();
     await clearSession();
     final context = AppRouter.appNavigatorKey.currentContext;
     if (context != null && context.mounted) {

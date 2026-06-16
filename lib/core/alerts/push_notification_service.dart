@@ -93,10 +93,13 @@ class PushNotificationService {
       }
 
       FirebaseMessaging.onMessage.listen((message) async {
-        await showUrgentAlert(
-          title: message.notification?.title ?? 'تنبيه طلاء',
-          body: message.notification?.body ?? 'لديك إشعار جديد',
-        );
+        final title = message.notification?.title ??
+            message.data['title'] ??
+            'تنبيه طلاء';
+        final body = message.notification?.body ??
+            message.data['body'] ??
+            'لديك إشعار جديد';
+        await showUrgentAlert(title: title, body: body);
         await getIt<AppAlertSoundService>().play();
       });
 
@@ -138,6 +141,10 @@ class PushNotificationService {
       }
       await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
     }
+  }
+
+  Future<void> registerToken(String token) async {
+    await _registerTokenWithBackend(token);
   }
 
   Future<void> _registerTokenWithBackend(String token) async {

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'config/routes/app_router.dart';
 import 'config/themes/theme.dart';
+import 'core/alerts/alert_delivery_bootstrap.dart';
 import 'core/alerts/app_alert_monitor.dart';
 import 'core/alerts/push_notification_service.dart';
 import 'core/app_config/prefs_keys.dart';
@@ -25,14 +26,28 @@ class TaalaApp extends StatefulWidget {
   State<TaalaApp> createState() => _TaalaAppState();
 }
 
-class _TaalaAppState extends State<TaalaApp> {
+class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
   bool _isCheckingAuth = true;
   String? _initialRoute;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkAuthStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      AlertDeliveryBootstrap.ensureReady();
+    }
   }
 
   void _scheduleThemeLoad() {
@@ -93,7 +108,7 @@ class _TaalaAppState extends State<TaalaApp> {
                     getIt<AppAlertMonitor>().start();
                     Future<void>.delayed(
                       const Duration(seconds: 2),
-                      PushNotificationService.instance.syncTokenIfLoggedIn,
+                      AlertDeliveryBootstrap.ensureReady,
                     );
                   }
                 });

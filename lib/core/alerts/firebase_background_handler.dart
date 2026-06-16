@@ -11,7 +11,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
   await PushNotificationService.instance.ensureLocalNotificationsReady();
   await PushNotificationService.instance.showUrgentAlert(
-    title: message.notification?.title ?? 'تنبيه طلاء',
-    body: message.notification?.body ?? 'لديك إشعار جديد',
+    title: message.notification?.title ??
+        message.data['title'] ??
+        'تنبيه طلاء',
+    body: message.notification?.body ??
+        message.data['body'] ??
+        'لديك إشعار جديد',
   );
 }
