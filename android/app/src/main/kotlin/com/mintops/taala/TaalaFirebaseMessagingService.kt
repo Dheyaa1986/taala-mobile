@@ -19,6 +19,10 @@ class TaalaFirebaseMessagingService : FirebaseMessagingService() {
             return
         }
 
+        if (message.notification != null) {
+            return
+        }
+
         val title = message.notification?.title
             ?: message.data["title"]
             ?: "تنبيه طلاء"

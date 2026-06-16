@@ -7,9 +7,12 @@ import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/secure_local_storage.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/network/network_request.dart';
+import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 
 class PushNotificationService {
   PushNotificationService._();
@@ -93,17 +96,12 @@ class PushNotificationService {
       }
 
       FirebaseMessaging.onMessage.listen((message) async {
-        final title = message.notification?.title ??
-            message.data['title'] ??
-            'تنبيه طلاء';
-        final body = message.notification?.body ??
-            message.data['body'] ??
-            'لديك إشعار جديد';
-        await showUrgentAlert(title: title, body: body);
-        await getIt<AppAlertSoundService>().play();
+        await handleIncomingMessage(message);
       });
 
-      FirebaseMessaging.onMessageOpenedApp.listen((_) {});
+      FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+        await getIt<NotificationCubit>().loadUnreadCount();
+      });
 
       await _registerCurrentToken(messaging);
       messaging.onTokenRefresh.listen(_registerTokenWithBackend);
@@ -168,13 +166,71 @@ class PushNotificationService {
     }
   }
 
+  Future<void> handleIncomingMessage(
+    RemoteMessage message, {
+    bool background = false,
+  }) async {
+    final title = message.notification?.title ??
+        message.data['title'] ??
+        'تنبيه طلاء';
+    final body = message.notification?.body ??
+        message.data['body'] ??
+        'لديك إشعار جديد';
+
+    if (background) {
+      await _incrementBackgroundBadge(message);
+      await showUrgentAlert(
+        title: title,
+        body: body,
+        badgeNumber: await _readBackgroundBadgeCount(),
+      );
+      return;
+    }
+
+    await showUrgentAlert(title: title, body: body);
+    await getIt<AppAlertSoundService>().play(force: true);
+
+    try {
+      await getIt<NotificationCubit>().loadUnreadCount();
+    } catch (error) {
+      debugPrint('Notification badge refresh failed: $error');
+    }
+  }
+
+  Future<void> _incrementBackgroundBadge(RemoteMessage message) async {
+    if (message.data['type'] == 'service_order') return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final current = prefs.getInt(PrefsKeys.appIconBadgeCount) ?? 0;
+      final next = current + 1;
+      await prefs.setInt(PrefsKeys.appIconBadgeCount, next);
+
+      if (await AppBadgePlus.isSupported()) {
+        await AppBadgePlus.updateBadge(next);
+      }
+    } catch (error) {
+      debugPrint('Background app icon badge update failed: $error');
+    }
+  }
+
+  Future<int?> _readBackgroundBadgeCount() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getInt(PrefsKeys.appIconBadgeCount);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> showUrgentAlert({
     required String title,
     required String body,
+    int? badgeNumber,
   }) async {
     await ensureLocalNotificationsReady();
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: AndroidNotificationDetails(
         'taala_urgent_orders',
         'طلبات ورسائل عاجلة',
@@ -191,6 +247,7 @@ class PushNotificationService {
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        badgeNumber: badgeNumber,
         interruptionLevel: InterruptionLevel.timeSensitive,
       ),
     );

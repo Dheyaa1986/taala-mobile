@@ -37,6 +37,7 @@ import '../../features/service_orders/presentation/helpers/active_order_refresh_
 import '../countries/data/services/countries_services.dart';
 import '../alerts/app_alert_monitor.dart';
 import '../alerts/app_alert_sound_service.dart';
+import '../alerts/app_icon_badge_service.dart';
 import '../alerts/push_notification_service.dart';
 import '../helpers/shared_pref_local_storage.dart';
 import '../network/dio_service.dart';
@@ -69,6 +70,9 @@ Future<void> _initExternals() async {
   );
   getIt.registerLazySingleton<AppAlertSoundService>(
     () => AppAlertSoundService(),
+  );
+  getIt.registerLazySingleton<AppIconBadgeService>(
+    () => AppIconBadgeService(),
   );
   getIt.registerLazySingleton<AppAlertMonitor>(
     () => AppAlertMonitor(

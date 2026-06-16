@@ -39,6 +39,10 @@ class AppAlertMonitor {
   final Map<String, int> _knownMessageCounts = {};
   final Map<String, int> _knownSupportMessageCounts = {};
 
+  int _lastUnreadInboxCount = 0;
+  String? _lastAlertTitle;
+  String? _lastAlertBody;
+
   final ValueNotifier<int> ordersRefreshTick = ValueNotifier<int>(0);
 
   bool get _isProvider =>
@@ -51,6 +55,9 @@ class AppAlertMonitor {
     _knownOrderIds.clear();
     _knownMessageCounts.clear();
     _knownSupportMessageCounts.clear();
+    _lastUnreadInboxCount = 0;
+    _lastAlertTitle = null;
+    _lastAlertBody = null;
     _timer = Timer.periodic(_pollInterval, (_) => _tick());
     _tick();
   }
@@ -79,15 +86,23 @@ class AppAlertMonitor {
       shouldAlert = await _checkOrders() || shouldAlert;
       shouldAlert = await _checkSupportTickets() || shouldAlert;
 
+      final unreadInboxCount = await _fetchUnreadInboxCount();
+      if (_initialized && unreadInboxCount > _lastUnreadInboxCount) {
+        shouldAlert = true;
+      }
+      _lastUnreadInboxCount = unreadInboxCount;
+
       await getIt<NotificationCubit>().loadUnreadCount();
       ordersRefreshTick.value++;
 
       if (_initialized && shouldAlert) {
         await _soundService.play();
         await PushNotificationService.instance.showUrgentAlert(
-          title: 'تنبيه طلاء',
-          body: 'لديك إشعار أو طلب جديد',
+          title: _lastAlertTitle ?? 'تنبيه طلاء',
+          body: _lastAlertBody ?? 'لديك إشعار أو رسالة جديدة',
         );
+        _lastAlertTitle = null;
+        _lastAlertBody = null;
       }
 
       _initialized = true;
@@ -96,12 +111,22 @@ class AppAlertMonitor {
     }
   }
 
+  Future<int> _fetchUnreadInboxCount() async {
+    final result = await _notificationRepository.getMyNotifications(limit: 50);
+    return result.fold(
+      (_) => 0,
+      (page) => page.items
+          .where((item) => !item.isOrderNotification && !item.isRead)
+          .length,
+    );
+  }
+
   Future<bool> _checkNotifications() async {
     var changed = false;
     final result = await _notificationRepository.getMyNotifications(limit: 30);
     result.fold((_) {}, (page) {
       for (final item in page.items) {
-        if (item.linkedServiceOrderId != null) {
+        if (item.isOrderNotification) {
           _knownNotificationIds.add(item.id);
           continue;
         }
@@ -110,6 +135,8 @@ class AppAlertMonitor {
         if (isNew) {
           if (_initialized && !item.isRead) {
             changed = true;
+            _lastAlertTitle = item.title;
+            _lastAlertBody = item.message;
           }
           _knownNotificationIds.add(item.id);
         }
@@ -173,6 +200,8 @@ class AppAlertMonitor {
           final previousCount = _knownSupportMessageCounts[ticket.id] ?? 0;
           if (adminCount > previousCount && _initialized) {
             changed = true;
+            _lastAlertTitle = 'رد على الشكوى';
+            _lastAlertBody = detail.title;
           }
           _knownSupportMessageCounts[ticket.id] = adminCount;
         });
