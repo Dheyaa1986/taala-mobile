@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../config/themes/theme.dart';
+import '../../core/app_config/app_colors.dart';
 import '../../core/app_config/app_urls.dart';
 import '../../core/app_config/font_styles.dart';
 import '../../core/models/theme_model.dart';
@@ -12,6 +13,9 @@ class OccasionBannerShell extends StatelessWidget {
   const OccasionBannerShell({super.key, required this.child});
 
   final Widget child;
+
+  static const double _iconSize = 36;
+  static const double _bannerHeight = 48;
 
   static bool shouldShowBanner(ThemeModel? theme) {
     if (theme == null || !theme.isActive) return false;
@@ -32,23 +36,29 @@ class OccasionBannerShell extends StatelessWidget {
   }
 
   static String? _bannerImageUrl(ThemeModel theme) {
-    if (theme.bannerImageUrl != null && theme.bannerImageUrl!.trim().isNotEmpty) {
+    if (theme.bannerImageUrl != null &&
+        theme.bannerImageUrl!.trim().isNotEmpty) {
       return theme.bannerImageUrl!.trim();
     }
     return null;
   }
 
-  static Color _bannerColor(ThemeModel theme) {
-    final raw = theme.bannerColor ?? theme.colors?.primary;
-    if (raw == null || raw.isEmpty) return const Color(0xFF1B5E20);
+  static Color _parseColor(String? raw, Color fallback) {
+    if (raw == null || raw.isEmpty) return fallback;
     try {
       final normalized =
           raw.startsWith('#') ? raw.replaceFirst('#', '0xFF') : raw;
       return Color(int.parse(normalized));
     } catch (_) {
-      return const Color(0xFF1B5E20);
+      return fallback;
     }
   }
+
+  static Color _borderColor(ThemeModel theme) =>
+      _parseColor(theme.bannerColor, AppColors.primaryColor);
+
+  static Color _textColor(ThemeModel theme) =>
+      _parseColor(theme.bannerTextColor, AppColors.lightMainText);
 
   static String _resolveImageUrl(String url) {
     if (url.startsWith('http')) return url;
@@ -67,10 +77,12 @@ class OccasionBannerShell extends StatelessWidget {
           return child;
         }
 
-        final bannerHeight = 44.h;
+        final bannerHeight = _bannerHeight.h;
+        final iconSize = _iconSize.w;
         final text = _bannerText(theme!);
         final imageUrl = _bannerImageUrl(theme);
-        final color = _bannerColor(theme);
+        final borderColor = _borderColor(theme);
+        final textColor = _textColor(theme);
 
         return Stack(
           fit: StackFit.expand,
@@ -85,42 +97,51 @@ class OccasionBannerShell extends StatelessWidget {
               right: 0,
               child: SafeArea(
                 bottom: false,
-                child: SizedBox(
-                  height: bannerHeight,
-                  width: double.infinity,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: color),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (imageUrl != null)
-                          Image.network(
-                            _resolveImageUrl(imageUrl),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                          ),
-                        if (text != null)
-                          Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w),
-                              child: Text(
-                                text,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: FontStyles.body14W700.copyWith(
-                                  color: Colors.white,
-                                  shadows: const [
-                                    Shadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  child: SizedBox(
+                    height: bannerHeight - 8.h,
+                    width: double.infinity,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.lightBGColor,
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(color: borderColor, width: 2),
+                      ),
+                      child: Row(
+                        textDirection: TextDirection.ltr,
+                        children: [
+                          SizedBox(width: 8.w),
+                          if (imageUrl != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8.r),
+                              child: Image.network(
+                                _resolveImageUrl(imageUrl),
+                                width: iconSize,
+                                height: iconSize,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) =>
+                                    SizedBox(width: iconSize, height: iconSize),
                               ),
-                            ),
+                            )
+                          else
+                            SizedBox(width: iconSize),
+                          Expanded(
+                            child: text != null
+                                ? Text(
+                                    text,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: FontStyles.label14.copyWith(
+                                      color: textColor,
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
                           ),
-                      ],
+                          SizedBox(width: iconSize + 8.w),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -11,6 +11,7 @@ class ThemeModel {
   final String? bannerText;
   final String? bannerImageUrl;
   final String? bannerColor;
+  final String? bannerTextColor;
   final String? startDate;
   final String? endDate;
 
@@ -27,6 +28,7 @@ class ThemeModel {
     this.bannerText,
     this.bannerImageUrl,
     this.bannerColor,
+    this.bannerTextColor,
     this.startDate,
     this.endDate,
   });
@@ -48,6 +50,7 @@ class ThemeModel {
       bannerText: data['bannerText'] as String?,
       bannerImageUrl: data['bannerImageUrl'] as String?,
       bannerColor: data['bannerColor'] as String?,
+      bannerTextColor: data['bannerTextColor'] as String?,
       startDate: data['startDate']?.toString(),
       endDate: data['endDate']?.toString(),
     );
