@@ -33,6 +33,7 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    getIt<ThemeCubit>().loadActiveTheme();
     _checkAuthStatus();
   }
 
