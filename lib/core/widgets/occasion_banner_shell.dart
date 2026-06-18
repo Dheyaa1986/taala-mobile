@@ -14,8 +14,8 @@ class OccasionBannerShell extends StatelessWidget {
 
   final Widget child;
 
-  static const double _iconSize = 36;
-  static const double _bannerHeight = 48;
+  static const double _iconSize = 40;
+  static const double _bannerHeight = 72;
 
   static bool shouldShowBanner(ThemeModel? theme) {
     if (theme == null || !theme.isActive) return false;
@@ -54,8 +54,8 @@ class OccasionBannerShell extends StatelessWidget {
     }
   }
 
-  static Color _borderColor(ThemeModel theme) =>
-      _parseColor(theme.bannerColor, AppColors.primaryColor);
+  static Color _backgroundColor(ThemeModel theme) =>
+      _parseColor(theme.bannerColor, AppColors.lightBGColor);
 
   static Color _textColor(ThemeModel theme) =>
       _parseColor(theme.bannerTextColor, AppColors.lightMainText);
@@ -77,18 +77,19 @@ class OccasionBannerShell extends StatelessWidget {
           return child;
         }
 
-        final bannerHeight = _bannerHeight.h;
+        final reservedHeight = _bannerHeight.h;
+        final stripHeight = 56.h;
         final iconSize = _iconSize.w;
         final text = _bannerText(theme!);
         final imageUrl = _bannerImageUrl(theme);
-        final borderColor = _borderColor(theme);
+        final backgroundColor = _backgroundColor(theme);
         final textColor = _textColor(theme);
 
         return Stack(
           fit: StackFit.expand,
           children: [
             Padding(
-              padding: EdgeInsets.only(top: bannerHeight),
+              padding: EdgeInsets.only(top: reservedHeight),
               child: child,
             ),
             Positioned(
@@ -98,20 +99,23 @@ class OccasionBannerShell extends StatelessWidget {
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  padding: EdgeInsets.fromLTRB(12.w, 6.h, 12.w, 10.h),
                   child: SizedBox(
-                    height: bannerHeight - 8.h,
+                    height: stripHeight,
                     width: double.infinity,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.lightBGColor,
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(color: borderColor, width: 2),
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppColors.brandBorder,
+                          width: 2,
+                        ),
                       ),
                       child: Row(
                         textDirection: TextDirection.ltr,
                         children: [
-                          SizedBox(width: 8.w),
+                          SizedBox(width: 10.w),
                           if (imageUrl != null)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8.r),
@@ -135,11 +139,14 @@ class OccasionBannerShell extends StatelessWidget {
                                     textAlign: TextAlign.center,
                                     style: FontStyles.label14.copyWith(
                                       color: textColor,
+                                      decoration: TextDecoration.none,
+                                      decorationColor: Colors.transparent,
+                                      height: 1.1,
                                     ),
                                   )
                                 : const SizedBox.shrink(),
                           ),
-                          SizedBox(width: iconSize + 8.w),
+                          SizedBox(width: iconSize + 10.w),
                         ],
                       ),
                     ),
