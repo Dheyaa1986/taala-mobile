@@ -15,7 +15,7 @@ class OccasionBannerShell extends StatelessWidget {
   final Widget child;
 
   static const double _iconSize = 40;
-  static const double _bannerHeight = 72;
+  static const double _stripHeight = 56;
 
   static bool shouldShowBanner(ThemeModel? theme) {
     if (theme == null || !theme.isActive) return false;
@@ -65,6 +65,72 @@ class OccasionBannerShell extends StatelessWidget {
     return AppUrls.imageLink(url);
   }
 
+  Widget _buildBannerStrip({
+    required ThemeModel theme,
+    required String? text,
+    required String? imageUrl,
+  }) {
+    final iconSize = _iconSize.w;
+    final backgroundColor = _backgroundColor(theme);
+    final textColor = _textColor(theme);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 6.h, 16.w, 8.h),
+      child: Material(
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          side: const BorderSide(
+            color: AppColors.primaryColor,
+            width: 2,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          height: _stripHeight.h,
+          width: double.infinity,
+          child: Row(
+            textDirection: TextDirection.ltr,
+            children: [
+              SizedBox(width: 10.w),
+              if (imageUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Image.network(
+                    _resolveImageUrl(imageUrl),
+                    width: iconSize,
+                    height: iconSize,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) =>
+                        SizedBox(width: iconSize, height: iconSize),
+                  ),
+                )
+              else
+                SizedBox(width: iconSize),
+              Expanded(
+                child: text != null
+                    ? Text(
+                        text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: FontStyles.label14.copyWith(
+                          color: textColor,
+                          decoration: TextDecoration.none,
+                          decorationColor: Colors.transparent,
+                          height: 1.1,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              SizedBox(width: iconSize + 10.w),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeState>(
@@ -77,84 +143,24 @@ class OccasionBannerShell extends StatelessWidget {
           return child;
         }
 
-        final reservedHeight = _bannerHeight.h;
-        final stripHeight = 56.h;
-        final iconSize = _iconSize.w;
         final text = _bannerText(theme!);
         final imageUrl = _bannerImageUrl(theme);
-        final backgroundColor = _backgroundColor(theme);
-        final textColor = _textColor(theme);
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: reservedHeight),
-              child: child,
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SafeArea(
+        return ColoredBox(
+          color: AppColors.lightBGColor,
+          child: Column(
+            children: [
+              SafeArea(
                 bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(12.w, 6.h, 12.w, 10.h),
-                  child: SizedBox(
-                    height: stripHeight,
-                    width: double.infinity,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: backgroundColor,
-                        borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(
-                          color: AppColors.brandBorder,
-                          width: 2,
-                        ),
-                      ),
-                      child: Row(
-                        textDirection: TextDirection.ltr,
-                        children: [
-                          SizedBox(width: 10.w),
-                          if (imageUrl != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8.r),
-                              child: Image.network(
-                                _resolveImageUrl(imageUrl),
-                                width: iconSize,
-                                height: iconSize,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) =>
-                                    SizedBox(width: iconSize, height: iconSize),
-                              ),
-                            )
-                          else
-                            SizedBox(width: iconSize),
-                          Expanded(
-                            child: text != null
-                                ? Text(
-                                    text,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                    style: FontStyles.label14.copyWith(
-                                      color: textColor,
-                                      decoration: TextDecoration.none,
-                                      decorationColor: Colors.transparent,
-                                      height: 1.1,
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                          SizedBox(width: iconSize + 10.w),
-                        ],
-                      ),
-                    ),
-                  ),
+                child: _buildBannerStrip(
+                  theme: theme,
+                  text: text,
+                  imageUrl: imageUrl,
                 ),
               ),
-            ),
-          ],
+              Expanded(child: child),
+            ],
+          ),
         );
       },
     );
