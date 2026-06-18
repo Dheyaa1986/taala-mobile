@@ -8,6 +8,9 @@ class ThemeModel {
   final String? backgroundImageUrl;
   final bool isActive;
   final String? occasion;
+  final String? bannerText;
+  final String? bannerImageUrl;
+  final String? bannerColor;
   final String? startDate;
   final String? endDate;
 
@@ -21,6 +24,9 @@ class ThemeModel {
     this.backgroundImageUrl,
     required this.isActive,
     this.occasion,
+    this.bannerText,
+    this.bannerImageUrl,
+    this.bannerColor,
     this.startDate,
     this.endDate,
   });
@@ -39,6 +45,9 @@ class ThemeModel {
       backgroundImageUrl: data['backgroundImageUrl'] as String?,
       isActive: data['isActive'] as bool? ?? false,
       occasion: data['occasion'] as String?,
+      bannerText: data['bannerText'] as String?,
+      bannerImageUrl: data['bannerImageUrl'] as String?,
+      bannerColor: data['bannerColor'] as String?,
       startDate: data['startDate']?.toString(),
       endDate: data['endDate']?.toString(),
     );

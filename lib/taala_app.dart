@@ -13,7 +13,7 @@ import 'core/helpers/secure_local_storage.dart';
 import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'features/notifications/presentation/cubit/notification_cubit.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
-import 'core/widgets/themed_background.dart';
+import 'core/widgets/occasion_banner_shell.dart';
 import 'features/theme/presentation/cubit/theme_cubit.dart';
 
 class TaalaApp extends StatefulWidget {
@@ -130,20 +130,19 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
             },
             child: BlocBuilder<ThemeCubit, ThemeState>(
               builder: (context, state) {
-                final themeData = state is ThemeLoaded
-                    ? TariqyAppTheme.getLightTheme(customTheme: state.theme)
-                    : TariqyAppTheme.getLightTheme();
-
-                return ThemedBackground(
-                  child: MaterialApp.router(
-                    routerConfig: AppRouter.router,
-                    theme: themeData,
-                    debugShowCheckedModeBanner: false,
-                    locale: context.locale,
-                    supportedLocales: context.supportedLocales,
-                    localizationsDelegates: context.localizationDelegates,
-                    title: 'taal',
-                  ),
+                return MaterialApp.router(
+                  routerConfig: AppRouter.router,
+                  theme: TariqyAppTheme.getLightTheme(),
+                  debugShowCheckedModeBanner: false,
+                  locale: context.locale,
+                  supportedLocales: context.supportedLocales,
+                  localizationsDelegates: context.localizationDelegates,
+                  title: 'taal',
+                  builder: (context, child) {
+                    return OccasionBannerShell(
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
                 );
               },
             ),

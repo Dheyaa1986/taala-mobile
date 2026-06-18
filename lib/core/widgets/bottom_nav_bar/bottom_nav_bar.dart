@@ -5,10 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 
-import '../../app_config/app_colors.dart';
 import '../../app_config/app_icons.dart';
 import '../../app_config/app_strings.dart';
-import '../../../config/themes/theme.dart';
 import '../dialog/exit_app_dialog.dart';
 import '../svg_image/svg_image_widget.dart';
 
