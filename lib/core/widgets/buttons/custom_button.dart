@@ -4,6 +4,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 
 import '../../app_config/app_colors.dart';
 import '../../app_config/font_styles.dart';
+import '../../../config/themes/theme.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -178,6 +179,12 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themePrimary = Theme.of(context).colorScheme.primary;
+    final resolvedBackground = backgroundColor ?? themePrimary;
+    final resolvedBorder = borderColor ?? themePrimary;
+    final resolvedGradient =
+        gradient ?? TariqyAppTheme.primaryGradient(context);
+
     return Opacity(
       opacity: enabled ? 1 : 0.5,
       child: IgnorePointer(
@@ -191,14 +198,12 @@ class CustomButton extends StatelessWidget {
             width: width ?? double.infinity,
             constraints: BoxConstraints(minHeight: height ?? 48.h),
             decoration: BoxDecoration(
-              gradient: isBackgroundGradient
-                  ? gradient ?? AppColors.primaryGradient
-                  : null,
-              color: backgroundColor ?? AppColors.primaryColor,
+              gradient: isBackgroundGradient ? resolvedGradient : null,
+              color: isBackgroundGradient ? null : resolvedBackground,
               border: hasBorder
                   ? Border.all(
                       width: 1.w,
-                      color: borderColor ?? AppColors.primaryColor,
+                      color: resolvedBorder,
                     )
                   : null,
               borderRadius: BorderRadius.all(

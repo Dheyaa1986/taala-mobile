@@ -8,6 +8,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import '../../app_config/app_colors.dart';
 import '../../app_config/app_icons.dart';
 import '../../app_config/app_strings.dart';
+import '../../../config/themes/theme.dart';
 import '../dialog/exit_app_dialog.dart';
 import '../svg_image/svg_image_widget.dart';
 
@@ -34,6 +35,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -51,7 +55,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         body: widget.shell,
         bottomNavigationBar: Material(
           elevation: 8,
-          color: AppColors.lightBGColor,
+          color: backgroundColor,
           child: SafeArea(
             top: false,
             minimum: EdgeInsets.only(bottom: 6.h),
@@ -68,6 +72,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                       item: _navItems[index],
                       index: index,
                       isSelected: widget.shell.currentIndex == index,
+                      primaryColor: primaryColor,
                     ),
                   ),
                 ),
@@ -83,14 +88,15 @@ class _BottomNavBarState extends State<BottomNavBar> {
     required BottomNavigationBarItem item,
     required int index,
     required bool isSelected,
+    required Color primaryColor,
   }) {
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _onItemTapped(index),
-          splashColor: AppColors.primaryColor.withValues(alpha: 0.12),
-          highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
+          splashColor: primaryColor.withValues(alpha: 0.12),
+          highlightColor: primaryColor.withValues(alpha: 0.08),
           child: SizedBox(
             height: 64.h,
             child: Column(
@@ -108,8 +114,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
                         gradient: isSelected
                             ? LinearGradient(
                                 colors: [
-                                  AppColors.primaryColor.withValues(alpha: 0.7),
-                                  AppColors.primaryColor,
+                                  primaryColor.withValues(alpha: 0.7),
+                                  primaryColor,
                                 ],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
@@ -128,7 +134,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: isSelected ? AppColors.primaryColor : null,
+                    color: isSelected ? primaryColor : null,
                     fontSize: 11.sp,
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -162,10 +168,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   Widget icon(String icon, int index, [String? activeIcon]) {
     final isSelected = widget.shell.currentIndex == index;
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return SvgImageWidget(
       image: isSelected && activeIcon != null ? activeIcon : icon,
       colorFilter: isSelected && activeIcon == null
-          ? const ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn)
+          ? ColorFilter.mode(primaryColor, BlendMode.srcIn)
           : null,
       width: 24.r,
       height: 24.r,

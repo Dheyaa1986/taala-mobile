@@ -159,6 +159,32 @@ class TariqyAppTheme {
     return _parseColor(primary) ?? AppColors.primaryColor;
   }
 
+  static Color resolvePrimary([BuildContext? context]) {
+    if (context != null) {
+      return Theme.of(context).colorScheme.primary;
+    }
+    final primary = activeTheme?.colors?.primary;
+    return _parseColor(primary) ?? AppColors.primaryColor;
+  }
+
+  static Color resolveSecondary([BuildContext? context]) {
+    if (context != null) {
+      return Theme.of(context).colorScheme.secondary;
+    }
+    final secondary = activeTheme?.colors?.secondary;
+    return _parseColor(secondary) ?? AppColors.secondaryColor;
+  }
+
+  static LinearGradient primaryGradient([BuildContext? context]) {
+    final primary = resolvePrimary(context);
+    final secondary = resolveSecondary(context);
+    return LinearGradient(
+      colors: [primary, secondary],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+  }
+
   static final ThemeData lightTheme = _getDefaultLightTheme();
 
   static final ThemeData darkTheme = ThemeData(fontFamily: 'Tajawal').copyWith();

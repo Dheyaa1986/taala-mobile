@@ -45,6 +45,7 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      getIt<ThemeCubit>().loadActiveTheme();
       AlertDeliveryBootstrap.ensureReady();
       SecureLocalStorage.read(PrefsKeys.token).then((token) {
         if (token != null && token.isNotEmpty) {
