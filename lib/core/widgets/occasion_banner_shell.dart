@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -96,12 +97,19 @@ class OccasionBannerShell extends StatelessWidget {
               if (imageUrl != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.r),
-                  child: Image.network(
-                    _resolveImageUrl(imageUrl),
+                  child: CachedNetworkImage(
+                    imageUrl: _resolveImageUrl(imageUrl),
                     width: iconSize,
                     height: iconSize,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
+                    placeholder: (_, __) => SizedBox(
+                      width: iconSize,
+                      height: iconSize,
+                      child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) =>
                         SizedBox(width: iconSize, height: iconSize),
                   ),
                 )
