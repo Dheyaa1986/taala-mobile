@@ -8,7 +8,10 @@ import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
+import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/maps/device_location_service.dart';
+import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/conversation_history_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -52,13 +55,16 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   String? _myUserId;
   Timer? _trackingTimer;
   Timer? _messagesTimer;
+  Timer? _deviceLocationTimer;
+  double? _providerDeviceLat;
+  double? _providerDeviceLng;
 
   @override
   void initState() {
     super.initState();
     _loadRole();
     _load();
-    _trackingTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+    _trackingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       _loadTracking();
     });
     _messagesTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -70,6 +76,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   void dispose() {
     _trackingTimer?.cancel();
     _messagesTimer?.cancel();
+    _deviceLocationTimer?.cancel();
     _messageController.dispose();
     _messageFocusNode.dispose();
     _scrollController.dispose();
@@ -122,6 +129,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           _order = order;
           _loading = false;
         });
+        _syncTripTracking(order);
         _persistHistory(order);
         if (!silent) {
           _loadTracking();
@@ -203,6 +211,65 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     });
   }
 
+  void _syncTripTracking(ServiceOrderModel order) {
+    if (!_isProvider) return;
+    final liveLocation = getIt<ProviderLiveLocationService>();
+    if (order.status == 'en_route') {
+      if (!liveLocation.isTripTracking) {
+        liveLocation.startTripTracking();
+      }
+      if (_deviceLocationTimer == null) {
+        _startDeviceLocationUpdates();
+      }
+    } else {
+      if (liveLocation.isTripTracking) {
+        liveLocation.stopTripTracking();
+      }
+      _stopDeviceLocationUpdates();
+    }
+  }
+
+  void _startDeviceLocationUpdates() {
+    _deviceLocationTimer?.cancel();
+    _refreshDeviceLocation();
+    _deviceLocationTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _refreshDeviceLocation();
+    });
+  }
+
+  void _stopDeviceLocationUpdates() {
+    _deviceLocationTimer?.cancel();
+    _deviceLocationTimer = null;
+  }
+
+  Future<void> _refreshDeviceLocation() async {
+    final loc = await getIt<DeviceLocationService>().getCurrentLocation();
+    if (!mounted || loc == null) return;
+    setState(() {
+      _providerDeviceLat = loc.latitude;
+      _providerDeviceLng = loc.longitude;
+    });
+  }
+
+  double? get _mapProviderLat {
+    if (_isProvider && _providerDeviceLat != null) return _providerDeviceLat;
+    return _tracking?.providerLatitude;
+  }
+
+  double? get _mapProviderLng {
+    if (_isProvider && _providerDeviceLng != null) return _providerDeviceLng;
+    return _tracking?.providerLongitude;
+  }
+
+  Future<void> _openNavigateToClient(ServiceOrderModel order) async {
+    await getIt<CustomLauncher>().openDirections(
+      destinationLat: order.clientLatitude!,
+      destinationLng: order.clientLongitude!,
+      originLat: _mapProviderLat,
+      originLng: _mapProviderLng,
+    );
+  }
+
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
@@ -237,6 +304,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       ),
       (order) {
         setState(() => _order = order);
+        _syncTripTracking(order);
         if (_isProvider && status == 'accepted') {
           _focusChat();
         }
@@ -489,7 +557,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          AppStrings.trackProviderOnMap.tr(),
+                          _isProvider
+                              ? AppStrings.clientLocationOnMap.tr()
+                              : AppStrings.trackProviderOnMap.tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14.sp,
@@ -499,9 +569,16 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         OrderTrackingMap(
                           clientLatitude: order.clientLatitude!,
                           clientLongitude: order.clientLongitude!,
-                          providerLatitude: _tracking?.providerLatitude,
-                          providerLongitude: _tracking?.providerLongitude,
+                          providerLatitude: _mapProviderLat,
+                          providerLongitude: _mapProviderLng,
                         ),
+                        if (_isProvider && order.status == 'en_route') ...[
+                          8.height,
+                          CustomButton.outlined(
+                            text: AppStrings.navigateToClient.tr(),
+                            onTap: () => _openNavigateToClient(order),
+                          ),
+                        ],
                       ],
                     ),
                   ),

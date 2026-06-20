@@ -218,6 +218,8 @@
   "waitForProviderPrice": "انتظر حتى يرسل المزود السعر",
   "providerAcceptedChat": "قبلت الطلب وجاهز للدردشة",
   "trackProviderOnMap": "تتبع المزود على الخريطة",
+  "clientLocationOnMap": "موقع العميل على الخريطة",
+  "navigateToClient": "افتح التوجيه",
   "activeOrderBlockingSearch": "لديك طلب نشط. أكمله قبل البحث عن مزود جديد",
   "openActiveOrder": "فتح الطلب النشط",
   "back": "رجوع"

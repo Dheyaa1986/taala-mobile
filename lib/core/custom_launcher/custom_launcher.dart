@@ -44,6 +44,31 @@ class CustomLauncher {
     }
   }
 
+  Future<void> openDirections({
+    required double destinationLat,
+    required double destinationLng,
+    double? originLat,
+    double? originLng,
+  }) async {
+    final destination = '$destinationLat,$destinationLng';
+    final Uri uri;
+    if (originLat != null && originLng != null) {
+      uri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1'
+        '&origin=$originLat,$originLng'
+        '&destination=$destination'
+        '&travelmode=driving',
+      );
+    } else {
+      uri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1'
+        '&destination=$destination'
+        '&travelmode=driving',
+      );
+    }
+    await openUrl(uri.toString());
+  }
+
   Future<void> openFacebookPage(String username) async {
     try {
       await _launchUrl(

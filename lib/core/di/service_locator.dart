@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:taal/core/maps/device_location_service.dart';
+import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/countries/data/repository/countries_repo_impl.dart';
@@ -64,6 +65,9 @@ Future<void> _initExternals() async {
   );
   getIt.registerLazySingleton<ReverseGeocodingService>(
     () => ReverseGeocodingService(),
+  );
+  getIt.registerLazySingleton<OsrmRoutingService>(
+    () => OsrmRoutingService(),
   );
   getIt.registerLazySingleton<ProviderLiveLocationService>(
     () => ProviderLiveLocationService(),

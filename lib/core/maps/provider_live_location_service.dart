@@ -14,9 +14,12 @@ class ProviderLiveLocationService {
   final DeviceLocationService _deviceLocation;
   final ProfileRepository _profileRepository;
   Timer? _timer;
+  Timer? _tripTimer;
   bool _isAvailable = false;
+  bool _tripActive = false;
 
   bool get isTracking => _timer != null;
+  bool get isTripTracking => _tripActive;
 
   Future<void> setAvailability(bool isAvailable) async {
     _isAvailable = isAvailable;
@@ -32,6 +35,20 @@ class ProviderLiveLocationService {
     }
   }
 
+  Future<void> startTripTracking() async {
+    _tripActive = true;
+    await _sendCurrentLocation();
+    _stopTripTimer();
+    _tripTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _sendCurrentLocation();
+    });
+  }
+
+  void stopTripTracking() {
+    _tripActive = false;
+    _stopTripTimer();
+  }
+
   void _startTimer() {
     _stopTimer();
     _timer = Timer.periodic(const Duration(minutes: 3), (_) {
@@ -44,8 +61,13 @@ class ProviderLiveLocationService {
     _timer = null;
   }
 
+  void _stopTripTimer() {
+    _tripTimer?.cancel();
+    _tripTimer = null;
+  }
+
   Future<void> _sendCurrentLocation() async {
-    if (!_isAvailable) return;
+    if (!_isAvailable && !_tripActive) return;
     final location = await _deviceLocation.getCurrentLocation();
     if (location == null) return;
     await _profileRepository.updateProviderLiveLocation(
@@ -56,5 +78,6 @@ class ProviderLiveLocationService {
 
   void dispose() {
     _stopTimer();
+    _stopTripTimer();
   }
 }

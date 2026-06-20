@@ -175,6 +175,8 @@
   "waitForProviderPrice": "Wait for the provider to send a price",
   "providerAcceptedChat": "I accepted the order and I'm ready to chat",
   "trackProviderOnMap": "Track provider on map",
+  "clientLocationOnMap": "Client location on map",
+  "navigateToClient": "Open navigation",
   "activeOrderBlockingSearch": "You have an active order. Complete it before searching again",
   "openActiveOrder": "Open active order",
   "orderStatusPending": "Pending",

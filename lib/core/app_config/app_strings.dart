@@ -258,6 +258,8 @@ class AppStrings {
   static const String waitForProviderPrice = 'waitForProviderPrice';
   static const String providerAcceptedChat = 'providerAcceptedChat';
   static const String trackProviderOnMap = 'trackProviderOnMap';
+  static const String clientLocationOnMap = 'clientLocationOnMap';
+  static const String navigateToClient = 'navigateToClient';
   static const String activeOrderBlockingSearch = 'activeOrderBlockingSearch';
   static const String openActiveOrder = 'openActiveOrder';
   static const String back = 'back';
