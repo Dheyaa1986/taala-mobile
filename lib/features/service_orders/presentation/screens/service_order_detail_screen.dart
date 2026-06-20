@@ -261,13 +261,32 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     return _tracking?.providerLongitude;
   }
 
-  Future<void> _openNavigateToClient(ServiceOrderModel order) async {
+  Future<void> _openExternalMaps(ServiceOrderModel order) async {
+    if (_isProvider) {
+      await getIt<CustomLauncher>().openDirections(
+        destinationLat: order.clientLatitude!,
+        destinationLng: order.clientLongitude!,
+        destinationTitle: order.clientName,
+        originLat: order.status == 'en_route' ? _mapProviderLat : null,
+        originLng: order.status == 'en_route' ? _mapProviderLng : null,
+      );
+      return;
+    }
+
+    final providerLat = _mapProviderLat;
+    final providerLng = _mapProviderLng;
+    if (providerLat == null || providerLng == null) return;
+
     await getIt<CustomLauncher>().openDirections(
-      destinationLat: order.clientLatitude!,
-      destinationLng: order.clientLongitude!,
-      originLat: _mapProviderLat,
-      originLng: _mapProviderLng,
+      destinationLat: providerLat,
+      destinationLng: providerLng,
+      destinationTitle: order.providerName,
     );
+  }
+
+  bool _canOpenExternalMaps(ServiceOrderModel order) {
+    if (_isProvider) return true;
+    return _mapProviderLat != null && _mapProviderLng != null;
   }
 
   Future<void> _sendMessage() async {
@@ -572,11 +591,11 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           providerLatitude: _mapProviderLat,
                           providerLongitude: _mapProviderLng,
                         ),
-                        if (_isProvider && order.status == 'en_route') ...[
+                        if (_canOpenExternalMaps(order)) ...[
                           8.height,
                           CustomButton.outlined(
-                            text: AppStrings.navigateToClient.tr(),
-                            onTap: () => _openNavigateToClient(order),
+                            text: AppStrings.openInMapApp.tr(),
+                            onTap: () => _openExternalMaps(order),
                           ),
                         ],
                       ],

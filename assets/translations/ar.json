@@ -220,6 +220,10 @@
   "trackProviderOnMap": "تتبع المزود على الخريطة",
   "clientLocationOnMap": "موقع العميل على الخريطة",
   "navigateToClient": "افتح التوجيه",
+  "openInMapApp": "افتح في تطبيق الخرائط",
+  "chooseMapApp": "اختر تطبيق الخرائط",
+  "noMapsInstalled": "لا يوجد تطبيق خرائط مثبت",
+  "cantOpenMaps": "تعذّر فتح الخرائط",
   "activeOrderBlockingSearch": "لديك طلب نشط. أكمله قبل البحث عن مزود جديد",
   "openActiveOrder": "فتح الطلب النشط",
   "back": "رجوع"

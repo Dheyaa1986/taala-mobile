@@ -260,6 +260,10 @@ class AppStrings {
   static const String trackProviderOnMap = 'trackProviderOnMap';
   static const String clientLocationOnMap = 'clientLocationOnMap';
   static const String navigateToClient = 'navigateToClient';
+  static const String openInMapApp = 'openInMapApp';
+  static const String chooseMapApp = 'chooseMapApp';
+  static const String noMapsInstalled = 'noMapsInstalled';
+  static const String cantOpenMaps = 'cantOpenMaps';
   static const String activeOrderBlockingSearch = 'activeOrderBlockingSearch';
   static const String openActiveOrder = 'openActiveOrder';
   static const String back = 'back';

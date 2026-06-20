@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/routes/app_router.dart';
+import '../app_config/app_strings.dart';
 import '../helpers/messages.dart';
 import '../helpers/phone_launcher_helper.dart';
+import '../maps/map_app_picker.dart';
 
 class CustomLauncher {
   void _showErrorToast(String message) {
@@ -13,6 +16,19 @@ class CustomLauncher {
     if (context != null) {
       AppMessages.showError(context, message);
     }
+  }
+
+  BuildContext? get _context => AppRouter.appNavigatorKey.currentContext;
+
+  Future<AvailableMap?> _pickMapApp() async {
+    final context = _context;
+    if (context == null) return null;
+
+    final map = await MapAppPicker.pick(context);
+    if (map == null) {
+      _showErrorToast(AppStrings.noMapsInstalled.tr());
+    }
+    return map;
   }
 
   Future<void> openUrl(String url) async {
@@ -28,45 +44,48 @@ class CustomLauncher {
     }
   }
 
-  Future<void> openMaps(double lat, double lng, String address) async {
+  Future<void> openMaps(
+    double lat,
+    double lng,
+    String address,
+  ) async {
     try {
-      final availableMaps = await MapLauncher.installedMaps;
-      if (availableMaps.isEmpty) {
-        _showErrorToast('No maps installed');
-        return;
-      }
-      await availableMaps.first.showMarker(
+      final map = await _pickMapApp();
+      if (map == null) return;
+
+      await map.showMarker(
         coords: Coords(lat, lng),
         title: address,
       );
     } catch (_) {
-      _showErrorToast("Can't open maps");
+      _showErrorToast(AppStrings.cantOpenMaps.tr());
     }
   }
 
   Future<void> openDirections({
     required double destinationLat,
     required double destinationLng,
+    String? destinationTitle,
     double? originLat,
     double? originLng,
+    String? originTitle,
   }) async {
-    final destination = '$destinationLat,$destinationLng';
-    final Uri uri;
-    if (originLat != null && originLng != null) {
-      uri = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1'
-        '&origin=$originLat,$originLng'
-        '&destination=$destination'
-        '&travelmode=driving',
+    try {
+      final map = await _pickMapApp();
+      if (map == null) return;
+
+      await map.showDirections(
+        destination: Coords(destinationLat, destinationLng),
+        destinationTitle: destinationTitle,
+        origin: originLat != null && originLng != null
+            ? Coords(originLat, originLng)
+            : null,
+        originTitle: originTitle,
+        directionsMode: DirectionsMode.driving,
       );
-    } else {
-      uri = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1'
-        '&destination=$destination'
-        '&travelmode=driving',
-      );
+    } catch (_) {
+      _showErrorToast(AppStrings.cantOpenMaps.tr());
     }
-    await openUrl(uri.toString());
   }
 
   Future<void> openFacebookPage(String username) async {
