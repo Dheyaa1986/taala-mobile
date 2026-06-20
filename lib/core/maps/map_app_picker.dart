@@ -11,8 +11,7 @@ import '../widgets/bottom_sheets/custom_bottom_sheet.dart';
 class MapAppPicker {
   static Future<AvailableMap?> pick(BuildContext context) async {
     final maps = await MapLauncher.installedMaps;
-    if (maps.isEmpty) return null;
-    if (maps.length == 1) return maps.first;
+    if (maps.isEmpty || maps.length == 1) return maps.firstOrNull;
 
     if (!context.mounted) return null;
 

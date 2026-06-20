@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,11 +25,17 @@ class CustomLauncher {
     final context = _context;
     if (context == null) return null;
 
-    final map = await MapAppPicker.pick(context);
-    if (map == null) {
+    final maps = await MapLauncher.installedMaps;
+    if (maps.isEmpty) {
       _showErrorToast(AppStrings.noMapsInstalled.tr());
+      return null;
     }
-    return map;
+    if (maps.length == 1) return maps.first;
+
+    final refreshedContext = _context;
+    if (refreshedContext == null || !refreshedContext.mounted) return null;
+
+    return MapAppPicker.pick(refreshedContext);
   }
 
   Future<void> openUrl(String url) async {
