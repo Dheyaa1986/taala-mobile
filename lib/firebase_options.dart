@@ -28,10 +28,9 @@ class DefaultFirebaseOptions {
     storageBucket: 'taal-c4eb3.firebasestorage.app',
   );
 
-  // Replace appId after adding the iOS app in Firebase Console.
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBHp0t4gqAUXYI8UpteRMvnKyfFI_ZA4Tk',
-    appId: '1:105251793425:ios:REPLACE_WITH_IOS_APP_ID',
+    apiKey: 'AIzaSyBACGtBlo0tftoFbIYqsAaMHVH0HjA-uvY',
+    appId: '1:105251793425:ios:469c89731a4c89dad31fb0',
     messagingSenderId: '105251793425',
     projectId: 'taal-c4eb3',
     storageBucket: 'taal-c4eb3.firebasestorage.app',

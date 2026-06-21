@@ -48,6 +48,12 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نحتاج موقعك لتحديد مكانك على الخريطة وطلب المساعدة بسرعة.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>نحتاج الوصول للكاميرا لالتقاط صور للملف الشخصي أو الطلب.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>نحتاج الوصول للصور لاختيار صورة للملف الشخصي أو الطلب.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
