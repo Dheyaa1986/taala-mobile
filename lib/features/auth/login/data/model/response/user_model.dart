@@ -62,13 +62,4 @@ class UserModel extends Equatable {
         "exp": exp,
         "image": profileImage,
       };
-  Map<String, dynamic> toFirestoreJson() => {
-        "id": id,
-        "name": name,
-        "email": email,
-        "role": roleId,
-        "iat": iat,
-        "exp": exp,
-        "image": profileImage,
-      };
 }
