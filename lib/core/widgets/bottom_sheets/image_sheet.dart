@@ -62,23 +62,20 @@ class ImagePickerHelper {
     });
   }
 
-  Future<bool> _checkPermissions() async {
-    PermissionStatus cameraStatus = await Permission.camera.request();
-    if (cameraStatus == PermissionStatus.denied) {
-      cameraStatus = await Permission.camera.request();
-      if (cameraStatus == PermissionStatus.denied) return false;
-    }
-    PermissionStatus galleryStatus = await Permission.storage.request();
-    if (galleryStatus == PermissionStatus.denied) {
-      galleryStatus = await Permission.camera.request();
-      if (galleryStatus == PermissionStatus.denied) return false;
+  Future<bool> _checkPermissions(ImageSource source) async {
+    if (source != ImageSource.camera) {
+      return true;
     }
 
-    return true;
+    var cameraStatus = await Permission.camera.request();
+    if (cameraStatus.isDenied) {
+      cameraStatus = await Permission.camera.request();
+    }
+    return !cameraStatus.isDenied && !cameraStatus.isPermanentlyDenied;
   }
 
   void _pickImage(ImageSource source, Function(File? image) onPick) async {
-    final bool status = await _checkPermissions();
+    final bool status = await _checkPermissions(source);
     if (!status) return;
     try {
       final XFile? image = await ImagePicker().pickImage(source: source);
