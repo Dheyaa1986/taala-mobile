@@ -10,7 +10,6 @@ import android.provider.Settings
 
 object NotificationChannelHelper {
     const val URGENT_CHANNEL_ID = "taala_urgent_orders"
-    const val KEEP_ALIVE_CHANNEL_ID = "taala_keep_alive"
 
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -44,16 +43,6 @@ object NotificationChannelHelper {
             )
         }
 
-        val keepAlive = NotificationChannel(
-            KEEP_ALIVE_CHANNEL_ID,
-            "خدمة التنبيهات",
-            NotificationManager.IMPORTANCE_LOW,
-        ).apply {
-            description = "يبقي التطبيق جاهزاً لاستقبال التنبيهات"
-            setShowBadge(false)
-        }
-
         manager.createNotificationChannel(urgent)
-        manager.createNotificationChannel(keepAlive)
     }
 }

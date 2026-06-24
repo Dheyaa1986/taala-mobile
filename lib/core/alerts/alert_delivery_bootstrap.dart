@@ -48,22 +48,7 @@ class AlertDeliveryBootstrap {
 
       await _ensureAndroidPermissions();
       await _syncPendingNativeToken();
-
-      try {
-        await _channel.invokeMethod<void>('startKeepAlive');
-      } catch (error) {
-        debugPrint('startKeepAlive failed: $error');
-      }
     });
-  }
-
-  static Future<void> stop() async {
-    if (!Platform.isAndroid) return;
-    try {
-      await _channel.invokeMethod<void>('stopKeepAlive');
-    } catch (error) {
-      debugPrint('stopKeepAlive failed: $error');
-    }
   }
 
   static Future<void> _syncPendingNativeToken() async {

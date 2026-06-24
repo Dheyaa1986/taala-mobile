@@ -24,14 +24,6 @@ class MainActivity : FlutterActivity() {
                     NotificationChannelHelper.ensureChannels(this)
                     result.success(true)
                 }
-                "startKeepAlive" -> {
-                    startKeepAliveService()
-                    result.success(true)
-                }
-                "stopKeepAlive" -> {
-                    stopService(Intent(this, TaalaAlertForegroundService::class.java))
-                    result.success(true)
-                }
                 "requestIgnoreBatteryOptimizations" -> {
                     result.success(requestIgnoreBatteryOptimizations())
                 }
@@ -46,19 +38,6 @@ class MainActivity : FlutterActivity() {
                 }
                 else -> result.notImplemented()
             }
-        }
-    }
-
-    private fun startKeepAliveService() {
-        try {
-            val intent = Intent(this, TaalaAlertForegroundService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-        } catch (_: Exception) {
-            // May fail if called before the activity is visible on newer Android versions.
         }
     }
 
