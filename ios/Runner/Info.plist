@@ -48,6 +48,8 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نحتاج موقعك لتحديد مكانك على الخريطة وطلب المساعدة بسرعة.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>نحتاج موقعك أثناء استخدام التطبيق لتتبع الطلبات النشطة وعرض موقعك على الخريطة للعميل أو مزود الخدمة.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>نحتاج الوصول للكاميرا لالتقاط صور للملف الشخصي أو الطلب.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
