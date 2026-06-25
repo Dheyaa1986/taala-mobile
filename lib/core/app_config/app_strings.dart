@@ -28,6 +28,7 @@ class AppStrings {
   static const String enterAddress = 'enterAddress';
   static const String pleaseEnterAddress = 'pleaseEnterAddress';
   static const String pleaseSelectAnImage = 'pleaseSelectAnImage';
+  static const String optionalField = 'optionalField';
   static const String arabic = 'arabic';
   static const String english = 'english';
   static const String kurdish = 'kurdish';

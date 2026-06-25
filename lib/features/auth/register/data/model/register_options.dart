@@ -13,7 +13,7 @@ class RegisterOptions {
   final String confirmPassword;
   final String country;
   final String countryImageSvg;
-  final File image;
+  final File? image;
   final String? type;
   final List<String>? serviceTypesIds;
 
@@ -26,7 +26,7 @@ class RegisterOptions {
     required this.confirmPassword,
     required this.country,
     required this.countryImageSvg,
-    required this.image,
+    this.image,
     this.type,
     this.serviceTypesIds,
   });
@@ -34,14 +34,25 @@ class RegisterOptions {
   Future<FormData> toFormData() async {
     final map = <String, dynamic>{
       'name': username,
-      'phone': phone,
       'email': email,
       'password': password,
-      'address': address,
       'confirmPassword': confirmPassword,
       'type': type ?? 'client',
-      'profile': await fileToMultipartFile(image),
     };
+
+    final trimmedPhone = phone.trim();
+    if (trimmedPhone.isNotEmpty) {
+      map['phone'] = trimmedPhone;
+    }
+
+    final trimmedAddress = address.trim();
+    if (trimmedAddress.isNotEmpty) {
+      map['address'] = trimmedAddress;
+    }
+
+    if (image != null) {
+      map['profile'] = await fileToMultipartFile(image!);
+    }
 
     if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty) {
       map['serviceTypesIds'] = jsonEncode(serviceTypesIds);

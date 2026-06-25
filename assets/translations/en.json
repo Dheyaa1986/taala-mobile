@@ -42,6 +42,7 @@
   "client": "Client",
   "provider": "Provider",
   "pleaseSelectAnImage": "Please select an image",
+  "optionalField": "Optional",
   "enterAddress": "Enter your address",
   "pleaseEnterAddress": "Please enter your address",
   "who_are_you": "Who Are You?",

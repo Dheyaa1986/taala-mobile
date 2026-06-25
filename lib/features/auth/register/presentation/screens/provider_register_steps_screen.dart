@@ -123,8 +123,10 @@ class _ProviderRegisterStepsScreenState
 
     final description = _descriptionController.text.trim();
     final mapLink = _pickedLocation!.googleMapsUrl;
-    final fullAddress =
-        '${widget.options.address}\n$description\n${AppStrings.mapLink.tr()}: $mapLink';
+    final baseAddress = widget.options.address.trim();
+    final fullAddress = baseAddress.isEmpty
+        ? '$description\n${AppStrings.mapLink.tr()}: $mapLink'
+        : '$baseAddress\n$description\n${AppStrings.mapLink.tr()}: $mapLink';
 
     final options = RegisterOptions(
       username: widget.options.username,

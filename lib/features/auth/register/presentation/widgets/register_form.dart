@@ -47,10 +47,6 @@ class _RegisterFormState extends State<RegisterForm> {
 
   void _register() {
     FocusManager.instance.primaryFocus?.unfocus();
-    if (_image == null) {
-      AppMessages.showError(context, AppStrings.pleaseSelectAnImage.tr());
-      return;
-    }
     if (_formKey.currentState!.validate()) {
       final countriesState = context.read<CountriesCubit>().state;
       final selectedCountry = countriesState is CountriesLoaded
@@ -69,8 +65,8 @@ class _RegisterFormState extends State<RegisterForm> {
             selectedCountry,
           ),
           email: _emailController.text,
-          address: _addressController.text,
-          image: _image!,
+          address: _addressController.text.trim(),
+          image: _image,
           country: selectedCountry?.name ?? '',
         ),
       );
@@ -133,6 +129,12 @@ class _RegisterFormState extends State<RegisterForm> {
                     },
                     image: _image,
                   ),
+                  8.height,
+                  Text(
+                    AppStrings.optionalField.tr(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
                   16.height,
                   CustomTextField(
                     controller: _nameController,
@@ -153,14 +155,14 @@ class _RegisterFormState extends State<RegisterForm> {
                   PhoneField(
                     phoneController: _phoneController,
                     country: _country,
+                    isRequired: false,
                   ),
                   20.height,
                   CustomTextField(
                     keyboardType: TextInputType.text,
                     controller: _addressController,
-                    label: AppStrings.address.tr(),
+                    label: '${AppStrings.address.tr()} (${AppStrings.optionalField.tr()})',
                     hint: AppStrings.enterAddress.tr(),
-                    validator: CustomValidators.validateEmpty,
                   ),
                   20.height,
 

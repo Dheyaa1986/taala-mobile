@@ -17,9 +17,11 @@ class PhoneField extends StatelessWidget {
     super.key,
     required TextEditingController phoneController,
     this.country,
+    this.isRequired = true,
   }) : _phoneController = phoneController;
   final TextEditingController _phoneController;
   CountryModel? country;
+  final bool isRequired;
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CountriesCubit, CountriesState>(
@@ -51,7 +53,9 @@ class PhoneField extends StatelessWidget {
                   ),
                 ),
           controller: _phoneController,
-          label: AppStrings.phone.tr(),
+          label: isRequired
+              ? AppStrings.phone.tr()
+              : '${AppStrings.phone.tr()} (${AppStrings.optionalField.tr()})',
           hint: AppStrings.enterPhone.tr(),
           keyboardType: TextInputType.phone,
           inputFormatters: [
@@ -59,6 +63,15 @@ class PhoneField extends StatelessWidget {
             LengthLimitingTextInputFormatter(11)
           ],
           validator: (value) {
+            if (!isRequired) {
+              if (value == null || value.isEmpty) {
+                return null;
+              }
+              if (value.length != 11) {
+                return 'رقم الهاتف يجب أن يتكون من 11 رقماً';
+              }
+              return null;
+            }
             if (value == null || value.isEmpty) {
               return AppStrings.enterPhone.tr();
             }

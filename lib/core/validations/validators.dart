@@ -144,6 +144,13 @@ class CustomValidators {
     return null;
   }
 
+  static String? validatePhoneOptional(String? phone, {CountryModel? country}) {
+    if (phone == null || phone.trim().isEmpty) {
+      return null;
+    }
+    return validatePhone(phone, country: country);
+  }
+
   static String? validatePhone(String? phone, {CountryModel? country}) {
     if (phone == null || phone.isEmpty) {
       return AppStrings.requiredField.tr();
