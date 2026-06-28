@@ -15,6 +15,7 @@ import 'package:taal/features/profile/presentation/widgets/conversation_history_
 import 'package:taal/features/profile/presentation/widgets/app_alert_sound_settings.dart';
 import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
+import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
 import '../widgets/settings_tile.dart';
 
 class ClientSettingsScreen extends StatelessWidget {
@@ -49,6 +50,12 @@ class ClientSettingsScreen extends StatelessWidget {
             onTap: () => showRateAppSheet(context),
           ),
           _divider(),
+          SettingsTile(
+            title: AppStrings.deleteAccount,
+            titleColor: AppColors.redColor,
+            onTap: () => confirmDeleteAccount(context),
+          ),
+          16.height,
           _logoutTile(context),
         ],
       ),

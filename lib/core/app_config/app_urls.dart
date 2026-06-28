@@ -28,6 +28,7 @@ class AppUrls {
   static const String verifyRegister = '$_baseApi/auth/validate-email-otp';
   static const String profile = '$_baseApi/profile';
   static const String authMe = '$_baseApi/auth/me';
+  static const String deleteAccount = '$_baseApi/auth/me/account';
   static const String notificationsMe = '$_baseApi/notifications/me';
   static const String notificationsUnreadCount =
       '$_baseApi/notifications/me/unread-count';
@@ -71,6 +72,11 @@ class AppUrls {
   static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
   static const String providerUpdateProfile = '$_baseApi/providers/profile';
   static const String providerLiveLocation = '/providers/live-location';
+  static String providerProfile(String id) => '/providers/$id/profile';
+  static String providerRate(String id) => '/providers/$id/ratings';
+  static const String providerPortfolioCreate = '/providers/portofolio';
+  static String providerPortfolioUpdate(String id) => '/providers/portofolio/$id';
+  static String providerPortfolioDelete(String id) => '/providers/portofolio/$id';
   static const String refreshToken = '$_baseApi/auth/refresh-token';
   static const String auctionCategories = '$_baseApi/auction/categories';
   static const String locations = '$_baseApi/locations';

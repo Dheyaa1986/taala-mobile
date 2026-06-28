@@ -27,6 +27,7 @@ import '../../features/support/presentation/cubit/support_ticket_cubit.dart';
 import '../../features/notifications/presentation/cubit/notification_cubit.dart';
 import '../../features/profile/data/repository/profile_repository.dart';
 import '../../features/profile/presentation/cubit/profile_cubit.dart';
+import '../../features/profile/presentation/cubit/provider_profile_cubit.dart';
 import '../../features/auth/login/data/repositories/login_repository.dart';
 import '../../features/auth/login/data/repositories/login_repository_impl.dart';
 import '../../features/auth/login/presentation/cubit/login_cubit/login_cubit.dart';
@@ -129,6 +130,10 @@ void _initCubits() {
 
   getIt.registerLazySingleton<ProfileCubit>(
     () => ProfileCubit(getIt()),
+  );
+
+  getIt.registerFactory<ProviderProfileCubit>(
+    () => ProviderProfileCubit(getIt()),
   );
 
   getIt.registerLazySingleton<NotificationCubit>(

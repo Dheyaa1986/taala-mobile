@@ -1,6 +1,7 @@
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
+import 'package:taal/features/profile/data/models/portfolio_model.dart';
 
 class ServiceProviderModel {
   String? id;
@@ -18,6 +19,7 @@ class ServiceProviderModel {
   double? distanceKm;
   int? etaMinutes;
   List<LocationModel> locations;
+  List<PortfolioModel> portfolios;
 
   ServiceProviderModel({
     this.id,
@@ -35,6 +37,7 @@ class ServiceProviderModel {
     this.lng,
     this.distanceKm,
     this.etaMinutes,
+    this.portfolios = const [],
   });
 
   factory ServiceProviderModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +77,11 @@ class ServiceProviderModel {
       lng: json['lng']?.toString(),
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),
       etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
+      portfolios: (json['portofolios'] as List<dynamic>? ?? [])
+          .map(
+            (item) => PortfolioModel.fromJson(item as Map<String, dynamic>),
+          )
+          .toList(),
     );
   }
 }

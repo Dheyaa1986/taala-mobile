@@ -4,9 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 
 class SettingsTile extends StatelessWidget {
-  const SettingsTile({super.key, required this.title, this.onTap});
+  const SettingsTile({
+    super.key,
+    required this.title,
+    this.onTap,
+    this.titleColor,
+  });
   final String title;
   final Function()? onTap;
+  final Color? titleColor;
   @override
   Widget build(BuildContext context) {
     final _ = context.locale;
@@ -33,6 +39,7 @@ class SettingsTile extends StatelessWidget {
           style: Theme.of(context).textTheme.labelLarge!.copyWith(
             fontSize: 16.sp,
             fontWeight: FontWeight.w400,
+            color: titleColor,
           )),
         trailing:  Icon(
           Icons.arrow_forward_ios,
