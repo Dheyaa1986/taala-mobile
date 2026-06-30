@@ -190,6 +190,7 @@ class AppStrings {
   static const ticketStatusClosed = 'ticketStatusClosed';
   static const services = 'services';
   static const portfolio = 'portfolio';
+  static const providerPortfolioSubtitle = 'providerPortfolioSubtitle';
   static const serviceProviders = 'serviceProviders';
   static const serviceProvidersSubtitle = 'serviceProvidersSubtitle';
   static const searchProvidersHint = 'searchProvidersHint';

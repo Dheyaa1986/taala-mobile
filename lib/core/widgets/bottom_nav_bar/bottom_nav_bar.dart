@@ -159,9 +159,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
         ),
         navItem(
           title: isProvider
-              ? AppStrings.rating.tr()
+              ? AppStrings.portfolio.tr()
               : AppStrings.serviceProviders.tr(),
-          icon: icon(isProvider ? AppIcons.star : AppIcons.provider, 1),
+          icon: isProvider ? portfolioNavIcon(1) : icon(AppIcons.provider, 1),
           index: 1,
         ),
         navItem(
@@ -170,6 +170,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
           index: 2,
         ),
       ];
+  }
+
+  Widget portfolioNavIcon(int index) {
+    final isSelected = widget.shell.currentIndex == index;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    return Icon(
+      Icons.photo_library_outlined,
+      size: 24.r,
+      color: isSelected ? primaryColor : Theme.of(context).disabledColor,
+    );
   }
 
   Widget icon(String icon, int index, [String? activeIcon]) {

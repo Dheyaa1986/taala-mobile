@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sliver_tools/sliver_tools.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -16,8 +15,6 @@ import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:taal/features/profile/presentation/cubit/provider_profile_cubit.dart';
-import 'package:taal/features/profile/presentation/screens/add_portfolio_screen.dart';
-import 'package:taal/features/profile/presentation/widgets/portfolio_list_section.dart';
 import 'package:taal/features/profile/presentation/widgets/profile_avatar.dart';
 import 'package:taal/features/profile/presentation/widgets/provider_profile_client_widgets.dart';
 import 'package:taal/features/profile/presentation/widgets/service_chip.dart';
@@ -206,56 +203,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                       ],
                     ],
                   ),
-                  if (showProviderTools) ...[
-                    SliverPinnedHeader(
-                      child: Container(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                AppStrings.portfolio.tr(),
-                                style: TextStyle(
-                                  fontSize: 24.sp,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 100,
-                              child: CustomButton.text(
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => BlocProvider.value(
-                                      value: _cubit,
-                                      child: const AddPortfolioScreen(),
-                                    ),
-                                  ),
-                                ),
-                                prefix: const Icon(
-                                  Icons.add,
-                                  color: AppColors.primaryColor,
-                                ),
-                                text: AppStrings.addNew.tr(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SliverToBoxAdapter(child: 24.height),
-                    SliverToBoxAdapter(
-                      child: PortfolioListSection(
-                        portfolios: provider.portfolios,
-                        canDelete: true,
-                        onDelete: (portfolio) =>
-                            confirmDeletePortfolio(context, portfolio),
-                      ),
-                    ),
-                    SliverToBoxAdapter(child: 24.height),
-                  ],
                 ],
               ),
             );

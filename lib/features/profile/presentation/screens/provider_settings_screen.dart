@@ -17,8 +17,6 @@ import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 
 class ProviderSettingsScreen extends StatelessWidget {
   const ProviderSettingsScreen({super.key});
@@ -36,16 +34,6 @@ class ProviderSettingsScreen extends StatelessWidget {
           const AppAlertSoundSettings(),
           16.height,
           const ConversationHistoryPanel(),
-          16.height,
-          SettingsTile(
-            title: AppStrings.profileTitle,
-            onTap: () {
-              final state = context.read<ProfileCubit>().state;
-              if (state is ProfileLoaded) {
-                context.pushNamed(Routes.menu, extra: state.profile.id);
-              }
-            },
-          ),
           16.height,
           SettingsTile(
             title: AppStrings.mySupportTickets,
