@@ -10,8 +10,8 @@ import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/home/client/presentation/cubit/service_providers_cubit.dart';
 import 'package:taal/features/home/client/presentation/widgets/service_provider_list.dart';
 
-class ClientProjectsGalleryScreen extends StatelessWidget {
-  const ClientProjectsGalleryScreen({super.key});
+class ClientProvidersScreen extends StatelessWidget {
+  const ClientProvidersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class ClientProjectsGalleryScreen extends StatelessWidget {
       child: Scaffold(
         appBar: CustomAppBar.langAppBar(
           showProfileIcon: true,
-          title: AppStrings.projectsGallery.tr(),
+          title: AppStrings.serviceProviders.tr(),
           centerTitle: true,
         ),
         body: Padding(
@@ -29,7 +29,7 @@ class ClientProjectsGalleryScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                AppStrings.projectsGallerySubtitle.tr(),
+                AppStrings.serviceProvidersSubtitle.tr(),
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: AppColors.commentColor,
@@ -38,7 +38,10 @@ class ClientProjectsGalleryScreen extends StatelessWidget {
               ),
               16.height,
               const Expanded(
-                child: ProvidersList(),
+                child: ProvidersList(
+                  showQuickActions: true,
+                  showSearch: true,
+                ),
               ),
             ],
           ),

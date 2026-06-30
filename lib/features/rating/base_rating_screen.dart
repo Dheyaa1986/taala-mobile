@@ -5,7 +5,7 @@ import 'package:taal/features/home/provider/presentation/screens/provider_view.d
 import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 
 import '../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
-import 'package:taal/features/home/client/presentation/screens/client_projects_gallery_screen.dart';
+import 'package:taal/features/home/client/presentation/screens/client_providers_screen.dart';
 
 class BaseRatingScreen extends StatelessWidget {
   const BaseRatingScreen({super.key });
@@ -15,7 +15,7 @@ class BaseRatingScreen extends StatelessWidget {
     return  Scaffold(
       body:  Padding(
         padding: const EdgeInsets.only(top: 20.0),
-        child:context.read<BottomNavigationCubit>().isProvider? const RatingScreen(): const ClientProjectsGalleryScreen(),
+        child:context.read<BottomNavigationCubit>().isProvider? const RatingScreen(): const ClientProvidersScreen(),
       ),
     );
   }

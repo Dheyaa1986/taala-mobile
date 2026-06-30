@@ -160,8 +160,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
         navItem(
           title: isProvider
               ? AppStrings.rating.tr()
-              : AppStrings.projectsGallery.tr(),
-          icon: icon(AppIcons.star, 1),
+              : AppStrings.serviceProviders.tr(),
+          icon: icon(isProvider ? AppIcons.star : AppIcons.provider, 1),
           index: 1,
         ),
         navItem(

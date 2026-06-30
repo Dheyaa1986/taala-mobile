@@ -12,7 +12,10 @@ import '../../../../../core/app_config/app_strings.dart';
 import '../../../../../core/custom_launcher/custom_launcher.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/buttons/view_map_button.dart';
-import '../../../../rating/client/presentation/widget/view_profile.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
+import 'package:taal/features/rating/client/presentation/widget/rate_provider_sheet.dart';
+import 'package:taal/features/rating/client/presentation/widget/view_profile.dart';
 import '../../../../service_orders/presentation/utils/service_order_chat_launcher.dart';
 import '../../data/model/service_provider_model/service_provider_model.dart';
 import '../../data/model/service_provider_model/service_type_model.dart';
@@ -22,9 +25,13 @@ class ServiceProviderCard extends StatelessWidget {
     super.key,
     required this.model,
     this.canStartOrder = true,
+    this.showQuickActions = false,
+    this.onRated,
   });
   final ServiceProviderModel model;
   final bool canStartOrder;
+  final bool showQuickActions;
+  final VoidCallback? onRated;
 
   Future<void> _openChat(BuildContext context) async {
     if (!canStartOrder) {
@@ -89,6 +96,28 @@ class ServiceProviderCard extends StatelessWidget {
     );
   }
 
+  void _openProfile(BuildContext context) {
+    final profileId = model.id;
+    if (profileId == null || profileId.isEmpty) return;
+    context.pushNamed(Routes.menu, extra: profileId);
+  }
+
+  void _openRate(BuildContext context) {
+    final providerId = model.id;
+    if (providerId == null || providerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.noProvidersAvailable.tr())),
+      );
+      return;
+    }
+    showRateProviderSheet(
+      context,
+      providerId: providerId,
+      providerName: model.name ?? '',
+      onRated: onRated,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -131,6 +160,31 @@ class ServiceProviderCard extends StatelessWidget {
                 RatingRow(
                     rating: model.rate ?? 0,
                     totalRatings: model.totalRatings ?? 0),
+                if (showQuickActions && model.portfolios.isNotEmpty) ...[
+                  8.height,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.photo_library_outlined,
+                        size: 14.r,
+                        color: AppColors.primaryColor,
+                      ),
+                      4.width,
+                      Text(
+                        AppStrings.portfolioProjectsCount.tr(
+                          namedArgs: {
+                            'count': '${model.portfolios.length}',
+                          },
+                        ),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (model.distanceKm != null || model.etaMinutes != null) ...[
                   8.height,
                   Row(
@@ -189,12 +243,35 @@ class ServiceProviderCard extends StatelessWidget {
                 ),
               ]),
             ),
-            8.width,
-            ViewProfileButton(
-              profileId: model.id,
-
-            )
+            if (!showQuickActions) ...[
+              8.width,
+              ViewProfileButton(
+                profileId: model.id,
+              ),
+            ],
           ]),
+          if (showQuickActions) ...[
+            12.height,
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton.outlined(
+                    radius: Radius.circular(16.r),
+                    text: AppStrings.viewProfile.tr(),
+                    onTap: () => _openProfile(context),
+                  ),
+                ),
+                8.width,
+                Expanded(
+                  child: CustomButton.filled(
+                    radius: Radius.circular(16.r),
+                    text: AppStrings.rateShort.tr(),
+                    onTap: () => _openRate(context),
+                  ),
+                ),
+              ],
+            ),
+          ],
           10.height,
           Row(
             children: [
