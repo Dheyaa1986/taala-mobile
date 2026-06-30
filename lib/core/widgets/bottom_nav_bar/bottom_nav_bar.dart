@@ -2,11 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 
 import '../../app_config/app_icons.dart';
 import '../../app_config/app_strings.dart';
+import '../../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../dialog/exit_app_dialog.dart';
 import '../svg_image/svg_image_widget.dart';
 
@@ -146,14 +148,19 @@ class _BottomNavBarState extends State<BottomNavBar> {
     );
   }
 
-  List<BottomNavigationBarItem> get _navItems => [
+  List<BottomNavigationBarItem> get _navItems {
+    final isProvider =
+        context.read<BottomNavigationCubit>().isProvider ?? false;
+    return [
         navItem(
           title: AppStrings.home.tr(),
           icon: icon(AppIcons.home, 0, AppIcons.homeActive),
           index: 0,
         ),
         navItem(
-          title: AppStrings.rating.tr(),
+          title: isProvider
+              ? AppStrings.rating.tr()
+              : AppStrings.projectsGallery.tr(),
           icon: icon(AppIcons.star, 1),
           index: 1,
         ),
@@ -163,6 +170,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           index: 2,
         ),
       ];
+  }
 
   Widget icon(String icon, int index, [String? activeIcon]) {
     final isSelected = widget.shell.currentIndex == index;
