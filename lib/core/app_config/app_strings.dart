@@ -86,6 +86,9 @@ class AppStrings {
   static String yesPlease = "yesPlease";
   static String updateIsRequiredTitle = 'updateIsRequiredTitle';
   static String updateIsRequiredSubtitle = 'updateIsRequiredSubtitle';
+  static String updateRecommendedTitle = 'updateRecommendedTitle';
+  static String updateRecommendedSubtitle = 'updateRecommendedSubtitle';
+  static String updateLater = 'updateLater';
   static String update = 'update';
   static String exit = 'exit';
   static String seeAll = 'seeAll';

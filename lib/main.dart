@@ -14,6 +14,8 @@ import 'core/alerts/firebase_background_handler.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/bloc_observer.dart';
 import 'core/helpers/locale_helper.dart';
+import 'core/package_info_helper/package_info_helper.dart';
+import 'core/remote_config_helper/remote_config_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,9 +32,11 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await RemoteConfigHelper.initialize();
   } catch (error) {
     debugPrint('Firebase init failed: $error');
   }
+  await PackageInfoHelper.initialize();
   await setupServiceLocator();
   debugRepaintRainbowEnabled = false;
 

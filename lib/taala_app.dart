@@ -10,6 +10,7 @@ import 'core/alerts/app_alert_monitor.dart';
 import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
+import 'core/updates/app_update_prompt.dart';
 import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'features/notifications/presentation/cubit/notification_cubit.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
@@ -48,6 +49,7 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       getIt<ThemeCubit>().loadActiveTheme();
       AlertDeliveryBootstrap.ensureReady();
+      handleAppUpdateCheck();
       SecureLocalStorage.read(PrefsKeys.token).then((token) {
         if (token != null && token.isNotEmpty) {
           getIt<NotificationCubit>().refreshInbox(reloadList: true);

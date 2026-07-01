@@ -252,5 +252,12 @@
   "cantOpenMaps": "تعذّر فتح الخرائط",
   "activeOrderBlockingSearch": "لديك طلب نشط. أكمله قبل البحث عن مزود جديد",
   "openActiveOrder": "فتح الطلب النشط",
-  "back": "رجوع"
+  "back": "رجوع",
+  "updateIsRequiredTitle": "تحديث مطلوب",
+  "updateIsRequiredSubtitle": "يجب تحديث التطبيق للمتابعة. اضغط «تحديث» للذهاب إلى المتجر.",
+  "updateRecommendedTitle": "تحديث متاح",
+  "updateRecommendedSubtitle": "يتوفر إصدار أحدث من التطبيق. نوصي بالتحديث للحصول على أفضل تجربة.",
+  "updateLater": "لاحقاً",
+  "update": "تحديث",
+  "exit": "خروج"
 }

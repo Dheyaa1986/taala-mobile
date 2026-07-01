@@ -43,12 +43,19 @@ import '../alerts/app_icon_badge_service.dart';
 import '../alerts/push_notification_service.dart';
 import '../helpers/shared_pref_local_storage.dart';
 import '../network/dio_service.dart';
+import '../remote_config_helper/remote_config_helper.dart';
+import '../updates/app_update_service.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
   await _initExternals();
   await PushNotificationService.instance.initialize();
+
+  getIt.registerLazySingleton<RemoteConfigHelper>(() => RemoteConfigHelper());
+  getIt.registerLazySingleton<AppUpdateService>(
+    () => AppUpdateService(getIt()),
+  );
 
   _initRemoteDataSources();
   _initRepositories();

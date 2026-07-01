@@ -221,5 +221,12 @@
   "selectServiceType": "Select service type",
   "back": "Back",
   "minutes": "min",
-  "distanceKm": "km"
+  "distanceKm": "km",
+  "updateIsRequiredTitle": "Update required",
+  "updateIsRequiredSubtitle": "You must update the app to continue. Tap Update to open the store.",
+  "updateRecommendedTitle": "Update available",
+  "updateRecommendedSubtitle": "A newer version of the app is available. We recommend updating for the best experience.",
+  "updateLater": "Later",
+  "update": "Update",
+  "exit": "Exit"
 }

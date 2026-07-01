@@ -10,6 +10,7 @@ import '../../core/di/service_locator.dart';
 import '../../core/helpers/auth_session_helper.dart';
 import '../../core/helpers/secure_local_storage.dart';
 import '../../core/helpers/shared_pref_local_storage.dart';
+import '../../core/updates/app_update_prompt.dart';
 import '../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -17,6 +18,9 @@ class SplashScreen extends StatelessWidget {
   final bool? isProvider;
 
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
+    final canContinue = await handleAppUpdateCheck();
+    if (!canContinue || !context.mounted) return;
+
     final hasSession = await AuthSessionHelper.hasActiveSession();
     if (!hasSession) {
       await Future.delayed(const Duration(milliseconds: 800));
