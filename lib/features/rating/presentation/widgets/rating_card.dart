@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/rating/data/models/provider_ratings_model.dart';
 import 'package:taal/features/rating/presentation/widgets/rating_bar_widget.dart';
@@ -47,14 +49,14 @@ class RatingCard extends StatelessWidget {
                 ]),
               ),
               title: Text(
-                "Rating Summary",
+                AppStrings.ratingSummary.tr(),
                 style: TextStyle(
                   fontSize: 16.0.sp,
                   fontWeight: FontWeight.w400,
                 ),
               ),
               subtitle: Text(
-                "Total Reviews: ${ratings.totalReviews}",
+                '${AppStrings.totalReviews.tr()}: ${ratings.totalReviews}',
                 style: TextStyle(
                   color: Theme.of(context).textTheme.bodyLarge?.color,
                   fontSize: 14.0.sp,

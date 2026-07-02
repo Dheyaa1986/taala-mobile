@@ -12,6 +12,7 @@ import 'package:taal/features/profile/presentation/screens/provider_profile_scre
 import 'package:taal/features/profile/settings_screen.dart';
 import 'package:taal/features/rating/base_rating_screen.dart';
 import 'package:taal/features/rating/client/presentation/screen/client_rating_screen.dart';
+import 'package:taal/features/rating/presentation/screens/provider_my_ratings_screen.dart';
 import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
@@ -89,6 +90,15 @@ class AppRouter {
             child: ProviderProfileScreen(
               id: state.extra as String?,
             ),
+          ),
+        ),
+        GoRoute(
+          path: Routes.providerMyRatings,
+          name: Routes.providerMyRatings,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const ProviderMyRatingsScreen(),
           ),
         ),
         GoRoute(

@@ -17,6 +17,7 @@ class Routes {
   static const String baseRate = '/baseRate';
   static const String notifications = '/notifications';
   static const String supportTickets = '/supportTickets';
+  static const String providerMyRatings = '/providerMyRatings';
   static const String supportTicketDetail = '/supportTickets/:id';
   static const String serviceOrderDetail = '/service-orders/:id';
   static const String serviceOrders = '/serviceOrders';

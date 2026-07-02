@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/avatars/user_avatar.dart';
 import 'package:taal/features/rating/data/models/provider_ratings_model.dart';
@@ -14,46 +13,56 @@ import 'package:taal/features/rating/presentation/widgets/rating_card.dart';
 class ProviderRatingView extends StatelessWidget {
   const ProviderRatingView({
     super.key,
+    required this.summary,
+    required this.reviews,
+    this.scrollController,
+    this.isLoadingMore = false,
   });
+
+  final ProviderRatingsModel summary;
+  final List<ReviewModel> reviews;
+  final ScrollController? scrollController;
+  final bool isLoadingMore;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0).r,
       child: CustomScrollView(
+        controller: scrollController,
         slivers: [
-          SliverToBoxAdapter(
-            child: 24.height,
-          ),
-          const SliverToBoxAdapter(
-            child: RatingCard(
-              ratings: ProviderRatingsModel(
-                totalRatings: 4.1,
-                totalReviews: 120,
-                ratings: [110, 10],
+          SliverToBoxAdapter(child: 24.height),
+          SliverToBoxAdapter(child: RatingCard(ratings: summary)),
+          SliverToBoxAdapter(child: 24.height),
+          if (reviews.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Text(
+                  AppStrings.noRatingsYet.tr(),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              ),
+            )
+          else
+            SliverList.separated(
+              itemBuilder: (context, index) => UserReviewCard(
+                review: reviews[index],
+              ),
+              separatorBuilder: (_, __) => 16.height,
+              itemCount: reviews.length,
+            ),
+          if (isLoadingMore)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: const Center(child: CircularProgressIndicator()),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: 24.height,
-          ),
-          SliverList.separated(
-            itemBuilder: (context, index) => UserReviewCard(
-              review: ReviewModel(
-                id: "$index",
-                image: "https://cdn-icons-png.flaticon.com/512/219/219983.png",
-                name: "User $index",
-                rating: Random().nextInt(5),
-                comment: "This is a review comment from user $index." * 8,
-                date: DateTime.now().subtract(Duration(days: index)),
-              ),
-            ),
-            separatorBuilder: (_, __) => 16.height,
-            itemCount: 10,
-          ),
-          SliverToBoxAdapter(
-            child: 16.height,
-          ),
+          SliverToBoxAdapter(child: 16.height),
         ],
       ),
     );
@@ -86,7 +95,6 @@ class UserReviewCard extends StatelessWidget {
           children: [
             UserAvatar(
               radius: 32.r,
-              useImageLink: false,
               url: review.image,
             ),
             13.width,
@@ -107,7 +115,7 @@ class UserReviewCard extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      DateFormat("dd/MM/yyyy").format(review.date),
+                      DateFormat('dd/MM/yyyy').format(review.date),
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodyLarge?.color,
                         fontSize: 14.0.sp,

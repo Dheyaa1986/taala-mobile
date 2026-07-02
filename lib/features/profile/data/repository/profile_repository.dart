@@ -10,6 +10,7 @@ import 'package:taal/core/network/network_request.dart';
 import 'package:taal/core/repository/repository.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/profile/data/models/user_profile_model.dart';
+import 'package:taal/features/rating/data/models/provider_ratings_page_model.dart';
 
 class ProfileRepository extends Repository {
   Future<Either<CustomException, UserProfileModel>> getMyProfile() {
@@ -176,6 +177,45 @@ class ProfileRepository extends Repository {
           body: body,
         ),
         mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
+  Future<Either<CustomException, BaseResponseModel>> rateApp({
+    required double value,
+    String? comment,
+  }) {
+    return exceptionHandler(() async {
+      final body = <String, dynamic>{
+        'value': value,
+        if (comment != null && comment.trim().isNotEmpty)
+          'comment': comment.trim(),
+      };
+
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.rateApp,
+          method: RequestMethod.post,
+          body: body,
+        ),
+        mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
+  Future<Either<CustomException, ProviderRatingsPageModel>>
+      getMyProviderRatings({
+    int page = 1,
+    int limit = 10,
+  }) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.providerRatingsMe,
+          method: RequestMethod.get,
+          queryParameters: {'page': page, 'limit': limit},
+        ),
+        mapper: (json) => ProviderRatingsPageModel.fromJson(json),
       );
     });
   }

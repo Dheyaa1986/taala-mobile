@@ -14,6 +14,19 @@ class ReviewModel extends Equatable {
     required this.rating,
   });
 
+  factory ReviewModel.fromRatingJson(Map<String, dynamic> json) {
+    final rater = json['rater'] as Map<String, dynamic>? ?? const {};
+    return ReviewModel(
+      id: json['id']?.toString() ?? '',
+      name: rater['name']?.toString() ?? '',
+      image: rater['imageUrl']?.toString() ?? '',
+      comment: json['comment']?.toString() ?? '',
+      rating: ((json['value'] as num?) ?? 0).round(),
+      date: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+
   @override
   List<Object> get props => [id, image, name, comment, date, rating];
 }

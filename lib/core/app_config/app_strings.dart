@@ -136,6 +136,10 @@ class AppStrings {
   static const String reset = "reset";
   static const String description = "description";
   static const String submitRating = "submitRating";
+  static const String myRatings = "myRatings";
+  static const String ratingSummary = "ratingSummary";
+  static const String totalReviews = "totalReviews";
+  static const String noRatingsYet = "noRatingsYet";
   static const String apply = "apply";
   static const String active = "active";
   static const String inactive = "inactive";
