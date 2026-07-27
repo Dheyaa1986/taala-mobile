@@ -9,4 +9,12 @@ abstract class ProviderRepository {
     required String clientId,
     required ProvidersPaginationOptions options,
   });
+
+  Future<Either<CustomException, List<ServiceProviderModel>>>
+      getGuestNearbyProviders({
+    required double latitude,
+    required double longitude,
+    int page = 1,
+    int limit = 15,
+  });
 }

@@ -228,6 +228,10 @@ class AppStrings {
   static const String clientHomeSubtitle = 'clientHomeSubtitle';
   static const String myLocation = 'myLocation';
   static const String locationSaved = 'locationSaved';
+  static const String guestMapTitle = 'guestMapTitle';
+  static const String guestMapHint = 'guestMapHint';
+  static const String guestRequestHelpHint = 'guestRequestHelpHint';
+  static const String providerLogin = 'providerLogin';
   static const String requestHelp = 'requestHelp';
   static const String providerRegisterTitle = 'providerRegisterTitle';
   static const String providerRegisterStep1 = 'providerRegisterStep1';

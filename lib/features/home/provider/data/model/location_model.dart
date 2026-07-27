@@ -46,8 +46,8 @@ class LocationModel {
           ? GovernanceModel(name: governorateName, id: null)
           : null,
       city: cityName != null ? CityModel(name: cityName, id: cityJson?['id']?.toString()) : null,
-      lat: json['lat']?.toString(),
-      lng: json['lng']?.toString(),
+      lat: json['lat']?.toString() ?? json['latitude']?.toString(),
+      lng: json['lng']?.toString() ?? json['longitude']?.toString(),
     );
   }
 }

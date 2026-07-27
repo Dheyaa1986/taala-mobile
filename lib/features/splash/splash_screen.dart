@@ -42,7 +42,11 @@ class SplashScreen extends StatelessWidget {
       }
       final isProvider =
           getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
-      context.goNamed(Routes.login, extra: isProvider);
+      if (isProvider) {
+        context.goNamed(Routes.login, extra: true);
+      } else {
+        context.goNamed(Routes.guestMap);
+      }
     }
   }
 

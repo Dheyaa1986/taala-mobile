@@ -10,6 +10,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/maps_helper.dart';
+import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
@@ -121,8 +122,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.mintops.taala',
+                urlTemplate: MapStyleConfig.tileUrlTemplate,
+                subdomains: MapStyleConfig.tileSubdomains,
+                userAgentPackageName: MapStyleConfig.userAgentPackageName,
               ),
             ],
           ),

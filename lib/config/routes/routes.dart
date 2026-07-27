@@ -1,4 +1,5 @@
 class Routes {
+  static const String guestMap = '/guestMap';
   static const String splashScreen = '/';
   static const String welcomeScreen = '/welcome';
   static const String login = '/login';

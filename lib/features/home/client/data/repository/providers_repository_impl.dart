@@ -51,4 +51,42 @@ class ProvidersRepositoryImpl extends Repository implements ProviderRepository {
           .toList();
     });
   }
+
+  @override
+  Future<Either<CustomException, List<ServiceProviderModel>>>
+      getGuestNearbyProviders({
+    required double latitude,
+    required double longitude,
+    int page = 1,
+    int limit = 15,
+  }) async {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(
+          AppUrls.guestProviders,
+          method: RequestMethod.get,
+          requestWithOutToken: true,
+          queryParameters: {
+            'page': page,
+            'limit': limit,
+            'clientLatitude': latitude,
+            'clientLongitude': longitude,
+            'providerStatus': true,
+          },
+        ),
+      );
+
+      final response = json['response'];
+      final data = response is Map<String, dynamic>
+          ? response['data'] as List<dynamic>? ?? []
+          : response is List
+              ? response
+              : [];
+
+      return data
+          .map((e) =>
+              ServiceProviderModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    });
+  }
 }

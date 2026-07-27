@@ -53,6 +53,7 @@ class AppUrls {
   static String providerLocation(String providerId, String locationId) =>
       '/providers/$providerId/locations/$locationId';
   static String clientHome(String clientId) => '/home/clients/$clientId/';
+  static const String guestProviders = '/home/guest/providers';
   static const String supportTicketsMe = '/support-tickets/me';
   static String supportTicketById(String id) => '/support-tickets/$id';
   static String supportTicketMessages(String id) =>

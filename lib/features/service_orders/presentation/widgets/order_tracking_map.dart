@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
 
 class OrderTrackingMap extends StatefulWidget {
@@ -137,9 +138,9 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.mintops.taala',
+                  urlTemplate: MapStyleConfig.tileUrlTemplate,
+                  subdomains: MapStyleConfig.tileSubdomains,
+                  userAgentPackageName: MapStyleConfig.userAgentPackageName,
                   maxZoom: 19,
                 ),
                 if (routePolyline.length >= 2)

@@ -15,6 +15,7 @@ import 'package:taal/features/rating/client/presentation/screen/client_rating_sc
 import 'package:taal/features/rating/presentation/screens/provider_my_ratings_screen.dart';
 import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:taal/features/guest/presentation/screens/guest_map_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
 import 'package:taal/features/support/presentation/screens/support_ticket_detail_screen.dart';
@@ -152,6 +153,16 @@ class AppRouter {
             ),
           ),
           routes: const [],
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.guestMap,
+          name: Routes.guestMap,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const GuestMapScreen(),
+          ),
         ),
         GoRoute(
           parentNavigatorKey: appNavigatorKey,
