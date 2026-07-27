@@ -232,6 +232,11 @@ class AppStrings {
   static const String guestMapHint = 'guestMapHint';
   static const String guestRequestHelpHint = 'guestRequestHelpHint';
   static const String providerLogin = 'providerLogin';
+  static const String guestAccountCreatedHint = 'guestAccountCreatedHint';
+  static const String otpCode = 'otpCode';
+  static const String sendOtp = 'sendOtp';
+  static const String otpSent = 'otpSent';
+  static const String invalidPhone = 'invalidPhone';
   static const String requestHelp = 'requestHelp';
   static const String providerRegisterTitle = 'providerRegisterTitle';
   static const String providerRegisterStep1 = 'providerRegisterStep1';

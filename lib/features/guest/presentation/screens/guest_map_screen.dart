@@ -11,8 +11,10 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
+import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/features/guest/presentation/widgets/guest_help_request_sheet.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_map_point.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
@@ -128,10 +130,19 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   }
 
   void _requestHelp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.guestRequestHelpHint.tr())),
-    );
-    _openLogin();
+    showGuestHelpRequestSheet(
+      context,
+      location: PickedLocation(
+        latitude: _center.latitude,
+        longitude: _center.longitude,
+        address: _address,
+      ),
+      providerId: _selectedProviderId,
+    ).then((completed) {
+      if (completed == true && mounted) {
+        context.goNamed(Routes.home);
+      }
+    });
   }
 
   List<Marker> _providerMarkers() {

@@ -73,6 +73,18 @@ class AuthSessionHelper {
     }
   }
 
+  static Future<void> establishClientSession({
+    required String token,
+    required String refreshToken,
+  }) async {
+    await getIt<SharedPref>().set(
+      key: PrefsKeys.isProviderAccount,
+      value: false,
+    );
+    await SecureLocalStorage.write(PrefsKeys.token, token);
+    await SecureLocalStorage.write(PrefsKeys.refreshToken, refreshToken);
+  }
+
   static Future<void> clearSession({bool clearRememberedCredentials = false}) async {
     await SecureLocalStorage.delete(PrefsKeys.token);
     await SecureLocalStorage.delete(PrefsKeys.refreshToken);
@@ -89,7 +101,11 @@ class AuthSessionHelper {
     if (context != null && context.mounted) {
       final isProvider =
           getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
-      context.goNamed(Routes.login, extra: isProvider);
+      if (isProvider) {
+        context.goNamed(Routes.login, extra: true);
+      } else {
+        context.goNamed(Routes.guestMap);
+      }
     }
   }
 }
