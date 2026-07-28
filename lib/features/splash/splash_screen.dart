@@ -40,13 +40,7 @@ class SplashScreen extends StatelessWidget {
       if (hadStoredToken) {
         await AuthSessionHelper.clearSession();
       }
-      final isProvider =
-          getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
-      if (isProvider) {
-        context.goNamed(Routes.login, extra: true);
-      } else {
-        context.goNamed(Routes.guestMap);
-      }
+      context.goNamed(Routes.guestMap);
     }
   }
 

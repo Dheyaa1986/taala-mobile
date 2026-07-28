@@ -20,7 +20,6 @@ import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_drop_down_field.dart';
-import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
@@ -41,7 +40,6 @@ class ClientHomeView extends StatefulWidget {
 
 class _ClientHomeViewState extends State<ClientHomeView> {
   final _formKey = GlobalKey<FormState>();
-  final _addressController = TextEditingController();
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
   PickedLocation? _pickedLocation;
@@ -63,7 +61,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
     final governorateName =
         await prefs.get(key: PrefsKeys.clientLocationGovernorate);
     if (!mounted) return;
-    if (address is String) _addressController.text = address;
     if (governorateName is String && governorateName.isNotEmpty) {
       for (final governorate in iraqGovernorates) {
         if (governorate.nameAr == governorateName ||
@@ -118,9 +115,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
 
     setState(() {
       _pickedLocation = picked;
-      if (address != null && address.isNotEmpty) {
-        _addressController.text = address;
-      }
     });
 
     await _saveLocation(showSuccess: true);
@@ -136,7 +130,7 @@ class _ClientHomeViewState extends State<ClientHomeView> {
     final prefs = getIt<SharedPref>();
     await prefs.set(
       key: PrefsKeys.clientLocationAddress,
-      value: _addressController.text.trim(),
+      value: _pickedLocation?.address?.trim() ?? '',
     );
     await prefs.set(
       key: PrefsKeys.clientLocationGovernorate,
@@ -162,21 +156,8 @@ class _ClientHomeViewState extends State<ClientHomeView> {
   }
 
   void _onLocationPicked(PickedLocation location) {
-    setState(() {
-      _pickedLocation = location;
-      if (_addressController.text.trim().isEmpty &&
-          location.address != null &&
-          location.address!.isNotEmpty) {
-        _addressController.text = location.address!;
-      }
-    });
+    setState(() => _pickedLocation = location);
     _saveLocation();
-  }
-
-  @override
-  void dispose() {
-    _addressController.dispose();
-    super.dispose();
   }
 
   @override
@@ -187,7 +168,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
       ),
       child: _ClientHomeBody(
         formKey: _formKey,
-        addressController: _addressController,
         pickedLocation: _pickedLocation,
         selectedGovernorate: _selectedGovernorate,
         loadingGps: _loadingGps,
@@ -205,7 +185,6 @@ class _ClientHomeViewState extends State<ClientHomeView> {
 class _ClientHomeBody extends StatefulWidget {
   const _ClientHomeBody({
     required this.formKey,
-    required this.addressController,
     required this.pickedLocation,
     required this.selectedGovernorate,
     required this.loadingGps,
@@ -217,7 +196,6 @@ class _ClientHomeBody extends StatefulWidget {
   });
 
   final GlobalKey<FormState> formKey;
-  final TextEditingController addressController;
   final PickedLocation? pickedLocation;
   final IraqGovernorate? selectedGovernorate;
   final bool loadingGps;
@@ -396,13 +374,6 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                             value: widget.pickedLocation,
                             onChanged: widget.onLocationPicked,
                             validator: CustomValidators.validatePickedLocation,
-                          ),
-                          12.height,
-                          CustomTextField(
-                            controller: widget.addressController,
-                            label: AppStrings.address.tr(),
-                            hint: AppStrings.enterAddress.tr(),
-                            validator: CustomValidators.validateEmpty,
                           ),
                           12.height,
                           CustomButton.outlined(

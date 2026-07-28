@@ -343,14 +343,10 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                       height: 48.h,
                     ),
                     12.height,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: () => _openLogin(asProvider: true),
-                          child: Text(AppStrings.providerLogin.tr()),
-                        ),
-                      ],
+                    CustomButton.outlined(
+                      text: AppStrings.iAmProvider.tr(),
+                      onTap: () => _openLogin(asProvider: true),
+                      height: 48.h,
                     ),
                     20.height,
                     Row(

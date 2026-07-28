@@ -38,7 +38,6 @@ class _RegisterFormState extends State<RegisterForm> {
   late final TextEditingController _nameController = TextEditingController(),
       _emailController = TextEditingController(),
       _phoneController = TextEditingController(),
-      _addressController = TextEditingController(),
       _passwordController = TextEditingController(),
       _confirmController = TextEditingController();
   File? _image;
@@ -65,7 +64,7 @@ class _RegisterFormState extends State<RegisterForm> {
             selectedCountry,
           ),
           email: _emailController.text,
-          address: _addressController.text.trim(),
+          address: '',
           image: _image,
           country: selectedCountry?.name ?? '',
         ),
@@ -158,14 +157,6 @@ class _RegisterFormState extends State<RegisterForm> {
                     isRequired: false,
                   ),
                   20.height,
-                  CustomTextField(
-                    keyboardType: TextInputType.text,
-                    controller: _addressController,
-                    label: '${AppStrings.address.tr()} (${AppStrings.optionalField.tr()})',
-                    hint: AppStrings.enterAddress.tr(),
-                  ),
-                  20.height,
-
                   PasswordField(
                     controller: _passwordController,
                     label: AppStrings.password.tr(),

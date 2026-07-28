@@ -14,15 +14,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController(text: "John Doe");
   final _emailController = TextEditingController(text: "john@example.com");
   final _phoneController = TextEditingController(text: "+1234567890");
-  final _addressController =
-      TextEditingController(text: "Alexandria, Nasr City");
-
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -65,8 +61,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildField("الإيميل", _emailController, Icons.email),
             16.verticalSpace,
             _buildField("الهاتف", _phoneController, Icons.phone),
-            16.verticalSpace,
-            _buildField("العنوان", _addressController, Icons.location_on),
             32.verticalSpace,
             SizedBox(
               width: double.infinity,

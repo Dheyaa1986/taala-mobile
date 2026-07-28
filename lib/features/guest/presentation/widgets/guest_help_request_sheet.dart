@@ -69,6 +69,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   bool _loadingTypes = true;
   bool _sendingOtp = false;
   bool _submitting = false;
+  bool _otpSent = false;
   int _otpCooldown = 0;
 
   @override
@@ -120,7 +121,10 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppStrings.otpSent.tr())),
         );
-        setState(() => _otpCooldown = 60);
+        setState(() {
+          _otpSent = true;
+          _otpCooldown = 60;
+        });
         _tickOtpCooldown();
       },
     );
@@ -261,7 +265,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
                   CustomButton.outlined(
                     text: _otpCooldown > 0
                         ? '${_otpCooldown}s'
-                        : AppStrings.sendOtp.tr(),
+                        : (_otpSent
+                            ? AppStrings.resendOtp.tr()
+                            : AppStrings.sendOtp.tr()),
                     onTap: (_sendingOtp || _otpCooldown > 0) ? null : _sendOtp,
                   ),
                 ],

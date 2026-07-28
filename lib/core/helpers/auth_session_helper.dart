@@ -99,13 +99,7 @@ class AuthSessionHelper {
     await clearSession();
     final context = AppRouter.appNavigatorKey.currentContext;
     if (context != null && context.mounted) {
-      final isProvider =
-          getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
-      if (isProvider) {
-        context.goNamed(Routes.login, extra: true);
-      } else {
-        context.goNamed(Routes.guestMap);
-      }
+      context.goNamed(Routes.guestMap);
     }
   }
 }
