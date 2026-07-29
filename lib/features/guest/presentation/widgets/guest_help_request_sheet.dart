@@ -35,13 +35,25 @@ Future<bool?> showGuestHelpRequestSheet(
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
-    builder: (_) => GuestHelpRequestSheet(
-      location: location,
-      providerId: providerId,
-    ),
+    builder: (sheetContext) {
+      final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.92;
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: GuestHelpRequestSheet(
+            location: location,
+            providerId: providerId,
+          ),
+        ),
+      );
+    },
   );
 }
 
@@ -62,6 +74,8 @@ class GuestHelpRequestSheet extends StatefulWidget {
 class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   final _contactFormKey = GlobalKey<FormState>();
   final _requestFormKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
+  final _otpFocusNode = FocusNode();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
@@ -86,6 +100,8 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
+    _otpFocusNode.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _otpController.dispose();
@@ -157,13 +173,23 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     });
   }
 
+  void _goToStep(int step) {
+    setState(() => _step = step);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+      if (step == 1) {
+        _otpFocusNode.requestFocus();
+      }
+    });
+  }
+
   Future<void> _continueContact() async {
     if (!_contactFormKey.currentState!.validate()) return;
 
-    setState(() {
-      _continuing = true;
-      _step = 1;
-    });
+    setState(() => _continuing = true);
+    _goToStep(1);
 
     await _sendOtp(showSuccessMessage: true);
 
@@ -275,7 +301,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           CustomTextField(
             controller: _phoneController,
             label: AppStrings.phone.tr(),
-            hint: AppStrings.phone.tr(),
+            hint: '07XXXXXXXXX',
             keyboardType: TextInputType.phone,
             validator: CustomValidators.validatePhone,
           ),
@@ -310,6 +336,14 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             ),
           ),
           12.height,
+          if (!_otpSent && !_sendingOtp)
+            Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: Text(
+                AppStrings.guestOtpResendHint.tr(),
+                style: TextStyle(fontSize: 12.sp, color: Colors.orange.shade800),
+              ),
+            ),
           if (_sendingOtp && !_otpSent)
             Padding(
               padding: EdgeInsets.only(bottom: 8.h),
@@ -333,6 +367,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               Expanded(
                 child: CustomTextField(
                   controller: _otpController,
+                  focusNode: _otpFocusNode,
                   label: AppStrings.otpCode.tr(),
                   hint: AppStrings.otpCode.tr(),
                   keyboardType: TextInputType.number,
@@ -395,7 +430,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           8.height,
           CustomButton.outlined(
             text: AppStrings.back.tr(),
-            onTap: _submitting ? null : () => setState(() => _step = 0),
+            onTap: _submitting ? null : () => _goToStep(0),
           ),
         ],
       ),
@@ -412,6 +447,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         bottom: context.safeBottomInset + context.keyboardInset + 20.h,
       ),
       child: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

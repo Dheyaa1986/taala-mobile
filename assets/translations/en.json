@@ -180,6 +180,7 @@
   "guestRequestHelpHint": "Enter your name and phone to reach the nearest provider",
   "guestHelpContactStepHint": "Enter your name and phone to continue",
   "guestHelpVerifyStepHint": "Enter the verification code and choose a service type",
+  "guestOtpResendHint": "Code not received? Tap Resend",
   "guestHelpOrderSent": "Your request was sent successfully",
   "guestAccountCreatedHint": "Your account was created. You can complete your profile later in settings",
   "otpCode": "Verification code",
