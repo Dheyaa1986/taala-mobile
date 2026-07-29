@@ -393,7 +393,7 @@ class _LoginFormState extends State<LoginForm> {
                     onTap: () {
                       context.pushReplacementNamed(
                         Routes.register,
-                        extra: true,
+                        arguments: true,
                       );
                     },
                   ),
