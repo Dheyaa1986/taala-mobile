@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/alerts/alert_delivery_bootstrap.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -227,7 +228,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         left: 16.w,
         right: 16.w,
         top: 20.h,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+        bottom: context.safeBottomInset + context.keyboardInset + 20.h,
       ),
       child: Form(
         key: _formKey,

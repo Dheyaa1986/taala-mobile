@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
@@ -185,7 +186,7 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
         left: 16.w,
         right: 16.w,
         top: 20.h,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+        bottom: context.safeBottomInset + context.keyboardInset + 20.h,
       ),
       child: SingleChildScrollView(
         child: Column(

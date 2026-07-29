@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/validations/validators.dart';
@@ -101,7 +102,7 @@ class _CompleteProfileSheetState extends State<CompleteProfileSheet> {
         left: 16.w,
         right: 16.w,
         top: 20.h,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+        bottom: context.safeBottomInset + context.keyboardInset + 20.h,
       ),
       child: Form(
         key: _formKey,

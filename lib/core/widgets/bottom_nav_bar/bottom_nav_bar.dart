@@ -58,9 +58,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
           color: backgroundColor,
           child: SafeArea(
             top: false,
-            minimum: EdgeInsets.only(bottom: 6.h),
+            minimum: EdgeInsets.only(bottom: 12.h),
             child: SizedBox(
-              height: 64.h,
+              height: 68.h,
               child: Localizations.override(
                 context: context,
                 locale: context.locale,

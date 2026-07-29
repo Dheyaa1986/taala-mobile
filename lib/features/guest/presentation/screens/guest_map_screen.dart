@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
@@ -303,7 +304,12 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                 ),
                 child: ListView(
                   controller: scrollController,
-                  padding: REdgeInsets.fromLTRB(16, 12, 16, 24),
+                  padding: REdgeInsets.fromLTRB(
+                    16,
+                    12,
+                    16,
+                    24 + context.safeBottomInset,
+                  ),
                   children: [
                     Center(
                       child: Container(
