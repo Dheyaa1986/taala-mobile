@@ -1,11 +1,20 @@
 import 'dart:io';
 
-
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
+import '../app_config/app_strings.dart';
+import '../helpers/api_error_message.dart';
 import 'exceptions.dart';
 
 class ErrorsExceptionsHandler {
+  static String _resolveMessage(String? message) {
+    if (message == null || message.trim().isEmpty) {
+      return AppStrings.genericError.tr();
+    }
+    return ApiErrorMessage.from(message);
+  }
+
   static dynamic handleError(DioException error) {
     final data = error.response?.data;
 
@@ -19,48 +28,48 @@ class ErrorsExceptionsHandler {
         errorMessage = message?.toString();
       }
     }
+
+    if (error.error is SocketException) {
+      throw CustomException(AppStrings.networkError.tr());
+    }
+
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
-        throw CustomException(errorMessage ?? 'BadRequestException');
       case DioExceptionType.sendTimeout:
-        throw CustomException(errorMessage ?? 'BadRequestException');
       case DioExceptionType.receiveTimeout:
-        throw CustomException(errorMessage ?? 'BadRequestException');
+        throw CustomException(AppStrings.networkError.tr());
       case DioExceptionType.badResponse:
         switch (error.response!.statusCode) {
           case 400:
-            throw BadRequestException(errorMessage ?? 'BadRequestException');
+            throw BadRequestException(_resolveMessage(errorMessage));
           case 403:
-            throw CustomException(errorMessage ?? 'BadRequestException',code: 403);
+            throw CustomException(
+              _resolveMessage(errorMessage),
+              code: 403,
+            );
           case 401:
-            throw UnauthorizedException(errorMessage ?? 'BadRequestException');
+            throw UnauthorizedException(_resolveMessage(errorMessage));
           case 404:
-             throw  NotFoundException(errorMessage ?? 'BadRequestException');
+            throw NotFoundException(_resolveMessage(errorMessage));
           case 409:
-            throw ConflictException(
-                errorMessage ?? 'BadRequestException');
+            throw ConflictException(_resolveMessage(errorMessage));
           case 500:
-            throw InternalServerErrorException(
-                errorMessage ?? 'BadRequestException');
           case 501:
-            throw InternalServerErrorException(
-                errorMessage ?? 'BadRequestException');
           case 502:
-            throw InternalServerErrorException(
-                errorMessage ?? 'BadRequestException');
           case 503:
-            throw InternalServerErrorException(
-                errorMessage ?? 'BadRequestException');
+            throw InternalServerErrorException(_resolveMessage(errorMessage));
           default:
-            throw CustomException(errorMessage ?? 'BadRequestException');
+            throw CustomException(_resolveMessage(errorMessage));
         }
       case DioExceptionType.cancel:
-        throw const CustomException('request_cancelled');
-    case DioExceptionType.unknown:
-        throw CustomException(errorMessage ?? 'BadRequestException');
+        throw CustomException(AppStrings.requestCancelled.tr());
+      case DioExceptionType.unknown:
+        if (error.error is SocketException) {
+          throw CustomException(AppStrings.networkError.tr());
+        }
+        throw CustomException(_resolveMessage(errorMessage));
       default:
-        throw CustomException(
-            errorMessage ?? 'BadRequestException');
+        throw CustomException(_resolveMessage(errorMessage));
     }
   }
 }
