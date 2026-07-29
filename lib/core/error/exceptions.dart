@@ -1,16 +1,18 @@
 import 'package:equatable/equatable.dart';
 
+import '../helpers/api_error_message.dart';
+
 class CustomException extends Equatable implements Exception {
   final String message;
   final int? code;
 
-  const CustomException(this.message,{ this.code});
+  const CustomException(this.message, {this.code});
+
+  String get displayMessage => ApiErrorMessage.from(message);
 
   @override
-  String toString() {
-    return message;
-  }
-  
+  String toString() => displayMessage;
+
   @override
   List<Object?> get props => [message];
 }

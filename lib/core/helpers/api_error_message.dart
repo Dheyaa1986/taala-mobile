@@ -30,17 +30,29 @@ class ApiErrorMessage {
       case 'Database query failed':
       case 'Unauthorized':
       case 'Unauthorized.':
+      case 'Validation failed':
       case 'request_cancelled':
       case 'Something went wrong':
       case 'Something went wrong.':
+      case 'Error During Communication':
+      case 'Conflict Occurred':
+      case 'Requested Info Not Found':
+      case 'No Internet Connection':
         return AppStrings.genericError.tr();
       case 'Network Error':
         return AppStrings.networkError.tr();
       default:
-        if (text.startsWith('Duplicate entry')) {
+        if (text.startsWith('Duplicate entry') ||
+            text.contains('unique constraint')) {
           return AppStrings.duplicateEntryError.tr();
         }
-        return text;
+        if (text.contains('phone') ||
+            text.contains('Phone') ||
+            text.contains('OTP') ||
+            text.contains('otp')) {
+          return AppStrings.invalidPhone.tr();
+        }
+        return AppStrings.genericError.tr();
     }
   }
 }

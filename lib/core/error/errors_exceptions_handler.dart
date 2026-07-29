@@ -15,19 +15,58 @@ class ErrorsExceptionsHandler {
     return ApiErrorMessage.from(message);
   }
 
-  static dynamic handleError(DioException error) {
-    final data = error.response?.data;
+  static String? _extractApiMessage(dynamic data) {
+    if (data is! Map<String, dynamic>) {
+      return null;
+    }
 
-    String? errorMessage;
+    final topMessage = data['message'];
+    if (topMessage is List && topMessage.isNotEmpty) {
+      return topMessage.map((e) => e.toString()).join(' • ');
+    }
+    if (topMessage is String &&
+        topMessage.isNotEmpty &&
+        topMessage != 'Validation failed') {
+      return topMessage;
+    }
 
-    if (data is Map<String, dynamic>) {
-      final message = data['message'];
-      if (message is List) {
-        errorMessage = message.map((e) => e.toString()).join(' • ');
-      } else {
-        errorMessage = message?.toString();
+    final nested = data['response'];
+    if (nested is Map<String, dynamic>) {
+      final nestedMessage = nested['message'];
+      if (nestedMessage is List && nestedMessage.isNotEmpty) {
+        return nestedMessage.map((e) => e.toString()).join(' • ');
+      }
+      if (nestedMessage is String && nestedMessage.isNotEmpty) {
+        return nestedMessage;
       }
     }
+
+    final details = data['details'];
+    if (details is List && details.isNotEmpty) {
+      return details
+          .map((item) {
+            if (item is Map) {
+              final constraints = item['constraints'];
+              if (constraints is Map) {
+                return constraints.values.map((e) => e.toString()).join(' • ');
+              }
+              return item.values.map((e) => e.toString()).join(' • ');
+            }
+            return item.toString();
+          })
+          .where((value) => value.trim().isNotEmpty)
+          .join(' • ');
+    }
+
+    if (topMessage is String && topMessage.isNotEmpty) {
+      return topMessage;
+    }
+
+    return null;
+  }
+
+  static dynamic handleError(DioException error) {
+    final errorMessage = _extractApiMessage(error.response?.data);
 
     if (error.error is SocketException) {
       throw CustomException(AppStrings.networkError.tr());
@@ -39,7 +78,8 @@ class ErrorsExceptionsHandler {
       case DioExceptionType.receiveTimeout:
         throw CustomException(AppStrings.networkError.tr());
       case DioExceptionType.badResponse:
-        switch (error.response!.statusCode) {
+        final statusCode = error.response?.statusCode;
+        switch (statusCode) {
           case 400:
             throw BadRequestException(_resolveMessage(errorMessage));
           case 403:
@@ -53,6 +93,8 @@ class ErrorsExceptionsHandler {
             throw NotFoundException(_resolveMessage(errorMessage));
           case 409:
             throw ConflictException(_resolveMessage(errorMessage));
+          case 422:
+            throw BadRequestException(_resolveMessage(errorMessage));
           case 500:
           case 501:
           case 502:

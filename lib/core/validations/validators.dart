@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:intl_phone_field/helpers.dart';
 
 import '../app_config/app_strings.dart';
 import '../countries/data/model/country_model.dart';
@@ -152,15 +151,20 @@ class CustomValidators {
   }
 
   static String? validatePhone(String? phone, {CountryModel? country}) {
-    if (phone == null || phone.isEmpty) {
+    if (phone == null || phone.trim().isEmpty) {
       return AppStrings.requiredField.tr();
-    } else if (isNumeric(phone) == false) {
-      return AppStrings.notAValidValue.tr();
-    } else if (country != null && phone.startsWith(country.code.substring(1))) {
-      return AppStrings.notAValidValue.tr();
-    } else {
-      return null;
     }
+
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 9 || digits.length > 15) {
+      return AppStrings.invalidPhone.tr();
+    }
+
+    if (country != null && phone.startsWith(country.code.substring(1))) {
+      return AppStrings.notAValidValue.tr();
+    }
+
+    return null;
   }
   static String? validatePickedLocation(dynamic value) {
     if (value == null) {

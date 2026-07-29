@@ -74,6 +74,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   bool _continuing = false;
   bool _sendingOtp = false;
   bool _submitting = false;
+  bool _otpSent = false;
   int _step = 0;
   int _otpCooldown = 0;
 
@@ -110,33 +111,37 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     );
   }
 
-  Future<void> _sendOtp({required bool advanceStep}) async {
+  Future<bool> _sendOtp({required bool showSuccessMessage}) async {
     final phone = _phoneController.text.trim();
     final phoneError = CustomValidators.validatePhone(phone);
     if (phoneError != null) {
       _showError(phoneError);
-      return;
+      return false;
     }
 
     setState(() => _sendingOtp = true);
     final result = await _guestRepository.sendOtp(phone);
-    if (!mounted) return;
+    if (!mounted) return false;
     setState(() => _sendingOtp = false);
 
-    result.fold(
-      (error) => _showError(error.message),
+    return result.fold(
+      (error) {
+        _showError(error.displayMessage);
+        return false;
+      },
       (result) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.otpSent.tr())),
-        );
+        if (showSuccessMessage) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppStrings.otpSent.tr())),
+          );
+        }
         ClientProfileGuard.showDebugOtp(context, result.debugOtp);
         setState(() {
-          if (advanceStep) {
-            _step = 1;
-          }
+          _otpSent = true;
           _otpCooldown = 60;
         });
         _tickOtpCooldown();
+        return true;
       },
     );
   }
@@ -155,8 +160,13 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   Future<void> _continueContact() async {
     if (!_contactFormKey.currentState!.validate()) return;
 
-    setState(() => _continuing = true);
-    await _sendOtp(advanceStep: true);
+    setState(() {
+      _continuing = true;
+      _step = 1;
+    });
+
+    await _sendOtp(showSuccessMessage: true);
+
     if (mounted) {
       setState(() => _continuing = false);
     }
@@ -186,7 +196,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     setState(() => _submitting = false);
 
     await result.fold(
-      (error) async => _showError(error.message),
+      (error) async => _showError(error.displayMessage),
       (response) async {
         await AuthSessionHelper.establishClientSession(
           token: response.token,
@@ -300,6 +310,24 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             ),
           ),
           12.height,
+          if (_sendingOtp && !_otpSent)
+            Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  8.width,
+                  Text(
+                    AppStrings.sendOtp.tr(),
+                    style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700),
+                  ),
+                ],
+              ),
+            ),
           Row(
             children: [
               Expanded(
@@ -318,7 +346,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
                     : AppStrings.resendOtp.tr(),
                 onTap: (_sendingOtp || _otpCooldown > 0)
                     ? null
-                    : () => _sendOtp(advanceStep: false),
+                    : () => _sendOtp(showSuccessMessage: true),
               ),
             ],
           ),
