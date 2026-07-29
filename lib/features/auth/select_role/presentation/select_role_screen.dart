@@ -219,27 +219,16 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
   void _submit(BuildContext context) {
     if (_role == null || widget.options == null) return;
 
+    if (_role == UserRole.client) {
+      context.goNamed(Routes.guestMap);
+      return;
+    }
+
     if (_role == UserRole.provider) {
       context.pushNamed(
         Routes.providerRegisterSteps,
         extra: widget.options,
       );
-      return;
     }
-
-    final options = RegisterOptions(
-      username: widget.options!.username,
-      phone: widget.options!.phone,
-      email: widget.options!.email,
-      password: widget.options!.password,
-      address: widget.options!.address,
-      confirmPassword: widget.options!.confirmPassword,
-      country: widget.options!.country,
-      countryImageSvg: widget.options!.countryImageSvg,
-      image: widget.options!.image,
-      type: 'client',
-    );
-
-    context.read<RegisterCubit>().registerClient(options: options);
   }
 }

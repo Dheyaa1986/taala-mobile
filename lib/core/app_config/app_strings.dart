@@ -239,6 +239,14 @@ class AppStrings {
   static const String resendOtp = 'resendOtp';
   static const String otpSent = 'otpSent';
   static const String invalidPhone = 'invalidPhone';
+  static const String clientPhoneLoginHint = 'clientPhoneLoginHint';
+  static const String clientUseGuestMap = 'clientUseGuestMap';
+  static const String completeProfileTitle = 'completeProfileTitle';
+  static const String completeProfileOptionalHint = 'completeProfileOptionalHint';
+  static const String completeProfileRequiredHint = 'completeProfileRequiredHint';
+  static const String later = 'later';
+  static const String debugOtp = 'debugOtp';
+  static const String providerRegisterOnlyHint = 'providerRegisterOnlyHint';
   static const String requestHelp = 'requestHelp';
   static const String providerRegisterTitle = 'providerRegisterTitle';
   static const String providerRegisterStep1 = 'providerRegisterStep1';

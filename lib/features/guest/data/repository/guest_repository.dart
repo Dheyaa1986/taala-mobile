@@ -4,20 +4,13 @@ import 'package:taal/core/error/exceptions.dart';
 import 'package:taal/core/network/network_request.dart';
 import 'package:taal/core/repository/repository.dart';
 import 'package:taal/features/guest/data/models/guest_help_response_model.dart';
+import 'package:taal/features/guest/data/repository/guest_otp_repository.dart';
 
 class GuestRepository extends Repository {
-  Future<Either<CustomException, bool>> sendOtp(String phone) {
-    return exceptionHandler(() async {
-      await dioService.callApi(
-        NetworkRequest(
-          AppUrls.guestSendOtp,
-          method: RequestMethod.post,
-          requestWithOutToken: true,
-          body: {'phone': phone.trim()},
-        ),
-      );
-      return true;
-    });
+  final _otpRepository = GuestOtpRepository();
+
+  Future<Either<CustomException, GuestOtpSendResult>> sendOtp(String phone) {
+    return _otpRepository.sendOtp(phone);
   }
 
   Future<Either<CustomException, GuestHelpResponseModel>> requestHelp({

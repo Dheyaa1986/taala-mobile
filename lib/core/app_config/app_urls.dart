@@ -11,6 +11,8 @@ class AppUrls {
   static const String baseApi = base;
   static const String _baseApi = baseApi;
   static const String clientLogin = '$_baseApi/auth/client/login';
+  static const String clientSendOtp = '$_baseApi/auth/client/send-otp';
+  static const String clientVerifyOtp = '$_baseApi/auth/client/verify-otp';
   static const String providerLogin = '$_baseApi/auth/provider/login';
   static const String login = clientLogin;
   static const String registerClient = '$_baseApi/auth/register';

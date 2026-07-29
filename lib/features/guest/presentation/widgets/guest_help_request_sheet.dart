@@ -14,6 +14,7 @@ import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/service_type_selector_grid.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/features/guest/data/repository/guest_repository.dart';
+import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
@@ -117,10 +118,11 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       (error) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.message)),
       ),
-      (_) {
+      (result) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppStrings.otpSent.tr())),
         );
+        ClientProfileGuard.showDebugOtp(context, result.debugOtp);
         setState(() {
           _otpSent = true;
           _otpCooldown = 60;
@@ -207,6 +209,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppStrings.guestAccountCreatedHint.tr())),
           );
+          await ClientProfileGuard.promptAfterFirstOrder(context);
         }
 
         final orderId = response.order.id;

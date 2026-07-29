@@ -47,6 +47,7 @@ import '../../../select_role/widgets/role_list_tile.dart';
 import '../../../widgets/auth_header_widget.dart';
 
 import '../cubit/login_cubit/login_cubit.dart';
+import 'client_phone_login_fields.dart';
 
 
 
@@ -68,7 +69,10 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
 
-  late TextEditingController _emailController, _passwordController;
+  late TextEditingController _emailController,
+      _passwordController,
+      _phoneController,
+      _otpController;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -88,9 +92,9 @@ class _LoginFormState extends State<LoginForm> {
     addPostFrameCallBack();
 
     _passwordController = TextEditingController();
-
     _emailController = TextEditingController();
-
+    _phoneController = TextEditingController();
+    _otpController = TextEditingController();
   }
 
 
@@ -112,11 +116,10 @@ class _LoginFormState extends State<LoginForm> {
     final saved = getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount);
 
     if (saved is bool) {
-
       _role = saved ? UserRole.provider : UserRole.client;
-
+    } else {
+      _role = UserRole.client;
     }
-
   }
 
 
@@ -150,15 +153,12 @@ class _LoginFormState extends State<LoginForm> {
 
 
   @override
-
   void dispose() {
-
-    super.dispose();
-
     _emailController.dispose();
-
     _passwordController.dispose();
-
+    _phoneController.dispose();
+    _otpController.dispose();
+    super.dispose();
   }
 
 
@@ -239,49 +239,35 @@ class _LoginFormState extends State<LoginForm> {
 
                       24.height,
 
-                      CustomTextField(
-
-                        keyboardType: TextInputType.emailAddress,
-
-                        controller: _emailController,
-
-                        label: AppStrings.email.tr(),
-
-                        hint: AppStrings.enterEmail.tr(),
-
-                        validator: CustomValidators.validateEmail,
-
-                      ),
-
-                      16.height,
-
-                      PasswordField(
-
-                        controller: _passwordController,
-
-                        label: AppStrings.password.tr(),
-
-                        hint: AppStrings.enterPassword.tr(),
-
-                        validator: (password) {
-
-                          if (password == null || password.isEmpty) {
-
-                            return AppStrings.pleaseEnterYourPassword.tr();
-
-                          }
-
-                          if (password.length < 8) {
-
-                            return AppStrings.passwordLengthValidation.tr();
-
-                          }
-
-                          return null;
-
-                        },
-
-                      ),
+                      if (_role == UserRole.provider) ...[
+                        CustomTextField(
+                          keyboardType: TextInputType.emailAddress,
+                          controller: _emailController,
+                          label: AppStrings.email.tr(),
+                          hint: AppStrings.enterEmail.tr(),
+                          validator: CustomValidators.validateEmail,
+                        ),
+                        16.height,
+                        PasswordField(
+                          controller: _passwordController,
+                          label: AppStrings.password.tr(),
+                          hint: AppStrings.enterPassword.tr(),
+                          validator: (password) {
+                            if (password == null || password.isEmpty) {
+                              return AppStrings.pleaseEnterYourPassword.tr();
+                            }
+                            if (password.length < 8) {
+                              return AppStrings.passwordLengthValidation.tr();
+                            }
+                            return null;
+                          },
+                        ),
+                      ] else if (_role == UserRole.client) ...[
+                        ClientPhoneLoginFields(
+                          phoneController: _phoneController,
+                          otpController: _otpController,
+                        ),
+                      ],
 
                       20.height,
 
@@ -341,31 +327,32 @@ class _LoginFormState extends State<LoginForm> {
 
                       ),
 
-                      14.height,
-
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _rememberMe,
-                            activeColor: AppColors.primaryColor,
-                            onChanged: (value) {
-                              setState(() => _rememberMe = value ?? true);
-                              context
-                                  .read<LoginCubit>()
-                                  .toggleRememberMe(_rememberMe);
-                            },
-                          ),
-                          Expanded(
-                            child: Text(
-                              AppStrings.rememberMe.tr(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.copyWith(color: AppColors.lightTText),
+                      if (_role == UserRole.provider) ...[
+                        14.height,
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              activeColor: AppColors.primaryColor,
+                              onChanged: (value) {
+                                setState(() => _rememberMe = value ?? true);
+                                context
+                                    .read<LoginCubit>()
+                                    .toggleRememberMe(_rememberMe);
+                              },
                             ),
-                          ),
-                        ],
-                      ),
+                            Expanded(
+                              child: Text(
+                                AppStrings.rememberMe.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(color: AppColors.lightTText),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
 
                       14.height,
 
@@ -389,41 +376,37 @@ class _LoginFormState extends State<LoginForm> {
 
               16.height,
 
-              Center(
-
-                child: ClickableTextWidget(
-
-                  textStyle: Theme.of(context).textTheme.labelSmall,
-
-                  clickableTextStyle: Theme.of(context)
-
-                      .textTheme
-
-                      .labelSmall!
-
-                      .copyWith(
-
-                          color: AppColors.primaryColor,
-
-                          decoration: TextDecoration.underline,
-
-                          decorationThickness: 1,
-
-                          decorationColor: AppColors.primaryColor),
-
-                  text: "  ${AppStrings.dontHaveAccount.tr()}  ",
-
-                  clickableText: AppStrings.register.tr(),
-
-                  onTap: () {
-
-                    context.pushReplacementNamed(Routes.register);
-
-                  },
-
+              if (_role == UserRole.provider)
+                Center(
+                  child: ClickableTextWidget(
+                    textStyle: Theme.of(context).textTheme.labelSmall,
+                    clickableTextStyle: Theme.of(context)
+                        .textTheme
+                        .labelSmall!
+                        .copyWith(
+                            color: AppColors.primaryColor,
+                            decoration: TextDecoration.underline,
+                            decorationThickness: 1,
+                            decorationColor: AppColors.primaryColor),
+                    text: "  ${AppStrings.dontHaveAccount.tr()}  ",
+                    clickableText: AppStrings.register.tr(),
+                    onTap: () {
+                      context.pushReplacementNamed(
+                        Routes.register,
+                        extra: true,
+                      );
+                    },
+                  ),
+                )
+              else if (_role == UserRole.client)
+                Padding(
+                  padding: REdgeInsets.only(top: 8),
+                  child: Text(
+                    AppStrings.clientUseGuestMap.tr(),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
                 ),
-
-              ),
 
               SizedBox(height: context.safeBottomInset + 16.h),
 
@@ -461,20 +444,21 @@ class _LoginFormState extends State<LoginForm> {
 
     context.read<BottomNavigationCubit>().isProvider = isProvider;
 
-    context.read<LoginCubit>().login(
+    if (isProvider) {
+      context.read<LoginCubit>().login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            isProvider: true,
+            rememberMe: _rememberMe,
+          );
+      return;
+    }
 
-          email: _emailController.text.trim(),
-
-          password: _passwordController.text,
-
-          isProvider: isProvider,
-
-          rememberMe: _rememberMe,
-
+    context.read<LoginCubit>().loginWithPhone(
+          phone: _phoneController.text.trim(),
+          otp: _otpController.text.trim(),
         );
-
   }
-
 }
 
 

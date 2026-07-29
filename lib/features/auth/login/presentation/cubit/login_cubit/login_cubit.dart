@@ -71,6 +71,47 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
+  Future<void> loginWithPhone({
+    required String phone,
+    required String otp,
+  }) async {
+    emit(LoginLoading());
+
+    final result = await loginRepository.verifyClientOtp(
+      phone: phone,
+      otp: otp,
+    );
+
+    result.fold(
+      (failure) => emit(LoginError(failure.message)),
+      (response) async {
+        await getIt<SharedPref>().set(
+          key: PrefsKeys.isProviderAccount,
+          value: false,
+        );
+        await SecureLocalStorage.write(PrefsKeys.token, response.token);
+        await SecureLocalStorage.write(
+          PrefsKeys.refreshToken,
+          response.refreshToken,
+        );
+        await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: false);
+        await getIt<ProfileCubit>().loadProfile();
+        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
+        getIt<AppAlertMonitor>().start();
+        await AlertDeliveryBootstrap.ensureReady();
+        emit(LoginSuccess(response: response));
+      },
+    );
+  }
+
+  Future<({String? debugOtp, String? error})> sendClientOtp(String phone) async {
+    final result = await loginRepository.sendClientOtp(phone);
+    return result.fold(
+      (failure) => (debugOtp: null, error: failure.message),
+      (debugOtp) => (debugOtp: debugOtp, error: null),
+    );
+  }
+
   toggleRememberMe(bool value) =>
       getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: value);
 }

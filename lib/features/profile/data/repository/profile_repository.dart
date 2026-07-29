@@ -26,9 +26,13 @@ class ProfileRepository extends Repository {
     required String userId,
     required String name,
     File? image,
+    bool completeProfile = false,
   }) {
     return exceptionHandler(() async {
-      final body = <String, dynamic>{'name': name};
+      final body = <String, dynamic>{
+        'name': name,
+        if (completeProfile) 'completeProfile': true,
+      };
       if (image != null) {
         body['profile'] = image;
       }

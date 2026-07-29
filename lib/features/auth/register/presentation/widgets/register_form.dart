@@ -117,6 +117,12 @@ class _RegisterFormState extends State<RegisterForm> {
                       title: AppStrings.signUp.tr(),
                     ),
                   ),
+                  12.height,
+                  Text(
+                    AppStrings.providerRegisterOnlyHint.tr(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
                   20.height,
                   PhotoAvatar(
                     onTap: () {

@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/app_router.dart';
+import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -36,6 +38,12 @@ class ServiceOrderChatLauncher {
       return;
     }
 
+    final context = AppRouter.appNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
+      if (!allowed) return;
+    }
+
     final prefs = getIt<SharedPref>();
     final address = await prefs.get(key: PrefsKeys.clientLocationAddress);
     final lat = await prefs.get(key: PrefsKeys.clientLocationLat);
@@ -53,7 +61,16 @@ class ServiceOrderChatLauncher {
     );
 
     result.fold(
-      (error) => _showMessage(error.message),
+      (error) {
+        final context = AppRouter.appNavigatorKey.currentContext;
+        if (context != null &&
+            context.mounted &&
+            error.message.contains('ملفك')) {
+          ClientProfileGuard.ensureReadyForNewOrder(context);
+          return;
+        }
+        _showMessage(error.message);
+      },
       (order) {
         final orderId = order.id;
         if (orderId == null || orderId.isEmpty) {

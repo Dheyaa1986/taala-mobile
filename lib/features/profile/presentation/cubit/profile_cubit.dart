@@ -24,6 +24,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     required String name,
     File? image,
     required bool isProvider,
+    bool completeProfile = false,
   }) async {
     final current = state;
     if (current is! ProfileLoaded) return false;
@@ -35,6 +36,7 @@ class ProfileCubit extends Cubit<ProfileState> {
             userId: current.profile.id,
             name: name,
             image: image,
+            completeProfile: completeProfile,
           );
 
     return result.fold(

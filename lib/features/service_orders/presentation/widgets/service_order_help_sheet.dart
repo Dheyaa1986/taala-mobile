@@ -17,6 +17,7 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
+import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
 
@@ -111,6 +112,9 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
       );
       return;
     }
+
+    final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
+    if (!allowed || !mounted) return;
 
     setState(() => _submitting = true);
 
