@@ -181,6 +181,7 @@
   "guestHelpContactStepHint": "Enter your name and phone to continue",
   "guestHelpVerifyStepHint": "Enter the verification code and choose a service type",
   "guestOtpResendHint": "Code not received? Tap Resend",
+  "guestOtpInlineHint": "Verification code (shown here for testing — SMS not enabled yet)",
   "guestHelpOrderSent": "Your request was sent successfully",
   "guestAccountCreatedHint": "Your account was created. You can complete your profile later in settings",
   "otpCode": "Verification code",

@@ -208,6 +208,7 @@
   "guestHelpContactStepHint": "أدخل اسمك ورقم هاتفك للمتابعة",
   "guestHelpVerifyStepHint": "أدخل رمز التحقق واختر نوع الخدمة لإرسال طلبك",
   "guestOtpResendHint": "لم يصل الرمز؟ اضغط «إعادة الإرسال»",
+  "guestOtpInlineHint": "رمز التحقق (يظهر هنا للتجربة — SMS غير مفعّل بعد)",
   "guestHelpOrderSent": "تم إرسال طلبك بنجاح",
   "guestAccountCreatedHint": "تم إنشاء حسابك. يمكنك إكمال بياناتك لاحقاً من الإعدادات",
   "otpCode": "رمز التحقق",

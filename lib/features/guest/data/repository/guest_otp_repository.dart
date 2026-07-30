@@ -13,7 +13,7 @@ class GuestOtpSendResult {
 class GuestOtpRepository extends Repository {
   Future<Either<CustomException, GuestOtpSendResult>> sendOtp(String phone) {
     return exceptionHandler(() async {
-      final json = await dioService.callApi(
+      final raw = await dioService.callApi(
         NetworkRequest(
           AppUrls.guestSendOtp,
           method: RequestMethod.post,
@@ -21,10 +21,28 @@ class GuestOtpRepository extends Repository {
           body: {'phone': phone.trim()},
         ),
       );
-      final response = json['response'] as Map<String, dynamic>? ?? json;
+
+      final payload = _extractPayload(raw);
       return GuestOtpSendResult(
-        debugOtp: response['debugOtp']?.toString(),
+        debugOtp: payload['debugOtp']?.toString(),
       );
     });
+  }
+
+  Map<String, dynamic> _extractPayload(dynamic raw) {
+    if (raw is Map<String, dynamic>) {
+      final nested = raw['response'];
+      if (nested is Map<String, dynamic>) {
+        return nested;
+      }
+      if (nested is Map) {
+        return Map<String, dynamic>.from(nested);
+      }
+      return raw;
+    }
+    if (raw is Map) {
+      return _extractPayload(Map<String, dynamic>.from(raw));
+    }
+    throw BadRequestException('استجابة غير متوقعة من الخادم');
   }
 }

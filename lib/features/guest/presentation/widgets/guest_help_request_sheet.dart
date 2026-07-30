@@ -90,6 +90,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   bool _sendingOtp = false;
   bool _submitting = false;
   bool _otpSent = false;
+  String? _inlineOtpCode;
   int _step = 0;
   int _otpCooldown = 0;
 
@@ -147,12 +148,23 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         return false;
       },
       (result) {
+        final code = result.debugOtp?.trim();
         if (showSuccessMessage) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppStrings.otpSent.tr())),
+            SnackBar(
+              content: Text(AppStrings.otpSent.tr()),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 120.h),
+            ),
           );
         }
-        ClientProfileGuard.showDebugOtp(context, result.debugOtp);
+        if (code != null && code.isNotEmpty) {
+          setState(() {
+            _inlineOtpCode = code;
+            _otpController.text = code;
+          });
+        }
+        ClientProfileGuard.showDebugOtp(context, code);
         setState(() {
           _otpSent = true;
           _otpCooldown = 60;
@@ -337,6 +349,41 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             ),
           ),
           12.height,
+          if (_inlineOtpCode != null && _inlineOtpCode!.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(color: Colors.amber.shade700),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    AppStrings.guestOtpInlineHint.tr(),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.brown.shade800,
+                      height: 1.4,
+                    ),
+                  ),
+                  6.height,
+                  Text(
+                    _inlineOtpCode!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 26.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            12.height,
+          ],
           if (_sendingOtp && !_otpSent)
             Padding(
               padding: EdgeInsets.only(bottom: 8.h),
