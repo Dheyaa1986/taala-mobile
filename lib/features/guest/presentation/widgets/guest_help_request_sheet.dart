@@ -361,7 +361,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             label: AppStrings.otpCode.tr(),
             hint: '000000',
             keyboardType: TextInputType.number,
-            inputFormatters: const [
+            inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(6),
             ],
