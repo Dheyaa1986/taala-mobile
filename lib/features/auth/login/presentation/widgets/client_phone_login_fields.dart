@@ -107,13 +107,16 @@ class _ClientPhoneLoginFieldsState extends State<ClientPhoneLoginFields> {
               ),
             ),
             8.width,
-            CustomButton.outlined(
-              text: _otpCooldown > 0
-                  ? '${_otpCooldown}s'
-                  : (_otpSent
-                      ? AppStrings.resendOtp.tr()
-                      : AppStrings.sendOtp.tr()),
-              onTap: (_sendingOtp || _otpCooldown > 0) ? null : _sendOtp,
+            SizedBox(
+              width: 112.w,
+              child: CustomButton.outlined(
+                text: _otpCooldown > 0
+                    ? '${_otpCooldown}s'
+                    : (_otpSent
+                        ? AppStrings.resendOtp.tr()
+                        : AppStrings.sendOtp.tr()),
+                onTap: (_sendingOtp || _otpCooldown > 0) ? null : _sendOtp,
+              ),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/alerts/alert_delivery_bootstrap.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -336,14 +337,6 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             ),
           ),
           12.height,
-          if (!_otpSent && !_sendingOtp)
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.h),
-              child: Text(
-                AppStrings.guestOtpResendHint.tr(),
-                style: TextStyle(fontSize: 12.sp, color: Colors.orange.shade800),
-              ),
-            ),
           if (_sendingOtp && !_otpSent)
             Padding(
               padding: EdgeInsets.only(bottom: 8.h),
@@ -362,28 +355,26 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
                 ],
               ),
             ),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: _otpController,
-                  focusNode: _otpFocusNode,
-                  label: AppStrings.otpCode.tr(),
-                  hint: AppStrings.otpCode.tr(),
-                  keyboardType: TextInputType.number,
-                  validator: CustomValidators.validateEmpty,
-                ),
-              ),
-              8.width,
-              CustomButton.outlined(
-                text: _otpCooldown > 0
-                    ? '${_otpCooldown}s'
-                    : AppStrings.resendOtp.tr(),
-                onTap: (_sendingOtp || _otpCooldown > 0)
-                    ? null
-                    : () => _sendOtp(showSuccessMessage: true),
-              ),
+          CustomTextField(
+            controller: _otpController,
+            focusNode: _otpFocusNode,
+            label: AppStrings.otpCode.tr(),
+            hint: '000000',
+            keyboardType: TextInputType.number,
+            inputFormatters: const [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
             ],
+            validator: CustomValidators.validateEmpty,
+          ),
+          10.height,
+          CustomButton.outlined(
+            text: _otpCooldown > 0
+                ? '${_otpCooldown}s'
+                : AppStrings.resendOtp.tr(),
+            onTap: (_sendingOtp || _otpCooldown > 0)
+                ? null
+                : () => _sendOtp(showSuccessMessage: true),
           ),
           16.height,
           Align(
