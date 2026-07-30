@@ -319,12 +319,6 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             validator: CustomValidators.validatePhone,
           ),
           20.height,
-          _continuing || _sendingOtp
-              ? const Center(child: CircularProgressIndicator())
-              : CustomButton.filled(
-                  text: AppStrings.continueKey.tr(),
-                  onTap: _continueContact,
-                ),
         ],
       ),
     );
@@ -456,22 +450,45 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             controller: _descriptionController,
             label: AppStrings.description.tr(),
             hint: AppStrings.enterDescription.tr(),
-            maxLines: 3,
+            maxLines: 2,
           ),
-          20.height,
-          _submitting
-              ? const Center(child: CircularProgressIndicator())
-              : CustomButton.filled(
-                  text: AppStrings.requestHelp.tr(),
-                  onTap: _submit,
-                ),
-          8.height,
-          CustomButton.outlined(
-            text: AppStrings.back.tr(),
-            onTap: _submitting ? null : () => _goToStep(0),
-          ),
+          16.height,
         ],
       ),
+    );
+  }
+
+  Widget _buildStepActions() {
+    if (_step == 0) {
+      return _continuing || _sendingOtp
+          ? const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : CustomButton.filled(
+              text: AppStrings.continueKey.tr(),
+              onTap: _continueContact,
+            );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _submitting
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : CustomButton.filled(
+                text: AppStrings.requestHelp.tr(),
+                onTap: _submit,
+              ),
+        8.height,
+        CustomButton.outlined(
+          text: AppStrings.back.tr(),
+          onTap: _submitting ? null : () => _goToStep(0),
+        ),
+      ],
     );
   }
 
@@ -482,21 +499,24 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         left: 16.w,
         right: 16.w,
         top: 20.h,
-        bottom: context.safeBottomInset + context.keyboardInset + 20.h,
+        bottom: context.safeBottomInset + context.keyboardInset + 12.h,
       ),
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SheetHeader(title: AppStrings.requestHelp.tr()),
-            12.height,
-            _buildStepIndicator(),
-            16.height,
-            if (_step == 0) _buildContactStep() else _buildRequestStep(),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SheetHeader(title: AppStrings.requestHelp.tr()),
+          12.height,
+          _buildStepIndicator(),
+          16.height,
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: _step == 0 ? _buildContactStep() : _buildRequestStep(),
+            ),
+          ),
+          12.height,
+          _buildStepActions(),
+        ],
       ),
     );
   }
