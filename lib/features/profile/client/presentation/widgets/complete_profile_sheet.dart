@@ -200,9 +200,12 @@ class ClientProfileGuard {
   }
 
   static void showDebugOtp(BuildContext context, String? debugOtp) {
-    if (!kDebugMode || debugOtp == null || debugOtp.isEmpty) return;
+    if (debugOtp == null || debugOtp.isEmpty) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.debugOtp.tr()}: $debugOtp')),
+      SnackBar(
+        content: Text('${AppStrings.debugOtp.tr()}: $debugOtp'),
+        duration: const Duration(seconds: 10),
+      ),
     );
   }
 }
