@@ -12,11 +12,13 @@ class AuthHeaderWidget extends StatelessWidget {
     required this.subTitle,
     this.richText = false,
     this.richTextTitle = '',
+    this.showLanguage = true,
   });
   final String title;
   final String subTitle;
   final bool richText;
-  final String richTextTitle ;
+  final String richTextTitle;
+  final bool showLanguage;
   @override
   Widget build(BuildContext context) {
     return    Column(
@@ -31,7 +33,7 @@ class AuthHeaderWidget extends StatelessWidget {
               style: Theme.of(context).textTheme.labelLarge,
             ),
 
-            LangPopup(),
+            if (showLanguage) const LangPopup() else SizedBox(width: 50.w),
           ],
         ),
         Padding(

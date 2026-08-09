@@ -54,8 +54,9 @@ import 'client_phone_login_fields.dart';
 class LoginForm extends StatefulWidget {
 
   final bool? initialIsProvider;
+  final bool hideHeaderLanguage;
 
-  const LoginForm({super.key, this.initialIsProvider});
+  const LoginForm({super.key, this.initialIsProvider, this.hideHeaderLanguage = false});
 
 
 
@@ -229,6 +230,8 @@ class _LoginFormState extends State<LoginForm> {
                           subTitle: AppStrings.loginHeaderSubtitle.tr(),
 
                           title: AppStrings.login.tr(),
+
+                          showLanguage: !widget.hideHeaderLanguage,
 
                         ),
 

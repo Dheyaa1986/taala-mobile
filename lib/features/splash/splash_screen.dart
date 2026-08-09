@@ -5,6 +5,8 @@ import 'package:taal/config/routes/routes.dart';
 import 'package:taal/config/themes/theme.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 
+import 'package:taal/core/widgets/svg_image/lang_popup.dart';
+
 import '../../core/app_config/prefs_keys.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/helpers/auth_session_helper.dart';
@@ -58,20 +60,30 @@ class SplashScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: TariqyAppTheme.splashBackgroundColor(),
-          body: Center(
-            child: splashLogo != null
-                ? Image.network(
-                    splashLogo,
-                    width: 250,
-                    errorBuilder: (_, __, ___) => Image.asset(
-                      'assets/taal.png',
-                      width: 250,
-                    ),
-                  )
-                : Image.asset(
-                    'assets/taal.png',
-                    width: 250,
-                  ),
+          body: Stack(
+            children: [
+              Center(
+                child: splashLogo != null
+                    ? Image.network(
+                        splashLogo,
+                        width: 250,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          'assets/taal.png',
+                          width: 250,
+                        ),
+                      )
+                    : Image.asset(
+                        'assets/taal.png',
+                        width: 250,
+                      ),
+              ),
+              const SafeArea(
+                child: Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: LangPopup(),
+                ),
+              ),
+            ],
           ),
         );
       },

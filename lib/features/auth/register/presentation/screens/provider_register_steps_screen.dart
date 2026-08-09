@@ -21,6 +21,7 @@ import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
 import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/widgets/service_type_catalog_selector.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_catalog_utils.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
@@ -58,16 +59,31 @@ class _ProviderRegisterStepsScreenState
   }
 
   Future<void> _loadServiceTypes() async {
-    final result = await _locationsRepository.getServiceCatalog(
+    final catalogResult = await _locationsRepository.getServiceCatalog(
       audience: ServiceTypesAudience.provider,
     );
     if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loadingServiceTypes = false),
-      (data) => setState(() {
-        _serviceCatalog = data;
-        _loadingServiceTypes = false;
-      }),
+
+    await catalogResult.fold(
+      (_) async {
+        final listResult = await _locationsRepository.getServiceTypes(
+          audience: ServiceTypesAudience.provider,
+        );
+        if (!mounted) return;
+        listResult.fold(
+          (_) => setState(() => _loadingServiceTypes = false),
+          (types) => setState(() {
+            _serviceCatalog = groupServiceTypesByCategory(types);
+            _loadingServiceTypes = false;
+          }),
+        );
+      },
+      (data) async {
+        setState(() {
+          _serviceCatalog = data;
+          _loadingServiceTypes = false;
+        });
+      },
     );
   }
 
@@ -94,6 +110,14 @@ class _ProviderRegisterStepsScreenState
 
   void _nextStep() {
     if (_step == 0) {
+      if (_loadingServiceTypes) {
+        return;
+      }
+      if (!_hasAnyServiceTypes) {
+        AppMessages.showError(context, AppStrings.noServiceTypesAvailable.tr());
+        _loadServiceTypes();
+        return;
+      }
       if (_selectedServiceTypeIds.isEmpty) {
         AppMessages.showError(context, AppStrings.selectServiceType.tr());
         return;
@@ -149,6 +173,45 @@ class _ProviderRegisterStepsScreenState
     );
 
     _registerCubit.registerClient(options: options);
+  }
+
+  Widget _buildServicesStep() {
+    if (_loadingServiceTypes) {
+      return Padding(
+        padding: REdgeInsets.symmetric(vertical: 48),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!_hasAnyServiceTypes) {
+      return Padding(
+        padding: REdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              AppStrings.noServiceTypesAvailable.tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: AppColors.commentColor,
+              ),
+            ),
+            16.height,
+            CustomButton.outlined(
+              text: AppStrings.retry.tr(),
+              onTap: () {
+                setState(() => _loadingServiceTypes = true);
+                _loadServiceTypes();
+              },
+            ),
+          ],
+        ),
+      );
+    }
+    return ServiceTypeCatalogSelector(
+      categories: _serviceCatalog,
+      selectedIds: _selectedServiceTypeIds,
+      onChanged: (ids) => setState(() => _selectedServiceTypeIds = ids),
+    );
   }
 
   @override
@@ -256,40 +319,27 @@ class _ProviderRegisterStepsScreenState
                       controller: _pageController,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        _loadingServiceTypes
-                            ? const Center(child: CircularProgressIndicator())
-                            : !_hasAnyServiceTypes
-                                ? Padding(
-                                    padding: REdgeInsets.all(16),
-                                    child: Text(
-                                      AppStrings.noServiceTypesAvailable.tr(),
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: AppColors.commentColor,
-                                      ),
-                                    ),
-                                  )
-                                : SingleChildScrollView(
-                                    child: ServiceTypeCatalogSelector(
-                                      categories: _serviceCatalog,
-                                      selectedIds: _selectedServiceTypeIds,
-                                      onChanged: (ids) => setState(
-                                        () => _selectedServiceTypeIds = ids,
-                                      ),
-                                    ),
-                                  ),
-                        CustomTextField(
-                          controller: _descriptionController,
-                          label: AppStrings.providerServiceDescription.tr(),
-                          hint: AppStrings.enterDescription.tr(),
-                          maxLines: 5,
+                        SingleChildScrollView(
+                          child: _buildServicesStep(),
                         ),
-                        MapLocationPickerField(
-                          value: _pickedLocation,
-                          onChanged: (value) =>
-                              setState(() => _pickedLocation = value),
-                          validator: CustomValidators.validatePickedLocation,
+                        SingleChildScrollView(
+                          child: Padding(
+                            padding: REdgeInsets.only(bottom: 16),
+                            child: CustomTextField(
+                              controller: _descriptionController,
+                              label: AppStrings.providerServiceDescription.tr(),
+                              hint: AppStrings.enterDescription.tr(),
+                              maxLines: 5,
+                            ),
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: MapLocationPickerField(
+                            value: _pickedLocation,
+                            onChanged: (value) =>
+                                setState(() => _pickedLocation = value),
+                            validator: CustomValidators.validatePickedLocation,
+                          ),
                         ),
                       ],
                     ),
@@ -299,7 +349,10 @@ class _ProviderRegisterStepsScreenState
                       text: _step == 2
                           ? AppStrings.signUp.tr()
                           : AppStrings.continueKey.tr(),
-                      onTap: _submitting ? null : _nextStep,
+                      onTap: _submitting ||
+                              (_step == 0 && _loadingServiceTypes)
+                          ? null
+                          : _nextStep,
                     ),
                   ),
                 ],
