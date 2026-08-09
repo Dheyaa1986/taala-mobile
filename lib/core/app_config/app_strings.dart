@@ -232,7 +232,7 @@ class AppStrings {
   static const String guestMapHint = 'guestMapHint';
   static const String guestRequestHelpHint = 'guestRequestHelpHint';
   static const String guestHelpContactStepHint = 'guestHelpContactStepHint';
-  static const String guestHelpVerifyStepHint = 'guestHelpVerifyStepHint';
+  static const String guestHelpServiceStepHint = 'guestHelpServiceStepHint';
   static const String guestOtpResendHint = 'guestOtpResendHint';
   static const String guestOtpInlineHint = 'guestOtpInlineHint';
   static const String guestHelpOrderSent = 'guestHelpOrderSent';

@@ -16,7 +16,6 @@ class GuestRepository extends Repository {
   Future<Either<CustomException, GuestHelpResponseModel>> requestHelp({
     required String name,
     required String phone,
-    required String otp,
     required String serviceTypeId,
     required double latitude,
     required double longitude,
@@ -33,7 +32,6 @@ class GuestRepository extends Repository {
           body: {
             'name': name.trim(),
             'phone': phone.trim(),
-            'otp': otp.trim(),
             'serviceTypeId': serviceTypeId,
             'clientLatitude': latitude,
             'clientLongitude': longitude,

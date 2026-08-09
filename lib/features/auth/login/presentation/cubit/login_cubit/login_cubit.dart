@@ -71,6 +71,34 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
+  Future<void> loginClientByPhone({required String phone}) async {
+    emit(LoginLoading());
+
+    final result = await loginRepository.loginClientByPhone(phone);
+
+    result.fold(
+      (failure) => emit(LoginError(failure.message)),
+      (response) async {
+        await getIt<SharedPref>().set(
+          key: PrefsKeys.isProviderAccount,
+          value: false,
+        );
+        await SecureLocalStorage.write(PrefsKeys.token, response.token);
+        await SecureLocalStorage.write(
+          PrefsKeys.refreshToken,
+          response.refreshToken,
+        );
+        await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: false);
+        await getIt<ProfileCubit>().loadProfile();
+        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
+        getIt<AppAlertMonitor>().start();
+        await AlertDeliveryBootstrap.ensureReady();
+
+        emit(LoginSuccess(response: response));
+      },
+    );
+  }
+
   Future<void> loginWithPhone({
     required String phone,
     required String otp,

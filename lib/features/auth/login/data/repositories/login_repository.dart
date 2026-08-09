@@ -12,6 +12,10 @@ abstract class LoginRepository  extends Repository {
     bool isProvider = false,
   });
 
+  Future<Either<CustomException, LoginResponseModel>> loginClientByPhone(
+    String phone,
+  );
+
   Future<Either<CustomException, String?>> sendClientOtp(String phone);
 
   Future<Either<CustomException, LoginResponseModel>> verifyClientOtp({

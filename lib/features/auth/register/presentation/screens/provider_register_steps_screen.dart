@@ -19,11 +19,12 @@ import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
-import 'package:taal/core/widgets/service_type_selector_grid.dart';
+import 'package:taal/core/app_config/service_types_audience.dart';
+import 'package:taal/core/widgets/service_type_catalog_selector.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
 import 'package:taal/features/auth/widgets/auth_header_widget.dart';
-import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 
 class ProviderRegisterStepsScreen extends StatefulWidget {
@@ -45,7 +46,7 @@ class _ProviderRegisterStepsScreenState
   PickedLocation? _pickedLocation;
   int _step = 0;
   Set<String> _selectedServiceTypeIds = {};
-  List<ServiceTypeModel> _serviceTypes = [];
+  List<ServiceCategoryCatalogModel> _serviceCatalog = [];
   bool _loadingServiceTypes = true;
   bool _submitting = false;
 
@@ -57,16 +58,21 @@ class _ProviderRegisterStepsScreenState
   }
 
   Future<void> _loadServiceTypes() async {
-    final result = await _locationsRepository.getServiceTypes();
+    final result = await _locationsRepository.getServiceCatalog(
+      audience: ServiceTypesAudience.provider,
+    );
     if (!mounted) return;
     result.fold(
       (_) => setState(() => _loadingServiceTypes = false),
       (data) => setState(() {
-        _serviceTypes = data;
+        _serviceCatalog = data;
         _loadingServiceTypes = false;
       }),
     );
   }
+
+  bool get _hasAnyServiceTypes =>
+      _serviceCatalog.any((c) => c.serviceTypes.isNotEmpty);
 
   @override
   void dispose() {
@@ -252,7 +258,7 @@ class _ProviderRegisterStepsScreenState
                       children: [
                         _loadingServiceTypes
                             ? const Center(child: CircularProgressIndicator())
-                            : _serviceTypes.isEmpty
+                            : !_hasAnyServiceTypes
                                 ? Padding(
                                     padding: REdgeInsets.all(16),
                                     child: Text(
@@ -265,8 +271,8 @@ class _ProviderRegisterStepsScreenState
                                     ),
                                   )
                                 : SingleChildScrollView(
-                                    child: ServiceTypeSelectorGrid(
-                                      items: _serviceTypes,
+                                    child: ServiceTypeCatalogSelector(
+                                      categories: _serviceCatalog,
                                       selectedIds: _selectedServiceTypeIds,
                                       onChanged: (ids) => setState(
                                         () => _selectedServiceTypeIds = ids,

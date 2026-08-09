@@ -71,8 +71,7 @@ class _LoginFormState extends State<LoginForm> {
 
   late TextEditingController _emailController,
       _passwordController,
-      _phoneController,
-      _otpController;
+      _phoneController;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -94,7 +93,6 @@ class _LoginFormState extends State<LoginForm> {
     _passwordController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
-    _otpController = TextEditingController();
   }
 
 
@@ -157,7 +155,6 @@ class _LoginFormState extends State<LoginForm> {
     _emailController.dispose();
     _passwordController.dispose();
     _phoneController.dispose();
-    _otpController.dispose();
     super.dispose();
   }
 
@@ -265,7 +262,6 @@ class _LoginFormState extends State<LoginForm> {
                       ] else if (_role == UserRole.client) ...[
                         ClientPhoneLoginFields(
                           phoneController: _phoneController,
-                          otpController: _otpController,
                         ),
                       ],
 
@@ -454,9 +450,8 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    context.read<LoginCubit>().loginWithPhone(
+    context.read<LoginCubit>().loginClientByPhone(
           phone: _phoneController.text.trim(),
-          otp: _otpController.text.trim(),
         );
   }
 }

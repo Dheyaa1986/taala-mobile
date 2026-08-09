@@ -1,9 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:taal/core/app_config/app_urls.dart';
+import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/error/exceptions.dart';
 import 'package:taal/core/network/network_request.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/core/repository/repository.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/governate.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
@@ -53,12 +55,33 @@ class LocationsRepositoryImpl extends Repository implements LocationsRepository 
   }
 
   @override
-  Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes() {
+  Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes({
+    ServiceTypesAudience audience = ServiceTypesAudience.client,
+  }) {
     return exceptionHandler(() async {
       final json = await dioService.callApi<Map<String, dynamic>>(
-        NetworkRequest(AppUrls.serviceTypesList, method: RequestMethod.get),
+        NetworkRequest(
+          AppUrls.serviceTypesListFor(audience),
+          method: RequestMethod.get,
+        ),
       );
       return _parseList(json, ServiceTypeModel.fromJson);
+    });
+  }
+
+  @override
+  Future<Either<CustomException, List<ServiceCategoryCatalogModel>>>
+      getServiceCatalog({
+    ServiceTypesAudience audience = ServiceTypesAudience.provider,
+  }) {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(
+          AppUrls.serviceTypesCatalogFor(audience),
+          method: RequestMethod.get,
+        ),
+      );
+      return _parseList(json, ServiceCategoryCatalogModel.fromJson);
     });
   }
 

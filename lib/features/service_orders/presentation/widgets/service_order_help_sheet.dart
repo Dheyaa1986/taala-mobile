@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -56,7 +57,9 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
   }
 
   Future<void> _loadServiceTypes() async {
-    final result = await _locationsRepository.getServiceTypes();
+    final result = await _locationsRepository.getServiceTypes(
+      audience: ServiceTypesAudience.client,
+    );
     if (!mounted) return;
     result.fold(
       (_) => setState(() => _loadingTypes = false),

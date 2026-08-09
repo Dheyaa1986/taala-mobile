@@ -67,6 +67,34 @@ class LoginRepositoryImpl extends LoginRepository {
   }
 
   @override
+  Future<Either<CustomException, LoginResponseModel>> loginClientByPhone(
+    String phone,
+  ) async {
+    return exceptionHandler(() async {
+      final user = await dioService.callApi(
+        NetworkRequest(
+          AppUrls.clientLoginPhone,
+          method: RequestMethod.post,
+          requestWithOutToken: true,
+          body: {'phone': phone.trim()},
+        ),
+        mapper: (json) => LoginResponseModel.fromJson(json: json),
+      );
+
+      await SecureLocalStorage.write(PrefsKeys.token, user.token);
+      await SecureLocalStorage.write(PrefsKeys.refreshToken, user.refreshToken);
+      await SecureLocalStorage.write(PrefsKeys.mailOrPhone, phone.trim());
+      await SecureLocalStorage.delete(PrefsKeys.password);
+
+      await SecureLocalStorage.write(
+        PrefsKeys.user,
+        jsonEncode(JwtDecoder.decode(user.token)),
+      );
+      return user;
+    });
+  }
+
+  @override
   Future<Either<CustomException, String?>> sendClientOtp(String phone) async {
     return exceptionHandler(() async {
       final json = await dioService.callApi(

@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/fields/custom_drop_down_field.dart';
@@ -60,7 +61,9 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
   }
 
   Future<void> _loadInitialData() async {
-    final typesResult = await _repository.getServiceTypes();
+    final typesResult = await _repository.getServiceTypes(
+      audience: ServiceTypesAudience.client,
+    );
     final countriesResult = await _repository.getCountries();
 
     if (!mounted) return;

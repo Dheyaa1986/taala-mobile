@@ -1,3 +1,5 @@
+import 'package:taal/core/app_config/service_types_audience.dart';
+
 class AppUrls {
   const AppUrls._();
   static const String base = 'https://taala-back-production.up.railway.app';
@@ -11,6 +13,7 @@ class AppUrls {
   static const String baseApi = base;
   static const String _baseApi = baseApi;
   static const String clientLogin = '$_baseApi/auth/client/login';
+  static const String clientLoginPhone = '$_baseApi/auth/client/login-phone';
   static const String clientSendOtp = '$_baseApi/auth/client/send-otp';
   static const String clientVerifyOtp = '$_baseApi/auth/client/verify-otp';
   static const String providerLogin = '$_baseApi/auth/provider/login';
@@ -64,6 +67,13 @@ class AppUrls {
       '/support-tickets/$id/messages';
   static String supportTicketDelete(String id) => '/support-tickets/$id';
   static const String serviceTypesList = '/service-types/list';
+  static const String serviceTypesCatalog = '/service-types/catalog';
+
+  static String serviceTypesListFor(ServiceTypesAudience audience) =>
+      '$serviceTypesList?audience=${audience.queryValue}';
+
+  static String serviceTypesCatalogFor(ServiceTypesAudience audience) =>
+      '$serviceTypesCatalog?audience=${audience.queryValue}';
   static const String serviceOrders = '/service-orders';
   static const String serviceOrdersMe = '/service-orders/me';
   static const String serviceOrdersMeActive = '/service-orders/me/active';

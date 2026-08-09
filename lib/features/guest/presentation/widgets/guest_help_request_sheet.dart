@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/alerts/alert_delivery_bootstrap.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -76,23 +76,16 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   final _contactFormKey = GlobalKey<FormState>();
   final _requestFormKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final _otpFocusNode = FocusNode();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _guestRepository = GuestRepository();
 
   List<ServiceTypeModel> _serviceTypes = [];
   String? _selectedServiceTypeId;
   bool _loadingTypes = true;
-  bool _continuing = false;
-  bool _sendingOtp = false;
   bool _submitting = false;
-  bool _otpSent = false;
-  String? _inlineOtpCode;
   int _step = 0;
-  int _otpCooldown = 0;
 
   @override
   void initState() {
@@ -103,16 +96,16 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _otpFocusNode.dispose();
     _nameController.dispose();
     _phoneController.dispose();
-    _otpController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
   Future<void> _loadServiceTypes() async {
-    final result = await getIt<LocationsRepository>().getServiceTypes();
+    final result = await getIt<LocationsRepository>().getServiceTypes(
+      audience: ServiceTypesAudience.guest,
+    );
     if (!mounted) return;
     result.fold(
       (_) => setState(() => _loadingTypes = false),
@@ -129,86 +122,18 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     );
   }
 
-  Future<bool> _sendOtp({required bool showSuccessMessage}) async {
-    final phone = _phoneController.text.trim();
-    final phoneError = CustomValidators.validatePhone(phone);
-    if (phoneError != null) {
-      _showError(phoneError);
-      return false;
-    }
-
-    setState(() => _sendingOtp = true);
-    final result = await _guestRepository.sendOtp(phone);
-    if (!mounted) return false;
-    setState(() => _sendingOtp = false);
-
-    return result.fold(
-      (error) {
-        _showError(error.displayMessage);
-        return false;
-      },
-      (result) {
-        final code = result.debugOtp?.trim();
-        if (showSuccessMessage) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppStrings.otpSent.tr()),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 120.h),
-            ),
-          );
-        }
-        if (code != null && code.isNotEmpty) {
-          setState(() {
-            _inlineOtpCode = code;
-            _otpController.text = code;
-          });
-        }
-        ClientProfileGuard.showDebugOtp(context, code);
-        setState(() {
-          _otpSent = true;
-          _otpCooldown = 60;
-        });
-        _tickOtpCooldown();
-        return true;
-      },
-    );
-  }
-
-  void _tickOtpCooldown() {
-    if (_otpCooldown <= 0 || !mounted) return;
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      setState(() => _otpCooldown -= 1);
-      if (_otpCooldown > 0) {
-        _tickOtpCooldown();
-      }
-    });
-  }
-
   void _goToStep(int step) {
     setState(() => _step = step);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
       }
-      if (step == 1) {
-        _otpFocusNode.requestFocus();
-      }
     });
   }
 
   Future<void> _continueContact() async {
     if (!_contactFormKey.currentState!.validate()) return;
-
-    setState(() => _continuing = true);
     _goToStep(1);
-
-    await _sendOtp(showSuccessMessage: true);
-
-    if (mounted) {
-      setState(() => _continuing = false);
-    }
   }
 
   Future<void> _submit() async {
@@ -222,7 +147,6 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     final result = await _guestRepository.requestHelp(
       name: _nameController.text,
       phone: _phoneController.text,
-      otp: _otpController.text,
       serviceTypeId: _selectedServiceTypeId!,
       latitude: widget.location.latitude,
       longitude: widget.location.longitude,
@@ -331,91 +255,16 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            AppStrings.guestHelpVerifyStepHint.tr(),
+            AppStrings.guestHelpServiceStepHint.tr(),
             style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700),
           ),
           8.height,
           Text(
-            _phoneController.text.trim(),
+            '${_nameController.text.trim()} • ${_phoneController.text.trim()}',
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
             ),
-          ),
-          12.height,
-          if (_inlineOtpCode != null && _inlineOtpCode!.isNotEmpty) ...[
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: Colors.amber.shade700),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    AppStrings.guestOtpInlineHint.tr(),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.brown.shade800,
-                      height: 1.4,
-                    ),
-                  ),
-                  6.height,
-                  Text(
-                    _inlineOtpCode!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26.sp,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 6,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            12.height,
-          ],
-          if (_sendingOtp && !_otpSent)
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.h),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  8.width,
-                  Text(
-                    AppStrings.sendOtp.tr(),
-                    style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-            ),
-          CustomTextField(
-            controller: _otpController,
-            focusNode: _otpFocusNode,
-            label: AppStrings.otpCode.tr(),
-            hint: '000000',
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
-            ],
-            validator: CustomValidators.validateEmpty,
-          ),
-          10.height,
-          CustomButton.outlined(
-            text: _otpCooldown > 0
-                ? '${_otpCooldown}s'
-                : AppStrings.resendOtp.tr(),
-            onTap: (_sendingOtp || _otpCooldown > 0)
-                ? null
-                : () => _sendOtp(showSuccessMessage: true),
           ),
           16.height,
           Align(
@@ -460,15 +309,10 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
   Widget _buildStepActions() {
     if (_step == 0) {
-      return _continuing || _sendingOtp
-          ? const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : CustomButton.filled(
-              text: AppStrings.continueKey.tr(),
-              onTap: _continueContact,
-            );
+      return CustomButton.filled(
+        text: AppStrings.continueKey.tr(),
+        onTap: _continueContact,
+      );
     }
 
     return Column(

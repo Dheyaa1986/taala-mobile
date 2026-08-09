@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:taal/core/options/pagination_options.dart';
+import 'package:taal/core/app_config/service_types_audience.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/governate.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
@@ -14,7 +16,13 @@ abstract class LocationsRepository {
       String governorateId);
   Future<Either<CustomException, String>> resolveCityIdForIraqGovernorate(
       String governorateNameAr);
-  Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes();
+  Future<Either<CustomException, List<ServiceTypeModel>>> getServiceTypes({
+    ServiceTypesAudience audience = ServiceTypesAudience.client,
+  });
+  Future<Either<CustomException, List<ServiceCategoryCatalogModel>>>
+      getServiceCatalog({
+    ServiceTypesAudience audience = ServiceTypesAudience.provider,
+  });
   Future<Either<CustomException, List<LocationModel>>> getLocations(
       String providerId, PaginationOptions options);
   Future<Either<CustomException, LocationModel>> addLocation({
