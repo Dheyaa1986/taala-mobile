@@ -26,7 +26,8 @@ class ErrorsExceptionsHandler {
     }
     if (topMessage is String &&
         topMessage.isNotEmpty &&
-        topMessage != 'Validation failed') {
+        topMessage != 'Validation failed' &&
+        topMessage != 'validation failed') {
       return topMessage;
     }
 
