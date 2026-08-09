@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/error/exceptions.dart';
 import 'package:taal/core/network/network_request.dart';
@@ -18,7 +19,7 @@ class GuestOtpRepository extends Repository {
           AppUrls.guestSendOtp,
           method: RequestMethod.post,
           requestWithOutToken: true,
-          body: {'phone': phone.trim()},
+          body: {'phone': PhoneFormatterHelper.normalizeForApi(phone.trim())},
         ),
       );
 

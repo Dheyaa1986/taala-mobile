@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/error/exceptions.dart';
 import 'package:taal/core/network/network_request.dart';
@@ -31,7 +32,7 @@ class GuestRepository extends Repository {
           requestWithOutToken: true,
           body: {
             'name': name.trim(),
-            'phone': phone.trim(),
+            'phone': PhoneFormatterHelper.normalizeForApi(phone.trim()),
             'serviceTypeId': serviceTypeId,
             'clientLatitude': latitude,
             'clientLongitude': longitude,
