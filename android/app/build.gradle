@@ -5,6 +5,12 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.mintops.taala"
     compileSdk = 36
@@ -20,13 +26,14 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8
     }
 
-    // 🔑 إعدادات التوقيع الصحيحة والمطابقة بنسبة 100%
     signingConfigs {
         release {
-            storeFile file('upload-key.jks')
-            storePassword 'Zxcv@bnm1'
-            keyAlias 'upload'
-            keyPassword 'Zxcv@bnm1'
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
@@ -40,8 +47,10 @@ android {
 
     buildTypes {
         release {
-            // ✅ تم التعديل ليستخدم مفتاح الرفع الجديد
             signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

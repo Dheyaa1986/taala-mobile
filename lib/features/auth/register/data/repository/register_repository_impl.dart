@@ -25,10 +25,6 @@ class RegisterRepositoryImpl extends RegisterRepository {
           mapper: (json) => BaseResponseModel.fromJson(json),
         );
         await SecureLocalStorage.write(
-          PrefsKeys.password,
-          model.password,
-        );
-        await SecureLocalStorage.write(
           PrefsKeys.mailOrPhone,
           model.email,
         );

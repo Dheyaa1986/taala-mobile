@@ -134,16 +134,10 @@ class _LoginFormState extends State<LoginForm> {
       }
 
       if (_rememberMe) {
-
-        _passwordController.text =
-
-            await SecureLocalStorage.read(PrefsKeys.password) ?? '';
-
         _emailController.text =
-
             await SecureLocalStorage.read(PrefsKeys.mailOrPhone) ?? '';
-
       }
+      await SecureLocalStorage.delete(PrefsKeys.password);
 
     });
 

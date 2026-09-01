@@ -41,10 +41,6 @@ class LoginRepositoryImpl extends LoginRepository {
             user.refreshToken,
           );
           await SecureLocalStorage.write(
-            PrefsKeys.password,
-            model.password,
-          );
-          await SecureLocalStorage.write(
             PrefsKeys.mailOrPhone,
             model.email,
           );
