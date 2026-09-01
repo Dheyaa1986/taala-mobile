@@ -42,4 +42,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-.vscode/
+# Signing secrets and certificates (never commit)
+upload-certificate.pem
+*.pem
+android/key.properties

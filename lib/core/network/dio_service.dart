@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -41,15 +38,6 @@ class DioService implements NetworkService {
       }
       ..options.responseType = ResponseType.json;
 
-    if (!kIsWeb) {
-      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
-          (HttpClient client) {
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-
-        return client;
-      };
-    }
     if (kDebugMode) {
       _dio.interceptors.add(PrettyDioLogger(
         requestHeader: true,
@@ -72,7 +60,7 @@ class DioService implements NetworkService {
         AppRouter.appNavigatorKey.currentContext?.locale.languageCode ?? 'ar';
     final Map<String, dynamic> headers = {};
     headers.addAll({
-      HttpHeaders.acceptHeader: ContentType.json.mimeType,
+      'Accept': 'application/json',
       'accept-language': locale,
       'time-zone': 'Asia/Baghdad',
     });

@@ -56,11 +56,10 @@ class LoginCubit extends Cubit<LoginState> {
         );
         if (rememberMe) {
           await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
-          await SecureLocalStorage.write(PrefsKeys.password, password);
         } else {
           await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
-          await SecureLocalStorage.delete(PrefsKeys.password);
         }
+        await SecureLocalStorage.delete(PrefsKeys.password);
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
