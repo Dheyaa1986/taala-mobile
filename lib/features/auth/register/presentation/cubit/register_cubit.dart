@@ -1,7 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../../../core/app_config/prefs_keys.dart';
+import 'dart:async';
 import '../../../../../core/di/service_locator.dart';
+import '../../../../../core/maps/offline/map_offline_manager.dart';
 import '../../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../../core/models/base_response_model.dart';
 import '../../data/model/register_options.dart';
@@ -31,6 +32,10 @@ class RegisterCubit extends Cubit<RegisterState> {
         ),
       ),
     );
+
+    result.fold((_) {}, (_) {
+      unawaited(getIt<MapOfflineManager>().syncWhenOnline());
+    });
   }
 
 

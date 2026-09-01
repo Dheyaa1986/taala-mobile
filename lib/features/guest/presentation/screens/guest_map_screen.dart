@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -12,6 +14,9 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
+import 'package:taal/core/maps/offline/map_offline_manager.dart';
+import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/provider_call_button.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
@@ -43,6 +48,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   bool _loadingAddress = false;
   bool _loadingProviders = false;
   String? _error;
+  String? _offlineMapPath;
 
   @override
   void initState() {
@@ -52,6 +58,16 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
       MapStyleConfig.defaultLongitude,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
+    unawaited(_refreshOfflineMapPath());
+  }
+
+  Future<void> _refreshOfflineMapPath() async {
+    final path = await getIt<MapOfflineManager>().localMapPathFor(
+      _center.latitude,
+      _center.longitude,
+    );
+    if (!mounted) return;
+    setState(() => _offlineMapPath = path);
   }
 
   Future<void> _bootstrap() async {
@@ -72,6 +88,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
       _center = LatLng(location.latitude, location.longitude);
       _mapController.move(_center, MapStyleConfig.defaultZoom);
       await _resolveAddress();
+      await _refreshOfflineMapPath();
       await _loadProviders();
     }
 
@@ -95,6 +112,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     _center = _mapController.camera.center;
     await Future.wait([
       _resolveAddress(),
+      _refreshOfflineMapPath(),
       _loadProviders(),
     ]);
   }
@@ -189,12 +207,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
               },
             ),
             children: [
-              TileLayer(
-                urlTemplate: MapStyleConfig.tileUrlTemplate,
-                subdomains: MapStyleConfig.tileSubdomains,
-                userAgentPackageName: MapStyleConfig.userAgentPackageName,
-                maxZoom: 19,
-              ),
+              HybridMapTileLayer(offlineMapPath: _offlineMapPath),
               MarkerLayer(markers: _providerMarkers()),
             ],
           ),
@@ -400,6 +413,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                         (provider) => _GuestProviderTile(
                           provider: provider,
                           isSelected: provider.id == _selectedProviderId,
+                          clientLatitude: _center.latitude,
+                          clientLongitude: _center.longitude,
                           onTap: () {
                             setState(() => _selectedProviderId = provider.id);
                             final point = provider.mapPoint;
@@ -424,11 +439,15 @@ class _GuestProviderTile extends StatelessWidget {
   const _GuestProviderTile({
     required this.provider,
     required this.isSelected,
+    required this.clientLatitude,
+    required this.clientLongitude,
     required this.onTap,
   });
 
   final ServiceProviderModel provider;
   final bool isSelected;
+  final double clientLatitude;
+  final double clientLongitude;
   final VoidCallback onTap;
 
   @override
@@ -497,6 +516,14 @@ class _GuestProviderTile extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryColor,
                           ),
+                        ),
+                      ],
+                      if (provider.callAvailable && provider.id != null) ...[
+                        10.height,
+                        ProviderCallButton(
+                          providerId: provider.id!,
+                          latitude: clientLatitude,
+                          longitude: clientLongitude,
                         ),
                       ],
                     ],

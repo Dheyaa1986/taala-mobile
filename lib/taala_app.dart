@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +12,8 @@ import 'core/alerts/app_alert_monitor.dart';
 import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
+import 'core/maps/emergency/emergency_sync_service.dart';
+import 'core/maps/offline/map_offline_manager.dart';
 import 'core/updates/app_update_prompt.dart';
 import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'features/notifications/presentation/cubit/notification_cubit.dart';
@@ -50,6 +54,8 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
       getIt<ThemeCubit>().loadActiveTheme();
       AlertDeliveryBootstrap.ensureReady();
       handleAppUpdateCheck();
+      unawaited(getIt<MapOfflineManager>().syncWhenOnline());
+      unawaited(getIt<EmergencySyncService>().flushPending());
       SecureLocalStorage.read(PrefsKeys.token).then((token) {
         if (token != null && token.isNotEmpty) {
           getIt<NotificationCubit>().refreshInbox(reloadList: true);

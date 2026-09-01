@@ -1,5 +1,10 @@
 import 'package:get_it/get_it.dart';
 import 'package:taal/core/maps/device_location_service.dart';
+import 'package:taal/core/maps/emergency/emergency_call_repository.dart';
+import 'package:taal/core/maps/emergency/emergency_request_queue.dart';
+import 'package:taal/core/maps/emergency/emergency_sync_service.dart';
+import 'package:taal/core/maps/offline/map_offline_manager.dart';
+import 'package:taal/core/maps/offline/map_offline_repository.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
@@ -79,6 +84,21 @@ Future<void> _initExternals() async {
   );
   getIt.registerLazySingleton<ProviderLiveLocationService>(
     () => ProviderLiveLocationService(),
+  );
+  getIt.registerLazySingleton<MapOfflineRepository>(
+    () => MapOfflineRepository(),
+  );
+  getIt.registerLazySingleton<MapOfflineManager>(
+    () => MapOfflineManager(getIt(), getIt()),
+  );
+  getIt.registerLazySingleton<EmergencyRequestQueue>(
+    () => EmergencyRequestQueue(),
+  );
+  getIt.registerLazySingleton<EmergencySyncService>(
+    () => EmergencySyncService(getIt(), getIt()),
+  );
+  getIt.registerLazySingleton<EmergencyCallRepository>(
+    () => EmergencyCallRepository(getIt()),
   );
   getIt.registerLazySingleton<AppAlertSoundService>(
     () => AppAlertSoundService(),

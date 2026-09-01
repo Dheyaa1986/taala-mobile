@@ -7,6 +7,7 @@ import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/connectivity_helper.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -144,6 +145,36 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     }
 
     setState(() => _submitting = true);
+
+    if (!await ConnectivityHelper.connected) {
+      final queued = await _guestRepository.queueHelpOffline(
+        name: _nameController.text,
+        phone: _phoneController.text,
+        serviceTypeId: _selectedServiceTypeId!,
+        latitude: widget.location.latitude,
+        longitude: widget.location.longitude,
+        address: widget.location.address,
+        description: _descriptionController.text,
+        providerId: widget.providerId,
+      );
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      queued.fold(
+        (error) => _showError(error.displayMessage),
+        (_) {
+          Navigator.of(context).pop(false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'تم حفظ طلبك بدون إنترنت وسيُرسل تلقائياً عند عودة الشبكة.',
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
+
     final result = await _guestRepository.requestHelp(
       name: _nameController.text,
       phone: _phoneController.text,

@@ -21,6 +21,8 @@ class ServiceProviderModel {
   List<LocationModel> locations;
   List<PortfolioModel> portfolios;
 
+  final bool callAvailable;
+
   ServiceProviderModel({
     this.id,
     this.name,
@@ -38,6 +40,7 @@ class ServiceProviderModel {
     this.distanceKm,
     this.etaMinutes,
     this.portfolios = const [],
+    this.callAvailable = false,
   });
 
   factory ServiceProviderModel.fromJson(Map<String, dynamic> json) {
@@ -77,6 +80,7 @@ class ServiceProviderModel {
       lng: json['lng']?.toString(),
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),
       etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
+      callAvailable: json['callAvailable'] == true,
       portfolios: (json['portofolios'] as List<dynamic>? ?? [])
           .map(
             (item) => PortfolioModel.fromJson(item as Map<String, dynamic>),

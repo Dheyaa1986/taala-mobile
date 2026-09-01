@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:taal/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,6 +15,8 @@ import 'config/routes/app_router.dart';
 import 'core/alerts/firebase_background_handler.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/bloc_observer.dart';
+import 'core/maps/emergency/emergency_sync_service.dart';
+import 'core/maps/offline/map_offline_manager.dart';
 import 'core/helpers/locale_helper.dart';
 import 'core/package_info_helper/package_info_helper.dart';
 import 'core/remote_config_helper/remote_config_helper.dart';
@@ -38,6 +42,8 @@ void main() async {
   }
   await PackageInfoHelper.initialize();
   await setupServiceLocator();
+  unawaited(getIt<MapOfflineManager>().syncWhenOnline());
+  unawaited(getIt<EmergencySyncService>().flushPending());
   debugRepaintRainbowEnabled = false;
 
   runApp(

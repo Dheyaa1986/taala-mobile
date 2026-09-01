@@ -61,6 +61,9 @@ class AppUrls {
   static const String guestProviders = '/home/guest/providers';
   static const String guestSendOtp = '/home/guest/send-otp';
   static const String guestHelpRequest = '/home/guest/help-request';
+  static const String offlineMapsManifest = '/maps/offline/manifest';
+  static String emergencyProviderCallSession(String providerId) =>
+      '/emergency/providers/$providerId/call-session';
   static const String supportTicketsMe = '/support-tickets/me';
   static String supportTicketById(String id) => '/support-tickets/$id';
   static String supportTicketMessages(String id) =>
