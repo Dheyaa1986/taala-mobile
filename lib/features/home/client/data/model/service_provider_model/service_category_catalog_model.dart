@@ -4,12 +4,14 @@ class ServiceCategoryCatalogModel {
   final String? id;
   final String? code;
   final String? name;
+  final int sortOrder;
   final List<ServiceTypeModel> serviceTypes;
 
   const ServiceCategoryCatalogModel({
     this.id,
     this.code,
     this.name,
+    this.sortOrder = 99,
     this.serviceTypes = const [],
   });
 
@@ -29,6 +31,9 @@ class ServiceCategoryCatalogModel {
       name: json['name']?.toString() ??
           json['nameAr']?.toString() ??
           json['nameEn']?.toString(),
+      sortOrder: json['sortOrder'] is num
+          ? (json['sortOrder'] as num).toInt()
+          : int.tryParse(json['sortOrder']?.toString() ?? '') ?? 99,
       serviceTypes: types,
     );
   }

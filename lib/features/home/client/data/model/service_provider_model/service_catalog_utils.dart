@@ -19,7 +19,7 @@ List<ServiceCategoryCatalogModel> groupServiceTypesByCategory(
     }
   }
 
-  const order = ['TOWING', 'OTHER'];
+  const order = ['CRANE', 'OTHER'];
   final keys = buckets.keys.toList()
     ..sort((a, b) {
       final ai = order.indexOf(codes[a] ?? a);
@@ -45,8 +45,8 @@ List<ServiceCategoryCatalogModel> groupServiceTypesByCategory(
 
 String _labelForCode(String? code) {
   switch (code) {
-    case 'TOWING':
-      return 'سحب';
+    case 'CRANE':
+      return 'كرين';
     case 'OTHER':
       return 'خدمات أخرى';
     default:

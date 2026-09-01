@@ -20,8 +20,25 @@ class ServiceTypeCatalogSections extends StatelessWidget {
   final void Function(Set<String> selectedIds) onChanged;
   final bool multiSelect;
 
-  List<ServiceCategoryCatalogModel> get _visibleCategories =>
-      categories.where((c) => c.serviceTypes.isNotEmpty).toList();
+  static const _codeOrder = ['CRANE', 'OTHER'];
+
+  int _categorySortIndex(ServiceCategoryCatalogModel category) {
+    final code = category.code?.toUpperCase();
+    final index = code == null ? -1 : _codeOrder.indexOf(code);
+    if (index >= 0) return index;
+    return 50 + category.sortOrder;
+  }
+
+  List<ServiceCategoryCatalogModel> get _visibleCategories {
+    final visible =
+        categories.where((c) => c.serviceTypes.isNotEmpty).toList();
+    visible.sort((a, b) {
+      final byOrder = _categorySortIndex(a).compareTo(_categorySortIndex(b));
+      if (byOrder != 0) return byOrder;
+      return (a.name ?? a.code ?? '').compareTo(b.name ?? b.code ?? '');
+    });
+    return visible;
+  }
 
   @override
   Widget build(BuildContext context) {
