@@ -13,9 +13,9 @@ import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
-import 'package:taal/core/widgets/service_type_selector_grid.dart';
+import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
-import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
@@ -45,7 +45,7 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
   final _locationsRepository = getIt<LocationsRepository>();
   final _providersRepository = getIt<ProviderRepository>();
 
-  List<ServiceTypeModel> _serviceTypes = [];
+  List<ServiceCategoryCatalogModel> _serviceCatalog = [];
   String? _selectedServiceTypeId;
   bool _loadingTypes = true;
   bool _submitting = false;
@@ -57,14 +57,14 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
   }
 
   Future<void> _loadServiceTypes() async {
-    final result = await _locationsRepository.getServiceTypes(
+    final result = await _locationsRepository.getServiceCatalog(
       audience: ServiceTypesAudience.client,
     );
     if (!mounted) return;
     result.fold(
       (_) => setState(() => _loadingTypes = false),
       (data) => setState(() {
-        _serviceTypes = data;
+        _serviceCatalog = data;
         _loadingTypes = false;
       }),
     );
@@ -211,8 +211,8 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
                 child: CircularProgressIndicator(),
               )
             else
-              ServiceTypeSelectorGrid(
-                items: _serviceTypes,
+              ServiceTypeCatalogSections(
+                categories: _serviceCatalog,
                 selectedIds: _selectedServiceTypeId == null
                     ? {}
                     : {_selectedServiceTypeId!},

@@ -14,11 +14,11 @@ import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
-import 'package:taal/core/widgets/service_type_selector_grid.dart';
+import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/features/guest/data/repository/guest_repository.dart';
 import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
-import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
@@ -81,7 +81,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   final _descriptionController = TextEditingController();
   final _guestRepository = GuestRepository();
 
-  List<ServiceTypeModel> _serviceTypes = [];
+  List<ServiceCategoryCatalogModel> _serviceCatalog = [];
   String? _selectedServiceTypeId;
   bool _loadingTypes = true;
   bool _submitting = false;
@@ -103,14 +103,14 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   }
 
   Future<void> _loadServiceTypes() async {
-    final result = await getIt<LocationsRepository>().getServiceTypes(
+    final result = await getIt<LocationsRepository>().getServiceCatalog(
       audience: ServiceTypesAudience.guest,
     );
     if (!mounted) return;
     result.fold(
       (_) => setState(() => _loadingTypes = false),
       (data) => setState(() {
-        _serviceTypes = data;
+        _serviceCatalog = data;
         _loadingTypes = false;
       }),
     );
@@ -284,8 +284,8 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               child: Center(child: CircularProgressIndicator()),
             )
           else
-            ServiceTypeSelectorGrid(
-              items: _serviceTypes,
+            ServiceTypeCatalogSections(
+              categories: _serviceCatalog,
               selectedIds: _selectedServiceTypeId == null
                   ? {}
                   : {_selectedServiceTypeId!},
