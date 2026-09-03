@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:taal/firebase_options.dart';
 import 'package:taal/core/alerts/app_alert_sound_service.dart';
 import 'package:taal/core/alerts/app_icon_badge_service.dart';
+import 'package:taal/core/alerts/notification_router.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/secure_local_storage.dart';
@@ -23,6 +25,7 @@ class PushNotificationService {
       FlutterLocalNotificationsPlugin();
   bool _localReady = false;
   bool _firebaseReady = false;
+  bool _launchHandled = false;
 
   Future<bool> initialize() async {
     await ensureLocalNotificationsReady();
@@ -47,7 +50,9 @@ class PushNotificationService {
         android: androidSettings,
         iOS: iosSettings,
       ),
-      onDidReceiveNotificationResponse: (_) {},
+      onDidReceiveNotificationResponse: (response) {
+        NotificationRouter.handlePayloadString(response.payload);
+      },
     );
 
     final androidPlugin =
@@ -98,8 +103,8 @@ class PushNotificationService {
 
       FirebaseMessaging.onMessage.listen(handleIncomingMessage);
 
-      FirebaseMessaging.onMessageOpenedApp.listen((_) async {
-        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
+      FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+        await NotificationRouter.handleRemoteMessage(message);
       });
 
       await _registerCurrentToken(messaging);
@@ -108,6 +113,40 @@ class PushNotificationService {
     } catch (error) {
       debugPrint('Firebase messaging setup failed: $error');
       return false;
+    }
+  }
+
+  Future<void> processLaunchNotifications() async {
+    if (_launchHandled) return;
+    _launchHandled = true;
+
+    if (!_firebaseReady) {
+      await initialize();
+    }
+
+    try {
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial != null) {
+        await NotificationRouter.handleRemoteMessage(initial);
+        return;
+      }
+    } catch (error) {
+      debugPrint('getInitialMessage failed: $error');
+    }
+
+    if (Platform.isAndroid) {
+      await NotificationRouter.consumeAndroidLaunchPayload();
+    }
+
+    try {
+      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+      if (launchDetails?.didNotificationLaunchApp == true) {
+        await NotificationRouter.handlePayloadString(
+          launchDetails?.notificationResponse?.payload,
+        );
+      }
+    } catch (error) {
+      debugPrint('Local launch notification failed: $error');
     }
   }
 
@@ -144,6 +183,22 @@ class PushNotificationService {
     await _registerTokenWithBackend(token);
   }
 
+  Future<void> clearTokenFromBackend() async {
+    final accessToken = await SecureLocalStorage.read(PrefsKeys.token);
+    if (accessToken == null || accessToken.isEmpty) return;
+
+    try {
+      await getIt<DioService>().callApi(
+        NetworkRequest(
+          AppUrls.notificationsFcmToken,
+          method: RequestMethod.delete,
+        ),
+      );
+    } catch (error) {
+      debugPrint('FCM token clear failed: $error');
+    }
+  }
+
   Future<void> _registerTokenWithBackend(String token) async {
     final accessToken = await SecureLocalStorage.read(PrefsKeys.token);
     if (accessToken == null || accessToken.isEmpty) {
@@ -169,13 +224,23 @@ class PushNotificationService {
     RemoteMessage message, {
     bool background = false,
   }) async {
+    final data = NotificationRouter.fromRemoteMessage(message);
+    final type = data['type']?.trim();
+    if (type == 'badge_sync') {
+      final badge = int.tryParse(data['badge'] ?? '');
+      if (badge != null) {
+        await AppIconBadgeService.applyCount(badge);
+      }
+      return;
+    }
+
     final title = message.notification?.title ??
-        message.data['title'] ??
+        data['title'] ??
         'تنبيه طلاء';
     final body = message.notification?.body ??
-        message.data['body'] ??
+        data['body'] ??
         'لديك إشعار جديد';
-    final badge = int.tryParse(message.data['badge'] ?? '');
+    final badge = int.tryParse(data['badge'] ?? '');
 
     if (badge != null) {
       await AppIconBadgeService.applyCount(badge);
@@ -189,6 +254,7 @@ class PushNotificationService {
         title: title,
         body: body,
         badgeNumber: badge,
+        payload: data,
       );
       return;
     }
@@ -197,6 +263,7 @@ class PushNotificationService {
       title: title,
       body: body,
       badgeNumber: badge,
+      payload: data,
     );
     await getIt<AppAlertSoundService>().play(force: true);
 
@@ -211,6 +278,7 @@ class PushNotificationService {
     required String title,
     required String body,
     int? badgeNumber,
+    Map<String, String>? payload,
   }) async {
     await ensureLocalNotificationsReady();
 
@@ -240,6 +308,7 @@ class PushNotificationService {
       title,
       body,
       details,
+      payload: payload == null ? null : jsonEncode(payload),
     );
   }
 }

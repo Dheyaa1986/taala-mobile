@@ -96,6 +96,11 @@ class NotificationCubit extends Cubit<NotificationState> {
     _emitLoaded(items: items, unreadCount: unread);
   }
 
+  Future<void> markAsReadFromPush(String id) async {
+    final result = await _repository.markAsRead(id);
+    result.fold((_) {}, (_) => refreshInbox(reloadList: true));
+  }
+
   Future<void> markAsRead(String id) async {
     final current = state;
     if (current is! NotificationLoaded) return;
@@ -123,22 +128,26 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   Future<void> markAllAsRead() async {
     final current = state;
-    if (current is! NotificationLoaded) return;
+    if (current is NotificationLoaded) {
+      final updatedItems =
+          current.items.map((item) => item.copyWith(isRead: true)).toList();
+      _emitLoaded(items: updatedItems, unreadCount: 0);
+    } else {
+      await getIt<AppIconBadgeService>().updateCount(0);
+    }
 
-    final updatedItems =
-        current.items.map((item) => item.copyWith(isRead: true)).toList();
-
-    _emitLoaded(items: updatedItems, unreadCount: 0);
-
+    final previous = current is NotificationLoaded ? current : null;
     final result = await _repository.markAllAsRead();
     result.fold(
       (_) {
-        _emitLoaded(
-          items: current.items,
-          unreadCount: current.unreadCount,
-        );
+        if (previous != null) {
+          _emitLoaded(
+            items: previous.items,
+            unreadCount: previous.unreadCount,
+          );
+        }
       },
-      (_) => refreshInbox(),
+      (_) => refreshInbox(reloadList: true),
     );
   }
 

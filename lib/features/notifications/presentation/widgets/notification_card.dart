@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
@@ -21,6 +22,11 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRead = notification.isRead;
+    final createdAt = notification.createdAt;
+    final dateLabel = createdAt != null
+        ? DateFormat('dd/MM/yyyy • hh:mm a', context.locale.languageCode)
+            .format(createdAt.toLocal())
+        : null;
 
     return YellowHighlightCard(
       isHighlighted: !isRead,
@@ -73,6 +79,18 @@ class NotificationCard extends StatelessWidget {
                     height: 1.45,
                   ),
                 ),
+                if (dateLabel != null) ...[
+                  8.height,
+                  Text(
+                    dateLabel,
+                    style: TextStyle(
+                      fontFamily: FontStyles.fontFamily,
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.greyText,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

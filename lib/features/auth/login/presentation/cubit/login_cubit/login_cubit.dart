@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../../../core/alerts/alert_delivery_bootstrap.dart';
+import '../../../../../../core/alerts/notification_router.dart';
+import '../../../../../../core/alerts/push_notification_service.dart';
 import '../../../../../../core/app_config/prefs_keys.dart';
 import '../../../../../../core/alerts/app_alert_monitor.dart';
 import '../../../../../../core/di/service_locator.dart';
@@ -64,6 +66,8 @@ class LoginCubit extends Cubit<LoginState> {
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
         await AlertDeliveryBootstrap.ensureReady();
+        await PushNotificationService.instance.processLaunchNotifications();
+        await NotificationRouter.processPendingIfAny();
 
         emit(LoginSuccess(response: response));
       },
@@ -92,6 +96,8 @@ class LoginCubit extends Cubit<LoginState> {
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
         await AlertDeliveryBootstrap.ensureReady();
+        await PushNotificationService.instance.processLaunchNotifications();
+        await NotificationRouter.processPendingIfAny();
 
         emit(LoginSuccess(response: response));
       },
@@ -126,6 +132,8 @@ class LoginCubit extends Cubit<LoginState> {
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
         await AlertDeliveryBootstrap.ensureReady();
+        await PushNotificationService.instance.processLaunchNotifications();
+        await NotificationRouter.processPendingIfAny();
         emit(LoginSuccess(response: response));
       },
     );

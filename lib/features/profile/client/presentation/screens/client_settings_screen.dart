@@ -12,7 +12,6 @@ import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
 import 'package:taal/features/profile/presentation/widgets/conversation_history_panel.dart';
-import 'package:taal/features/profile/presentation/widgets/app_alert_sound_settings.dart';
 import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
@@ -31,8 +30,6 @@ class ClientSettingsScreen extends StatelessWidget {
       body: ListView(
         padding: REdgeInsets.all(16),
         children: [
-          const AppAlertSoundSettings(),
-          16.height,
           const ConversationHistoryPanel(),
           16.height,
           SettingsTile(

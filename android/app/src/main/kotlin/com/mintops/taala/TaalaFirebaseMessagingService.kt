@@ -24,7 +24,7 @@ class TaalaFirebaseMessagingService : FirebaseMessagingService() {
             ?: message.data["body"]
             ?: "لديك إشعار جديد"
 
-        showUrgentNotification(title, body)
+        showUrgentNotification(title, body, message.data)
     }
 
     override fun onNewToken(token: String) {
@@ -35,9 +35,14 @@ class TaalaFirebaseMessagingService : FirebaseMessagingService() {
             .apply()
     }
 
-    private fun showUrgentNotification(title: String, body: String) {
+    private fun showUrgentNotification(
+        title: String,
+        body: String,
+        data: Map<String, String>,
+    ) {
         val launchIntent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putNotificationPayload(this, data)
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -80,5 +85,38 @@ class TaalaFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         const val PREFS_NAME = "taala_alert_prefs"
         const val PENDING_FCM_TOKEN = "pending_fcm_token"
+
+        val PAYLOAD_KEYS = listOf(
+            "notificationId",
+            "type",
+            "target",
+            "serviceOrderId",
+            "supportTicketId",
+            "badge",
+            "title",
+            "body",
+        )
+
+        fun putNotificationPayload(intent: Intent, data: Map<String, String>) {
+            for (key in PAYLOAD_KEYS) {
+                data[key]?.let { intent.putExtra(key, it) }
+            }
+        }
+
+        fun extractNotificationPayload(intent: Intent?): Map<String, String> {
+            if (intent == null) return emptyMap()
+            val payload = linkedMapOf<String, String>()
+            for (key in PAYLOAD_KEYS) {
+                intent.getStringExtra(key)?.let { payload[key] = it }
+            }
+            return payload
+        }
+
+        fun clearNotificationPayload(intent: Intent?) {
+            if (intent == null) return
+            for (key in PAYLOAD_KEYS) {
+                intent.removeExtra(key)
+            }
+        }
     }
 }

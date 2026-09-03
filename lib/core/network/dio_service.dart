@@ -8,6 +8,7 @@ import '../app_config/app_urls.dart';
 import '../app_config/constants.dart';
 import '../app_config/prefs_keys.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
+import 'package:taal/core/alerts/push_notification_service.dart';
 import 'package:taal/core/di/service_locator.dart';
 import '../error/errors_exceptions_handler.dart';
 import '../helpers/auth_session_helper.dart';
@@ -51,6 +52,7 @@ class DioService implements NetworkService {
 
   Future<void> logout() async {
     getIt<AppAlertMonitor>().stop();
+    await PushNotificationService.instance.clearTokenFromBackend();
     _dio.options.headers.clear();
     await AuthSessionHelper.logout();
   }

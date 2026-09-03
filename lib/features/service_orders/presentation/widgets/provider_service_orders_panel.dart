@@ -45,7 +45,7 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
   }
 
   void _onOrdersRefreshTick() {
-    if (mounted) _load();
+    if (mounted) _load(silent: true);
   }
 
   @override
@@ -76,16 +76,18 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
     return order.status != 'completed' && order.status != 'cancelled';
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool silent = false}) async {
     final result = await _repository.getMyOrders(limit: 20);
     if (!mounted) return;
 
     result.fold(
       (error) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message)),
-        );
+        if (!silent && error.code != 429) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.displayMessage)),
+          );
+        }
       },
       (orders) {
         final dismissed = ServiceOrderLocalStateHelper.dismissedIds();

@@ -94,18 +94,55 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         appBar: CustomAppBar.backAppBar(
           title: AppStrings.notifications.tr(),
           actions: [
-            TextButton(
-              onPressed: () {
-                context.read<NotificationCubit>().markAllAsRead();
+            BlocBuilder<NotificationCubit, NotificationState>(
+              builder: (context, state) {
+                final unread =
+                    state is NotificationLoaded ? state.unreadCount : 0;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (unread > 0)
+                      Container(
+                        margin: REdgeInsets.only(left: 4, right: 4),
+                        padding: REdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                      ),
+                    TextButton(
+                      onPressed: unread > 0
+                          ? () {
+                              context
+                                  .read<NotificationCubit>()
+                                  .markAllAsRead();
+                            }
+                          : null,
+                      child: Text(
+                        AppStrings.markAllRead.tr(),
+                        style: TextStyle(
+                          color: unread > 0
+                              ? AppColors.primaryColor
+                              : AppColors.greyText,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
               },
-              child: Text(
-                AppStrings.markAllRead.tr(),
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13.sp,
-                ),
-              ),
             ),
           ],
         ),

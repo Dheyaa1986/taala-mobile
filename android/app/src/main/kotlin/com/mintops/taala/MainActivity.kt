@@ -36,9 +36,19 @@ class MainActivity : FlutterActivity() {
                 "consumePendingFcmToken" -> {
                     result.success(consumePendingFcmToken())
                 }
+                "consumeLaunchNotificationPayload" -> {
+                    val payload = TaalaFirebaseMessagingService.extractNotificationPayload(intent)
+                    TaalaFirebaseMessagingService.clearNotificationPayload(intent)
+                    result.success(payload)
+                }
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 
     private fun isIgnoringBatteryOptimizations(): Boolean {

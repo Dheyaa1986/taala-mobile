@@ -27,7 +27,7 @@ class AppAlertMonitor {
   final SupportTicketRepository _supportRepository;
   final ProfileRepository _profileRepository;
 
-  static const _pollInterval = Duration(seconds: 4);
+  static const _pollInterval = Duration(seconds: 15);
 
   Timer? _timer;
   bool _initialized = false;
@@ -97,7 +97,7 @@ class AppAlertMonitor {
 
       if (_initialized && shouldAlert) {
         await _soundService.play();
-        await PushNotificationService.instance.showUrgentAlert(
+      await PushNotificationService.instance.showUrgentAlert(
           title: _lastAlertTitle ?? 'تنبيه طلاء',
           body: _lastAlertBody ?? 'لديك إشعار أو رسالة جديدة',
         );

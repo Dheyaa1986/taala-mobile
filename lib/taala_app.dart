@@ -9,6 +9,8 @@ import 'config/routes/app_router.dart';
 import 'config/themes/theme.dart';
 import 'core/alerts/alert_delivery_bootstrap.dart';
 import 'core/alerts/app_alert_monitor.dart';
+import 'core/alerts/notification_router.dart';
+import 'core/alerts/push_notification_service.dart';
 import 'core/app_config/prefs_keys.dart';
 import 'core/di/service_locator.dart';
 import 'core/helpers/secure_local_storage.dart';
@@ -59,6 +61,8 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
       SecureLocalStorage.read(PrefsKeys.token).then((token) {
         if (token != null && token.isNotEmpty) {
           getIt<NotificationCubit>().refreshInbox(reloadList: true);
+          unawaited(NotificationRouter.consumeAndroidLaunchPayload());
+          unawaited(NotificationRouter.processPendingIfAny());
         }
       });
     }
@@ -85,6 +89,12 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
     _scheduleThemeLoad();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AlertDeliveryBootstrap.ensureReady();
+      SecureLocalStorage.read(PrefsKeys.token).then((token) async {
+        if (token != null && token.isNotEmpty) {
+          await PushNotificationService.instance.processLaunchNotifications();
+          await NotificationRouter.processPendingIfAny();
+        }
+      });
     });
   }
 
@@ -118,11 +128,14 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
             BlocProvider(
               create: (context) {
                 final cubit = getIt<ProfileCubit>();
-                SecureLocalStorage.read(PrefsKeys.token).then((token) {
+                SecureLocalStorage.read(PrefsKeys.token).then((token) async {
                   if (token != null && token.isNotEmpty) {
                     cubit.loadProfile();
                     getIt<NotificationCubit>().refreshInbox(reloadList: true);
                     getIt<AppAlertMonitor>().start();
+                    await PushNotificationService.instance
+                        .processLaunchNotifications();
+                    await NotificationRouter.processPendingIfAny();
                   }
                 });
                 return cubit;
