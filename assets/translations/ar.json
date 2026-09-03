@@ -262,6 +262,7 @@
   "chatOpenFailed": "تعذر فتح الدردشة. حاول مرة أخرى",
   "genericError": "حدث خطأ، يرجى المحاولة لاحقاً",
   "networkError": "تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجدداً",
+  "tooManyRequests": "طلبات كثيرة جداً. يرجى الانتظار دقيقة ثم المحاولة مرة أخرى.",
   "requestCancelled": "تم إلغاء الطلب",
   "duplicateEntryError": "هذه البيانات مسجّلة مسبقاً",
   "providerIncomingOrders": "طلبات العملاء",

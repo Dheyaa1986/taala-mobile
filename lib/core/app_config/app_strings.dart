@@ -304,6 +304,7 @@ class AppStrings {
   static const String chatOpenFailed = 'chatOpenFailed';
   static const String genericError = 'genericError';
   static const String networkError = 'networkError';
+  static const String tooManyRequests = 'tooManyRequests';
   static const String requestCancelled = 'requestCancelled';
   static const String duplicateEntryError = 'duplicateEntryError';
   static const String providerIncomingOrders = 'providerIncomingOrders';

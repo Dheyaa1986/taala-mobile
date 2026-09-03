@@ -41,7 +41,15 @@ class ApiErrorMessage {
         return AppStrings.genericError.tr();
       case 'Network Error':
         return AppStrings.networkError.tr();
+      case 'ThrottlerException: Too Many Requests':
+      case 'Too Many Requests':
+      case 'Too many requests':
+        return AppStrings.tooManyRequests.tr();
       default:
+        if (text.startsWith('ThrottlerException') ||
+            text.contains('Too Many Requests')) {
+          return AppStrings.tooManyRequests.tr();
+        }
         if (text.startsWith('Duplicate entry') ||
             text.contains('unique constraint')) {
           return AppStrings.duplicateEntryError.tr();

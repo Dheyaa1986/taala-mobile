@@ -94,6 +94,11 @@ class ErrorsExceptionsHandler {
             throw NotFoundException(_resolveMessage(errorMessage));
           case 409:
             throw ConflictException(_resolveMessage(errorMessage));
+          case 429:
+            throw CustomException(
+              _resolveMessage(errorMessage),
+              code: 429,
+            );
           case 422:
             throw BadRequestException(_resolveMessage(errorMessage));
           case 500:

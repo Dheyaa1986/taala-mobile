@@ -53,7 +53,7 @@ class _RegisterFormState extends State<RegisterForm> {
           : _country;
 
       context.pushNamed(
-        Routes.selectRoleScreen,
+        Routes.providerRegisterSteps,
         arguments: RegisterOptions(
           countryImageSvg: selectedCountry?.flagSvg ?? '',
           confirmPassword: _confirmController.text,

@@ -264,61 +264,38 @@ class _LoginFormState extends State<LoginForm> {
 
                       20.height,
 
-                      Align(
-
-                        alignment: AlignmentDirectional.centerStart,
-
-                        child: Text(
-
-                          AppStrings.chooseAccountType.tr(),
-
-                          style:
-
-                              Theme.of(context).textTheme.labelMedium?.copyWith(
-
-                                    color: AppColors.lightTText,
-
-                                  ),
-
+                      if (widget.initialIsProvider == null) ...[
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            AppStrings.chooseAccountType.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: AppColors.lightTText,
+                                ),
+                          ),
                         ),
-
-                      ),
-
-                      12.height,
-
-                      RoleTile(
-
-                        title: AppStrings.imProvider.tr(),
-
-                        body: AppStrings.providerDescription.tr(),
-
-                        icon: AppIcons.provider,
-
-                        onTap: () => setState(() => _role = UserRole.provider),
-
-                        role: UserRole.provider,
-
-                        value: _role,
-
-                      ),
-
-                      10.height,
-
-                      RoleTile(
-
-                        title: AppStrings.imClient.tr(),
-
-                        body: AppStrings.clientDescription.tr(),
-
-                        icon: AppIcons.client,
-
-                        onTap: () => setState(() => _role = UserRole.client),
-
-                        role: UserRole.client,
-
-                        value: _role,
-
-                      ),
+                        12.height,
+                        RoleTile(
+                          title: AppStrings.imProvider.tr(),
+                          body: AppStrings.providerDescription.tr(),
+                          icon: AppIcons.provider,
+                          onTap: () => setState(() => _role = UserRole.provider),
+                          role: UserRole.provider,
+                          value: _role,
+                        ),
+                        10.height,
+                        RoleTile(
+                          title: AppStrings.imClient.tr(),
+                          body: AppStrings.clientDescription.tr(),
+                          icon: AppIcons.client,
+                          onTap: () => setState(() => _role = UserRole.client),
+                          role: UserRole.client,
+                          value: _role,
+                        ),
+                      ],
 
                       if (_role == UserRole.provider) ...[
                         14.height,
