@@ -45,6 +45,7 @@ class _RegisterFormState extends State<RegisterForm> {
       _otpController = TextEditingController();
   final _otpFocusNode = FocusNode();
   final _otpRepository = GuestOtpRepository();
+  bool _providerOtpSent = false;
   File? _image;
 
   CountryModel? _country;
@@ -52,6 +53,11 @@ class _RegisterFormState extends State<RegisterForm> {
   void _register() {
     FocusManager.instance.primaryFocus?.unfocus();
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_providerOtpSent) {
+      AppMessages.showError(context, AppStrings.sendOtpFirst.tr());
+      return;
+    }
 
     if (_otpController.text.trim().length < 6) {
       AppMessages.showError(context, AppStrings.otpCode.tr());
@@ -88,8 +94,18 @@ class _RegisterFormState extends State<RegisterForm> {
   ) async {
     final result = await _otpRepository.sendRegistrationOtp(phone);
     return result.fold(
-      (error) => (debugOtp: null, error: error.displayMessage),
-      (payload) => (debugOtp: payload.debugOtp, error: null),
+      (error) {
+        if (mounted) {
+          setState(() => _providerOtpSent = false);
+        }
+        return (debugOtp: null, error: error.displayMessage);
+      },
+      (payload) {
+        if (mounted) {
+          setState(() => _providerOtpSent = true);
+        }
+        return (debugOtp: payload.debugOtp, error: null);
+      },
     );
   }
 

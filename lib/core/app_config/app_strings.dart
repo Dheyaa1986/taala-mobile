@@ -236,6 +236,7 @@ class AppStrings {
   static const String guestHelpServiceStepHint = 'guestHelpServiceStepHint';
   static const String guestOtpResendHint = 'guestOtpResendHint';
   static const String guestOtpInlineHint = 'guestOtpInlineHint';
+  static const String sendOtpFirst = 'sendOtpFirst';
   static const String guestHelpOrderSent = 'guestHelpOrderSent';
   static const String providerLogin = 'providerLogin';
   static const String iAmProvider = 'iAmProvider';

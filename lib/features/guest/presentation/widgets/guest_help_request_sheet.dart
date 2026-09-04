@@ -89,6 +89,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   String? _selectedServiceTypeId;
   bool _loadingTypes = true;
   bool _submitting = false;
+  bool _otpSendSucceeded = false;
   int _step = 0;
 
   @override
@@ -129,7 +130,13 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   }
 
   void _goToStep(int step) {
-    setState(() => _step = step);
+    setState(() {
+      _step = step;
+      if (step == 0) {
+        _otpSendSucceeded = false;
+        _otpController.clear();
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
@@ -145,8 +152,18 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   Future<({String? debugOtp, String? error})> _sendGuestOtp(String phone) async {
     final result = await _guestRepository.sendOtp(phone);
     return result.fold(
-      (error) => (debugOtp: null, error: error.displayMessage),
-      (payload) => (debugOtp: payload.debugOtp, error: null),
+      (error) {
+        if (mounted) {
+          setState(() => _otpSendSucceeded = false);
+        }
+        return (debugOtp: null, error: error.displayMessage);
+      },
+      (payload) {
+        if (mounted) {
+          setState(() => _otpSendSucceeded = true);
+        }
+        return (debugOtp: payload.debugOtp, error: null);
+      },
     );
   }
 
@@ -384,6 +401,10 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           CustomButton.filled(
             text: AppStrings.continueKey.tr(),
             onTap: () {
+              if (!_otpSendSucceeded) {
+                _showError(AppStrings.sendOtpFirst.tr());
+                return;
+              }
               if (_otpController.text.trim().length < 6) {
                 _showError(AppStrings.otpCode.tr());
                 return;
