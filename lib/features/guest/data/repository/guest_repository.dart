@@ -53,6 +53,7 @@ class GuestRepository extends Repository {
     String? providerId,
     String? clientRequestId,
     DateTime? queuedAt,
+    String? otp,
   }) {
     return exceptionHandler(() async {
       return dioService.callApi(
@@ -66,6 +67,7 @@ class GuestRepository extends Repository {
             'serviceTypeId': serviceTypeId,
             'clientLatitude': latitude,
             'clientLongitude': longitude,
+            if (otp != null && otp.trim().isNotEmpty) 'otp': otp.trim(),
             if (address != null && address.trim().isNotEmpty)
               'clientAddress': address.trim(),
             if (description != null && description.trim().isNotEmpty)

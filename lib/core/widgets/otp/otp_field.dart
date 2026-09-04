@@ -47,7 +47,7 @@ class _CustomOTPFieldState extends State<CustomOTPField> {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Pinput(
-        length: 4,
+        length: 6,
         controller: widget.controller,
         focusNode: widget.focusNode,
         defaultPinTheme: defaultPinTheme,

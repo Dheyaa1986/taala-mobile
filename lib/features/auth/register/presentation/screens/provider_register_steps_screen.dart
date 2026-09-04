@@ -170,6 +170,7 @@ class _ProviderRegisterStepsScreenState
       image: widget.options.image,
       type: 'provider',
       serviceTypesIds: _selectedServiceTypeIds.toList(),
+      otp: widget.options.otp,
     );
 
     _registerCubit.registerClient(options: options);

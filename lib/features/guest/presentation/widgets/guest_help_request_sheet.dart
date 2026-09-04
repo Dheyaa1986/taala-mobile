@@ -15,6 +15,7 @@ import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
+import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/features/guest/data/repository/guest_repository.dart';
@@ -79,6 +80,8 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   final _scrollController = ScrollController();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _otpController = TextEditingController();
+  final _otpFocusNode = FocusNode();
   final _descriptionController = TextEditingController();
   final _guestRepository = GuestRepository();
 
@@ -99,6 +102,8 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     _scrollController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
+    _otpController.dispose();
+    _otpFocusNode.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -135,6 +140,14 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   Future<void> _continueContact() async {
     if (!_contactFormKey.currentState!.validate()) return;
     _goToStep(1);
+  }
+
+  Future<({String? debugOtp, String? error})> _sendGuestOtp(String phone) async {
+    final result = await _guestRepository.sendOtp(phone);
+    return result.fold(
+      (error) => (debugOtp: null, error: error.displayMessage),
+      (payload) => (debugOtp: payload.debugOtp, error: null),
+    );
   }
 
   Future<void> _submit() async {
@@ -184,6 +197,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       address: widget.location.address,
       description: _descriptionController.text,
       providerId: widget.providerId,
+      otp: _otpController.text.trim(),
     );
 
     if (!mounted) return;
@@ -244,6 +258,23 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         _StepDot(active: _step >= 0, label: '1'),
         Expanded(child: Divider(color: Colors.grey.shade300)),
         _StepDot(active: _step >= 1, label: '2'),
+        Expanded(child: Divider(color: Colors.grey.shade300)),
+        _StepDot(active: _step >= 2, label: '3'),
+      ],
+    );
+  }
+
+  Widget _buildOtpStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PhoneOtpVerificationSection(
+          phone: _phoneController.text.trim(),
+          otpController: _otpController,
+          otpFocusNode: _otpFocusNode,
+          onSendOtp: _sendGuestOtp,
+        ),
+        16.height,
       ],
     );
   }
@@ -346,6 +377,29 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       );
     }
 
+    if (_step == 1) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CustomButton.filled(
+            text: AppStrings.continueKey.tr(),
+            onTap: () {
+              if (_otpController.text.trim().length < 6) {
+                _showError(AppStrings.otpCode.tr());
+                return;
+              }
+              _goToStep(2);
+            },
+          ),
+          8.height,
+          CustomButton.outlined(
+            text: AppStrings.back.tr(),
+            onTap: () => _goToStep(0),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -361,7 +415,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         8.height,
         CustomButton.outlined(
           text: AppStrings.back.tr(),
-          onTap: _submitting ? null : () => _goToStep(0),
+          onTap: _submitting ? null : () => _goToStep(1),
         ),
       ],
     );
@@ -386,7 +440,11 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           Expanded(
             child: SingleChildScrollView(
               controller: _scrollController,
-              child: _step == 0 ? _buildContactStep() : _buildRequestStep(),
+              child: _step == 0
+                  ? _buildContactStep()
+                  : _step == 1
+                      ? _buildOtpStep()
+                      : _buildRequestStep(),
             ),
           ),
           12.height,

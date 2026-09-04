@@ -232,6 +232,7 @@ class AppStrings {
   static const String guestMapHint = 'guestMapHint';
   static const String guestRequestHelpHint = 'guestRequestHelpHint';
   static const String guestHelpContactStepHint = 'guestHelpContactStepHint';
+  static const String guestHelpVerifyStepHint = 'guestHelpVerifyStepHint';
   static const String guestHelpServiceStepHint = 'guestHelpServiceStepHint';
   static const String guestOtpResendHint = 'guestOtpResendHint';
   static const String guestOtpInlineHint = 'guestOtpInlineHint';
@@ -245,6 +246,7 @@ class AppStrings {
   static const String otpSent = 'otpSent';
   static const String invalidPhone = 'invalidPhone';
   static const String clientPhoneLoginHint = 'clientPhoneLoginHint';
+  static const String providerPhoneVerifyHint = 'providerPhoneVerifyHint';
   static const String clientUseGuestMap = 'clientUseGuestMap';
   static const String completeProfileTitle = 'completeProfileTitle';
   static const String completeProfileOptionalHint = 'completeProfileOptionalHint';

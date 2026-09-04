@@ -16,6 +16,7 @@ class RegisterOptions {
   final File? image;
   final String? type;
   final List<String>? serviceTypesIds;
+  final String? otp;
 
   RegisterOptions({
     required this.username,
@@ -29,6 +30,7 @@ class RegisterOptions {
     this.image,
     this.type,
     this.serviceTypesIds,
+    this.otp,
   });
 
   Future<FormData> toFormData() async {
@@ -56,6 +58,11 @@ class RegisterOptions {
 
     if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty) {
       map['serviceTypesIds'] = jsonEncode(serviceTypesIds);
+    }
+
+    final otpCode = otp?.trim();
+    if (otpCode != null && otpCode.isNotEmpty) {
+      map['otp'] = otpCode;
     }
 
     return FormData.fromMap(map);

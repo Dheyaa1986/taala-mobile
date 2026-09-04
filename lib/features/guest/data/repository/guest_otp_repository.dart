@@ -23,9 +23,27 @@ class GuestOtpRepository extends Repository {
         ),
       );
 
-      final payload = _extractPayload(raw);
       return GuestOtpSendResult(
-        debugOtp: payload['debugOtp']?.toString(),
+        debugOtp: _extractPayload(raw)['debugOtp']?.toString(),
+      );
+    });
+  }
+
+  Future<Either<CustomException, GuestOtpSendResult>> sendRegistrationOtp(
+    String phone,
+  ) {
+    return exceptionHandler(() async {
+      final raw = await dioService.callApi(
+        NetworkRequest(
+          AppUrls.clientSendOtp,
+          method: RequestMethod.post,
+          requestWithOutToken: true,
+          body: {'phone': PhoneFormatterHelper.normalizeForApi(phone.trim())},
+        ),
+      );
+
+      return GuestOtpSendResult(
+        debugOtp: _extractPayload(raw)['debugOtp']?.toString(),
       );
     });
   }

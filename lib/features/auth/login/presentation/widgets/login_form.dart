@@ -72,12 +72,13 @@ class _LoginFormState extends State<LoginForm> {
 
   late TextEditingController _emailController,
       _passwordController,
-      _phoneController;
-
+      _phoneController,
+      _otpController;
+  final _otpFocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
-
   UserRole? _role;
   bool _rememberMe = true;
+  bool _clientOtpSent = false;
 
 
 
@@ -94,6 +95,7 @@ class _LoginFormState extends State<LoginForm> {
     _passwordController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
+    _otpController = TextEditingController();
   }
 
 
@@ -150,6 +152,8 @@ class _LoginFormState extends State<LoginForm> {
     _emailController.dispose();
     _passwordController.dispose();
     _phoneController.dispose();
+    _otpController.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
@@ -259,6 +263,18 @@ class _LoginFormState extends State<LoginForm> {
                       ] else if (_role == UserRole.client) ...[
                         ClientPhoneLoginFields(
                           phoneController: _phoneController,
+                          otpController: _otpController,
+                          otpFocusNode: _otpFocusNode,
+                          showOtpSection: _clientOtpSent,
+                          onSendOtp: (phone) async {
+                            final result = await context
+                                .read<LoginCubit>()
+                                .sendClientOtp(phone);
+                            return (
+                              debugOtp: result.debugOtp,
+                              error: result.error,
+                            );
+                          },
                         ),
                       ],
 
@@ -335,13 +351,11 @@ class _LoginFormState extends State<LoginForm> {
               ),
 
               CustomButton.filled(
-
-                text: AppStrings.login.tr(),
-
+                text: _role == UserRole.client && !_clientOtpSent
+                    ? AppStrings.sendOtp.tr()
+                    : AppStrings.login.tr(),
                 isBackgroundGradient: false,
-
                 onTap: _login,
-
               ),
 
               16.height,
@@ -424,8 +438,28 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    context.read<LoginCubit>().loginClientByPhone(
-          phone: _phoneController.text.trim(),
+    final phone = _phoneController.text.trim();
+    if (!_clientOtpSent) {
+      context.read<LoginCubit>().sendClientOtp(phone).then((result) {
+        if (!mounted) return;
+        if (result.error != null) {
+          AppMessages.showError(context, result.error!);
+          return;
+        }
+        setState(() => _clientOtpSent = true);
+        AppMessages.showSuccess(context, AppStrings.otpSent.tr());
+      });
+      return;
+    }
+
+    if (_otpController.text.trim().length < 6) {
+      AppMessages.showError(context, AppStrings.otpCode.tr());
+      return;
+    }
+
+    context.read<LoginCubit>().loginWithPhone(
+          phone: phone,
+          otp: _otpController.text.trim(),
         );
   }
 }

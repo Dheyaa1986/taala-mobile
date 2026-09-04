@@ -21,7 +21,9 @@ import '../../../../../core/widgets/bottom_sheets/image_sheet.dart';
 import '../../../../../core/widgets/buttons/custom_button.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../../../core/widgets/fields/password_field.dart';
+import '../../../../../core/widgets/otp/phone_otp_verification_section.dart';
 import '../../../../../core/widgets/texts/clickable_text_widget.dart';
+import 'package:taal/features/guest/data/repository/guest_otp_repository.dart';
 import '../../../widgets/auth_header_widget.dart';
 import '../../data/model/register_options.dart';
 import '../cubit/register_cubit.dart';
@@ -39,14 +41,23 @@ class _RegisterFormState extends State<RegisterForm> {
       _emailController = TextEditingController(),
       _phoneController = TextEditingController(),
       _passwordController = TextEditingController(),
-      _confirmController = TextEditingController();
+      _confirmController = TextEditingController(),
+      _otpController = TextEditingController();
+  final _otpFocusNode = FocusNode();
+  final _otpRepository = GuestOtpRepository();
   File? _image;
 
   CountryModel? _country;
 
   void _register() {
     FocusManager.instance.primaryFocus?.unfocus();
-    if (_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_otpController.text.trim().length < 6) {
+      AppMessages.showError(context, AppStrings.otpCode.tr());
+      return;
+    }
+
       final countriesState = context.read<CountriesCubit>().state;
       final selectedCountry = countriesState is CountriesLoaded
           ? countriesState.country
@@ -67,9 +78,31 @@ class _RegisterFormState extends State<RegisterForm> {
           address: '',
           image: _image,
           country: selectedCountry?.name ?? '',
+          otp: _otpController.text.trim(),
         ),
       );
-    }
+  }
+
+  Future<({String? debugOtp, String? error})> _sendProviderOtp(
+    String phone,
+  ) async {
+    final result = await _otpRepository.sendRegistrationOtp(phone);
+    return result.fold(
+      (error) => (debugOtp: null, error: error.displayMessage),
+      (payload) => (debugOtp: payload.debugOtp, error: null),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    _otpController.dispose();
+    _otpFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -161,6 +194,18 @@ class _RegisterFormState extends State<RegisterForm> {
                     phoneController: _phoneController,
                     country: _country,
                     isRequired: false,
+                  ),
+                  20.height,
+                  Text(
+                    AppStrings.providerPhoneVerifyHint.tr(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  12.height,
+                  PhoneOtpVerificationSection(
+                    phone: _phoneController.text.trim(),
+                    otpController: _otpController,
+                    otpFocusNode: _otpFocusNode,
+                    onSendOtp: _sendProviderOtp,
                   ),
                   20.height,
                   PasswordField(
