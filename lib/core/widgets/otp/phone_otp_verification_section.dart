@@ -20,12 +20,14 @@ class PhoneOtpVerificationSection extends StatefulWidget {
     required this.otpController,
     required this.otpFocusNode,
     required this.onSendOtp,
+    this.autoSendOnMount = false,
   });
 
   final String phone;
   final TextEditingController otpController;
   final FocusNode otpFocusNode;
   final PhoneOtpSender onSendOtp;
+  final bool autoSendOnMount;
 
   @override
   State<PhoneOtpVerificationSection> createState() =>
@@ -39,6 +41,14 @@ class _PhoneOtpVerificationSectionState
   String? _inlineOtp;
   int _cooldown = 0;
   Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoSendOnMount && widget.phone.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _sendOtp());
+    }
+  }
 
   @override
   void dispose() {

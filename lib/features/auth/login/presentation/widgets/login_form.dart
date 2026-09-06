@@ -10,9 +10,8 @@ import 'package:taal/core/extensions/space_extension.dart';
 
 import 'package:taal/core/helpers/extensions.dart';
 
+import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/validations/validators.dart';
-
-
 
 import '../../../../../config/routes/routes.dart';
 
@@ -47,71 +46,39 @@ import '../../../select_role/widgets/role_list_tile.dart';
 import '../../../widgets/auth_header_widget.dart';
 
 import '../cubit/login_cubit/login_cubit.dart';
-import 'client_phone_login_fields.dart';
-
-
 
 class LoginForm extends StatefulWidget {
-
   final bool? initialIsProvider;
   final bool hideHeaderLanguage;
 
   const LoginForm({super.key, this.initialIsProvider, this.hideHeaderLanguage = false});
 
-
-
   @override
-
   State<LoginForm> createState() => _LoginFormState();
-
 }
 
-
-
 class _LoginFormState extends State<LoginForm> {
-
-  late TextEditingController _emailController,
-      _passwordController,
-      _phoneController,
-      _otpController;
-  final _otpFocusNode = FocusNode();
+  late TextEditingController _identifierController;
+  late TextEditingController _passwordController;
   final _formKey = GlobalKey<FormState>();
   UserRole? _role;
   bool _rememberMe = true;
-  bool _clientOtpSent = false;
-
-
 
   @override
-
   void initState() {
-
     super.initState();
-
     _resolveInitialRole();
-
     addPostFrameCallBack();
-
     _passwordController = TextEditingController();
-    _emailController = TextEditingController();
-    _phoneController = TextEditingController();
-    _otpController = TextEditingController();
+    _identifierController = TextEditingController();
   }
 
-
-
   void _resolveInitialRole() {
-
     if (widget.initialIsProvider != null) {
-
       _role = widget.initialIsProvider!
-
           ? UserRole.provider
-
           : UserRole.client;
-
       return;
-
     }
 
     final saved = getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount);
@@ -123,12 +90,8 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
-
-
   void addPostFrameCallBack() {
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-
       bool? rememberMe = getIt<SharedPref>().get(key: PrefsKeys.rememberMe);
 
       if (rememberMe is bool) {
@@ -136,43 +99,27 @@ class _LoginFormState extends State<LoginForm> {
       }
 
       if (_rememberMe) {
-        _emailController.text =
+        _identifierController.text =
             await SecureLocalStorage.read(PrefsKeys.mailOrPhone) ?? '';
       }
       await SecureLocalStorage.delete(PrefsKeys.password);
-
     });
-
   }
-
-
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
-    _phoneController.dispose();
-    _otpController.dispose();
-    _otpFocusNode.dispose();
     super.dispose();
   }
 
-
-
   @override
-
   Widget build(BuildContext context) {
-
     return BlocListener<LoginCubit, LoginState>(
-
       listener: (context, state) {
-
         if (state is LoginLoading) {
-
           AppMessages.showLoading(context);
-
         } else {
-
           context.pop();
 
           if (state is LoginSuccess) {
@@ -184,66 +131,39 @@ class _LoginFormState extends State<LoginForm> {
               predicate: (_) => false,
             );
           } else if (state is LoginError) {
-
             AppMessages.showError(context, state.error);
-
           } else if (state is AccountNotVerified) {
-
             AppMessages.showError(context, state.error);
-
           }
-
         }
-
       },
-
       child: Padding(
-
         padding: EdgeInsetsDirectional.symmetric(horizontal: 16.w),
-
         child: Form(
-
           key: _formKey,
-
           child: Column(
-
             children: [
-
               Expanded(
-
                 child: SingleChildScrollView(
-
                   physics: const AlwaysScrollableScrollPhysics(),
-
                   child: Column(
-
                     children: [
-
                       40.height,
-
                       Center(
-
                         child: AuthHeaderWidget(
-
                           subTitle: AppStrings.loginHeaderSubtitle.tr(),
-
                           title: AppStrings.login.tr(),
-
                           showLanguage: !widget.hideHeaderLanguage,
-
                         ),
-
                       ),
-
                       24.height,
-
-                      if (_role == UserRole.provider) ...[
+                      if (_role != null) ...[
                         CustomTextField(
                           keyboardType: TextInputType.emailAddress,
-                          controller: _emailController,
-                          label: AppStrings.email.tr(),
-                          hint: AppStrings.enterEmail.tr(),
-                          validator: CustomValidators.validateEmail,
+                          controller: _identifierController,
+                          label: AppStrings.emailOrPhone.tr(),
+                          hint: AppStrings.enterEmailOrPhone.tr(),
+                          validator: CustomValidators.validateEmailOrPhone,
                         ),
                         16.height,
                         PasswordField(
@@ -260,26 +180,8 @@ class _LoginFormState extends State<LoginForm> {
                             return null;
                           },
                         ),
-                      ] else if (_role == UserRole.client) ...[
-                        ClientPhoneLoginFields(
-                          phoneController: _phoneController,
-                          otpController: _otpController,
-                          otpFocusNode: _otpFocusNode,
-                          showOtpSection: _clientOtpSent,
-                          onSendOtp: (phone) async {
-                            final result = await context
-                                .read<LoginCubit>()
-                                .sendClientOtp(phone);
-                            return (
-                              debugOtp: result.debugOtp,
-                              error: result.error,
-                            );
-                          },
-                        ),
                       ],
-
                       20.height,
-
                       if (widget.initialIsProvider == null) ...[
                         Align(
                           alignment: AlignmentDirectional.centerStart,
@@ -312,7 +214,6 @@ class _LoginFormState extends State<LoginForm> {
                           value: _role,
                         ),
                       ],
-
                       if (_role == UserRole.provider) ...[
                         14.height,
                         Row(
@@ -339,27 +240,17 @@ class _LoginFormState extends State<LoginForm> {
                           ],
                         ),
                       ],
-
                       14.height,
-
                     ],
-
                   ),
-
                 ),
-
               ),
-
               CustomButton.filled(
-                text: _role == UserRole.client && !_clientOtpSent
-                    ? AppStrings.sendOtp.tr()
-                    : AppStrings.login.tr(),
+                text: AppStrings.login.tr(),
                 isBackgroundGradient: false,
                 onTap: _login,
               ),
-
               16.height,
-
               if (_role == UserRole.provider)
                 Center(
                   child: ClickableTextWidget(
@@ -391,77 +282,40 @@ class _LoginFormState extends State<LoginForm> {
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ),
-
               SizedBox(height: context.safeBottomInset + 16.h),
-
             ],
-
           ),
-
         ),
-
       ),
-
     );
-
   }
 
-
+  String _normalizeLoginIdentifier(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.contains('@')) {
+      return trimmed;
+    }
+    return PhoneFormatterHelper.normalizeForApi(trimmed);
+  }
 
   void _login() {
-
     if (_role == null) {
-
       AppMessages.showError(context, AppStrings.chooseAccountType.tr());
-
       return;
-
     }
 
     if (!_formKey.currentState!.validate()) return;
 
-
-
     FocusManager.instance.primaryFocus?.unfocus();
 
     final isProvider = _role == UserRole.provider;
-
     context.read<BottomNavigationCubit>().isProvider = isProvider;
 
-    if (isProvider) {
-      context.read<LoginCubit>().login(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            isProvider: true,
-            rememberMe: _rememberMe,
-          );
-      return;
-    }
-
-    final phone = _phoneController.text.trim();
-    if (!_clientOtpSent) {
-      context.read<LoginCubit>().sendClientOtp(phone).then((result) {
-        if (!mounted) return;
-        if (result.error != null) {
-          AppMessages.showError(context, result.error!);
-          return;
-        }
-        setState(() => _clientOtpSent = true);
-        AppMessages.showSuccess(context, AppStrings.otpSent.tr());
-      });
-      return;
-    }
-
-    if (_otpController.text.trim().length < 6) {
-      AppMessages.showError(context, AppStrings.otpCode.tr());
-      return;
-    }
-
-    context.read<LoginCubit>().loginWithPhone(
-          phone: phone,
-          otp: _otpController.text.trim(),
+    context.read<LoginCubit>().login(
+          email: _normalizeLoginIdentifier(_identifierController.text),
+          password: _passwordController.text,
+          isProvider: isProvider,
+          rememberMe: _rememberMe,
         );
   }
 }
-
-

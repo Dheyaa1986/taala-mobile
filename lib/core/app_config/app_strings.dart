@@ -248,6 +248,10 @@ class AppStrings {
   static const String invalidPhone = 'invalidPhone';
   static const String clientPhoneLoginHint = 'clientPhoneLoginHint';
   static const String providerPhoneVerifyHint = 'providerPhoneVerifyHint';
+  static const String registrationOtpTitle = 'registrationOtpTitle';
+  static const String registrationOtpSubtitle = 'registrationOtpSubtitle';
+  static const String emailOrPhone = 'emailOrPhone';
+  static const String enterEmailOrPhone = 'enterEmailOrPhone';
   static const String clientUseGuestMap = 'clientUseGuestMap';
   static const String completeProfileTitle = 'completeProfileTitle';
   static const String completeProfileOptionalHint = 'completeProfileOptionalHint';

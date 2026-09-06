@@ -109,6 +109,24 @@ class CustomValidators {
     return null;
   }
 
+  static String? validateEmailOrPhone(String? value, {String? message}) {
+    if (value?.trim().isEmpty ?? true) {
+      return message ?? AppStrings.requiredField.tr();
+    }
+
+    final trimmed = value!.trim();
+    if (trimmed.contains('@')) {
+      return validateEmail(trimmed, message: message);
+    }
+
+    final digits = trimmed.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 9 || digits.length > 15) {
+      return AppStrings.invalidPhone.tr();
+    }
+
+    return null;
+  }
+
   static String? validateEmailORNull(String? value, {String? message}) {
     if (value?.trim().isNotEmpty ?? false) {
       if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\."

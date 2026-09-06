@@ -21,9 +21,7 @@ import '../../../../../core/widgets/bottom_sheets/image_sheet.dart';
 import '../../../../../core/widgets/buttons/custom_button.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../../../core/widgets/fields/password_field.dart';
-import '../../../../../core/widgets/otp/phone_otp_verification_section.dart';
 import '../../../../../core/widgets/texts/clickable_text_widget.dart';
-import 'package:taal/features/guest/data/repository/guest_otp_repository.dart';
 import '../../../widgets/auth_header_widget.dart';
 import '../../data/model/register_options.dart';
 import '../cubit/register_cubit.dart';
@@ -41,11 +39,7 @@ class _RegisterFormState extends State<RegisterForm> {
       _emailController = TextEditingController(),
       _phoneController = TextEditingController(),
       _passwordController = TextEditingController(),
-      _confirmController = TextEditingController(),
-      _otpController = TextEditingController();
-  final _otpFocusNode = FocusNode();
-  final _otpRepository = GuestOtpRepository();
-  bool _providerOtpSent = false;
+      _confirmController = TextEditingController();
   File? _image;
 
   CountryModel? _country;
@@ -54,58 +48,34 @@ class _RegisterFormState extends State<RegisterForm> {
     FocusManager.instance.primaryFocus?.unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    if (!_providerOtpSent) {
-      AppMessages.showError(context, AppStrings.sendOtpFirst.tr());
+    final countriesState = context.read<CountriesCubit>().state;
+    final selectedCountry = countriesState is CountriesLoaded
+        ? countriesState.country
+        : _country;
+
+    final formattedPhone = PhoneFormatterHelper.formatPhone(
+      _phoneController.text,
+      selectedCountry,
+    );
+
+    if (formattedPhone.trim().isEmpty) {
+      AppMessages.showError(context, AppStrings.pleaseEnterPhone.tr());
       return;
     }
 
-    if (_otpController.text.trim().length < 6) {
-      AppMessages.showError(context, AppStrings.otpCode.tr());
-      return;
-    }
-
-      final countriesState = context.read<CountriesCubit>().state;
-      final selectedCountry = countriesState is CountriesLoaded
-          ? countriesState.country
-          : _country;
-
-      context.pushNamed(
-        Routes.providerRegisterSteps,
-        arguments: RegisterOptions(
-          countryImageSvg: selectedCountry?.flagSvg ?? '',
-          confirmPassword: _confirmController.text,
-          password: _passwordController.text,
-          username: _nameController.text.trim().replaceAll(RegExp(r'\s+'), ' '),
-          phone: PhoneFormatterHelper.formatPhone(
-            _phoneController.text,
-            selectedCountry,
-          ),
-          email: _emailController.text,
-          address: '',
-          image: _image,
-          country: selectedCountry?.name ?? '',
-          otp: _otpController.text.trim(),
-        ),
-      );
-  }
-
-  Future<({String? debugOtp, String? error})> _sendProviderOtp(
-    String phone,
-  ) async {
-    final result = await _otpRepository.sendRegistrationOtp(phone);
-    return result.fold(
-      (error) {
-        if (mounted) {
-          setState(() => _providerOtpSent = false);
-        }
-        return (debugOtp: null, error: error.displayMessage);
-      },
-      (payload) {
-        if (mounted) {
-          setState(() => _providerOtpSent = true);
-        }
-        return (debugOtp: payload.debugOtp, error: null);
-      },
+    context.pushNamed(
+      Routes.registrationOtp,
+      arguments: RegisterOptions(
+        countryImageSvg: selectedCountry?.flagSvg ?? '',
+        confirmPassword: _confirmController.text,
+        password: _passwordController.text,
+        username: _nameController.text.trim().replaceAll(RegExp(r'\s+'), ' '),
+        phone: formattedPhone,
+        email: _emailController.text,
+        address: '',
+        image: _image,
+        country: selectedCountry?.name ?? '',
+      ),
     );
   }
 
@@ -116,8 +86,6 @@ class _RegisterFormState extends State<RegisterForm> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
-    _otpController.dispose();
-    _otpFocusNode.dispose();
     super.dispose();
   }
 
@@ -209,19 +177,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   PhoneField(
                     phoneController: _phoneController,
                     country: _country,
-                    isRequired: false,
-                  ),
-                  20.height,
-                  Text(
-                    AppStrings.providerPhoneVerifyHint.tr(),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  12.height,
-                  PhoneOtpVerificationSection(
-                    phone: _phoneController.text.trim(),
-                    otpController: _otpController,
-                    otpFocusNode: _otpFocusNode,
-                    onSendOtp: _sendProviderOtp,
+                    isRequired: true,
                   ),
                   20.height,
                   PasswordField(
@@ -239,7 +195,6 @@ class _RegisterFormState extends State<RegisterForm> {
                     },
                   ),
                   24.height,
-
                   PasswordField(
                     controller: _confirmController,
                     label: AppStrings.confirmPassword.tr(),
@@ -255,7 +210,6 @@ class _RegisterFormState extends State<RegisterForm> {
                           confirmPassword, _passwordController.text);
                     },
                   ),
-
                   68.height,
                   CustomButton.filled(
                     text: AppStrings.next.tr(),

@@ -6,6 +6,7 @@ class Routes {
   static const String register = '/register';
   static const String selectRoleScreen = '/selectRoleScreen';
   static const String providerRegisterSteps = '/providerRegisterSteps';
+  static const String registrationOtp = '/registrationOtp';
   static const String clientRatingsScreen = '/clientRatingsScreen';
 
   static const String home = '/homeScreen';
