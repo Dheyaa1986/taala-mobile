@@ -145,7 +145,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     );
   }
 
-  void _openLogin({bool asProvider = false}) {
+  void _openLogin({bool? asProvider}) {
     context.pushNamed(Routes.login, extra: asProvider);
   }
 
