@@ -5,7 +5,6 @@ import 'package:taal/core/alerts/alert_delivery_bootstrap.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
-import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/connectivity_helper.dart';
 import 'package:taal/core/extensions/space_extension.dart';
@@ -35,28 +34,28 @@ Future<bool?> showGuestHelpRequestSheet(
   required PickedLocation location,
   String? providerId,
 }) {
-  return showModalBottomSheet<bool>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (sheetContext) {
-      final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.92;
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
-        ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxHeight),
-          child: GuestHelpRequestSheet(
-            location: location,
-            providerId: providerId,
+  // Full-screen route (not bottom sheet) avoids keyboard inset bugs on Oppo/MIUI.
+  // Slide-from-bottom keeps the same feel as the old sheet.
+  return Navigator.of(context).push<bool>(
+    PageRouteBuilder(
+      fullscreenDialog: true,
+      opaque: true,
+      pageBuilder: (_, __, ___) => GuestHelpRequestSheet(
+        location: location,
+        providerId: providerId,
+      ),
+      transitionsBuilder: (_, animation, __, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
           ),
-        ),
-      );
-    },
+          child: child,
+        );
+      },
+    ),
   );
 }
 
@@ -78,10 +77,17 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   final _contactFormKey = GlobalKey<FormState>();
   final _requestFormKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
+  final _nameFieldKey = GlobalKey();
+  final _phoneFieldKey = GlobalKey();
+  final _otpSectionKey = GlobalKey();
+  final _descriptionFieldKey = GlobalKey();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _nameFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
   final _otpController = TextEditingController();
   final _otpFocusNode = FocusNode();
+  final _descriptionFocusNode = FocusNode();
   final _descriptionController = TextEditingController();
   final _guestRepository = GuestRepository();
 
@@ -96,6 +102,12 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   void initState() {
     super.initState();
     _loadServiceTypes();
+    _nameFocusNode.addListener(() => _scrollFocusedField(_nameFocusNode, _nameFieldKey));
+    _phoneFocusNode.addListener(() => _scrollFocusedField(_phoneFocusNode, _phoneFieldKey));
+    _otpFocusNode.addListener(() => _scrollFocusedField(_otpFocusNode, _otpSectionKey));
+    _descriptionFocusNode.addListener(
+      () => _scrollFocusedField(_descriptionFocusNode, _descriptionFieldKey),
+    );
   }
 
   @override
@@ -103,10 +115,29 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     _scrollController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
+    _nameFocusNode.dispose();
+    _phoneFocusNode.dispose();
     _otpController.dispose();
     _otpFocusNode.dispose();
+    _descriptionFocusNode.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  void _scrollFocusedField(FocusNode node, GlobalKey fieldKey) {
+    if (!node.hasFocus) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 280));
+      if (!mounted || !node.hasFocus) return;
+      final target = fieldKey.currentContext;
+      if (target == null) return;
+      await Scrollable.ensureVisible(
+        target,
+        alignment: 0.2,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   Future<void> _loadServiceTypes() async {
@@ -282,17 +313,20 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   }
 
   Widget _buildOtpStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PhoneOtpVerificationSection(
-          phone: _phoneController.text.trim(),
-          otpController: _otpController,
-          otpFocusNode: _otpFocusNode,
-          onSendOtp: _sendGuestOtp,
-        ),
-        16.height,
-      ],
+    return KeyedSubtree(
+      key: _otpSectionKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PhoneOtpVerificationSection(
+            phone: _phoneController.text.trim(),
+            otpController: _otpController,
+            otpFocusNode: _otpFocusNode,
+            onSendOtp: _sendGuestOtp,
+          ),
+          16.height,
+        ],
+      ),
     );
   }
 
@@ -307,19 +341,27 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700),
           ),
           12.height,
-          CustomTextField(
-            controller: _nameController,
-            label: AppStrings.name.tr(),
-            hint: AppStrings.name.tr(),
-            validator: CustomValidators.validateEmpty,
+          KeyedSubtree(
+            key: _nameFieldKey,
+            child: CustomTextField(
+              controller: _nameController,
+              focusNode: _nameFocusNode,
+              label: AppStrings.name.tr(),
+              hint: AppStrings.name.tr(),
+              validator: CustomValidators.validateEmpty,
+            ),
           ),
           12.height,
-          CustomTextField(
-            controller: _phoneController,
-            label: AppStrings.phone.tr(),
-            hint: '07XXXXXXXXX',
-            keyboardType: TextInputType.phone,
-            validator: CustomValidators.validatePhone,
+          KeyedSubtree(
+            key: _phoneFieldKey,
+            child: CustomTextField(
+              controller: _phoneController,
+              focusNode: _phoneFocusNode,
+              label: AppStrings.phone.tr(),
+              hint: '07XXXXXXXXX',
+              keyboardType: TextInputType.phone,
+              validator: CustomValidators.validatePhone,
+            ),
           ),
           20.height,
         ],
@@ -374,11 +416,15 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               ),
             ),
           12.height,
-          CustomTextField(
-            controller: _descriptionController,
-            label: AppStrings.description.tr(),
-            hint: AppStrings.enterDescription.tr(),
-            maxLines: 2,
+          KeyedSubtree(
+            key: _descriptionFieldKey,
+            child: CustomTextField(
+              controller: _descriptionController,
+              focusNode: _descriptionFocusNode,
+              label: AppStrings.description.tr(),
+              hint: AppStrings.enterDescription.tr(),
+              maxLines: 2,
+            ),
           ),
           16.height,
         ],
@@ -444,33 +490,39 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16.w,
-        right: 16.w,
-        top: 20.h,
-        bottom: context.safeBottomInset + context.keyboardInset + 12.h,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SheetHeader(title: AppStrings.requestHelp.tr()),
-          12.height,
-          _buildStepIndicator(),
-          16.height,
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              child: _step == 0
-                  ? _buildContactStep()
-                  : _step == 1
-                      ? _buildOtpStep()
-                      : _buildRequestStep(),
-            ),
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16.w,
+            right: 16.w,
+            top: 20.h,
+            bottom: 12.h,
           ),
-          12.height,
-          _buildStepActions(),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SheetHeader(title: AppStrings.requestHelp.tr()),
+              12.height,
+              _buildStepIndicator(),
+              16.height,
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: _step == 0
+                      ? _buildContactStep()
+                      : _step == 1
+                          ? _buildOtpStep()
+                          : _buildRequestStep(),
+                ),
+              ),
+              12.height,
+              _buildStepActions(),
+            ],
+          ),
+        ),
       ),
     );
   }

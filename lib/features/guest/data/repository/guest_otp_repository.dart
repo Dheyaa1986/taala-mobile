@@ -19,6 +19,8 @@ class GuestOtpRepository extends Repository {
           AppUrls.guestSendOtp,
           method: RequestMethod.post,
           requestWithOutToken: true,
+          connectTimeout: NetworkRequest.otpRequestTimeout,
+          receiveTimeout: NetworkRequest.otpRequestTimeout,
           body: {'phone': PhoneFormatterHelper.normalizeForApi(phone.trim())},
         ),
       );
@@ -38,6 +40,8 @@ class GuestOtpRepository extends Repository {
           AppUrls.clientSendOtp,
           method: RequestMethod.post,
           requestWithOutToken: true,
+          connectTimeout: NetworkRequest.otpRequestTimeout,
+          receiveTimeout: NetworkRequest.otpRequestTimeout,
           body: {'phone': PhoneFormatterHelper.normalizeForApi(phone.trim())},
         ),
       );

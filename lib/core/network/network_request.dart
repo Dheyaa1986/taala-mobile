@@ -11,6 +11,8 @@ class NetworkRequest<GenericModel> {
   bool isFormData;
   final ProgressCallback? onSendProgress;
   final ProgressCallback? onReceiveProgress;
+  final Duration? connectTimeout;
+  final Duration? receiveTimeout;
 
   NetworkRequest(this.path,
       {required this.method,
@@ -20,7 +22,12 @@ class NetworkRequest<GenericModel> {
       this.requestWithOutToken = false,
       this.isFormData = false,
       this.onSendProgress,
-      this.onReceiveProgress});
+      this.onReceiveProgress,
+      this.connectTimeout,
+      this.receiveTimeout});
+
+  static const Duration otpRequestTimeout = Duration(seconds: 60);
+
   NetworkRequest copyWith({
     String? path,
     RequestMethod? method,
@@ -30,6 +37,8 @@ class NetworkRequest<GenericModel> {
     bool? isFormData,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
+    Duration? connectTimeout,
+    Duration? receiveTimeout,
   }) {
     return NetworkRequest(
       path ?? this.path,
@@ -40,6 +49,8 @@ class NetworkRequest<GenericModel> {
       isFormData: isFormData ?? this.isFormData,
       onSendProgress: onSendProgress ?? this.onSendProgress,
       onReceiveProgress: onReceiveProgress ?? this.onReceiveProgress,
+      connectTimeout: connectTimeout ?? this.connectTimeout,
+      receiveTimeout: receiveTimeout ?? this.receiveTimeout,
     );
   }
 }

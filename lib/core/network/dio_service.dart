@@ -104,6 +104,8 @@ class DioService implements NetworkService {
               : null,
           options: Options(
               method: networkRequest.asString(),
+              connectTimeout: networkRequest.connectTimeout,
+              receiveTimeout: networkRequest.receiveTimeout,
               headers: await _getDefaultHeaders(
                   networkRequest.requestWithOutToken)));
       if (mapper != null &&

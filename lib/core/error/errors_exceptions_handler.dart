@@ -77,6 +77,7 @@ class ErrorsExceptionsHandler {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      case DioExceptionType.connectionError:
         throw CustomException(AppStrings.networkError.tr());
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;

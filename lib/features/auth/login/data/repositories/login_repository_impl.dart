@@ -100,6 +100,8 @@ class LoginRepositoryImpl extends LoginRepository {
           AppUrls.clientSendOtp,
           method: RequestMethod.post,
           requestWithOutToken: true,
+          connectTimeout: NetworkRequest.otpRequestTimeout,
+          receiveTimeout: NetworkRequest.otpRequestTimeout,
           body: {'phone': phone.trim()},
         ),
       );
