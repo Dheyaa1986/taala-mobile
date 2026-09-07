@@ -185,6 +185,8 @@
   "guestOtpInlineHint": "Verification code (dev only)",
   "sendOtpFirst": "Tap Send code first and wait for the WhatsApp or SMS message.",
   "guestHelpOrderSent": "Your request was sent successfully",
+  "guestActiveOrderTitle": "You have an active request",
+  "guestActiveOrderDismiss": "OK",
   "guestAccountCreatedHint": "Your account was created. You can complete your profile later in settings",
   "otpCode": "Verification code",
   "sendOtp": "Send code",

@@ -160,6 +160,32 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     );
   }
 
+  void _showGuestHelpError(String message) {
+    final text = ApiErrorMessage.from(message);
+    if (_isActiveOrderBlockingError(text)) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.guestActiveOrderTitle.tr()),
+          content: Text(text),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(AppStrings.guestActiveOrderDismiss.tr()),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    _showError(text);
+  }
+
+  bool _isActiveOrderBlockingError(String text) {
+    return text.contains('طلب خدمة نشط') ||
+        text.toLowerCase().contains('active service request');
+  }
+
   void _goToStep(int step) {
     setState(() {
       _step = step;
@@ -221,7 +247,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       if (!mounted) return;
       setState(() => _submitting = false);
       queued.fold(
-        (error) => _showError(error.displayMessage),
+        (error) => _showGuestHelpError(error.displayMessage),
         (_) {
           Navigator.of(context).pop(false);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +278,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     setState(() => _submitting = false);
 
     await result.fold(
-      (error) async => _showError(error.displayMessage),
+      (error) async => _showGuestHelpError(error.displayMessage),
       (response) async {
         await AuthSessionHelper.establishClientSession(
           token: response.token,

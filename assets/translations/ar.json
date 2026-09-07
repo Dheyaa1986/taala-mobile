@@ -212,6 +212,8 @@
   "guestOtpInlineHint": "رمز التحقق (للتجربة في بيئة التطوير فقط)",
   "sendOtpFirst": "اضغط «إرسال الرمز» أولاً وانتظر رسالة WhatsApp أو SMS.",
   "guestHelpOrderSent": "تم إرسال طلبك بنجاح",
+  "guestActiveOrderTitle": "لديك طلب نشط",
+  "guestActiveOrderDismiss": "حسناً",
   "guestAccountCreatedHint": "تم إنشاء حسابك. يمكنك إكمال بياناتك لاحقاً من الإعدادات",
   "otpCode": "رمز التحقق",
   "sendOtp": "إرسال الرمز",
