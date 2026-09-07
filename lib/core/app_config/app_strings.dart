@@ -240,6 +240,7 @@ class AppStrings {
   static const String guestHelpOrderSent = 'guestHelpOrderSent';
   static const String guestActiveOrderTitle = 'guestActiveOrderTitle';
   static const String guestActiveOrderDismiss = 'guestActiveOrderDismiss';
+  static const String guestProviderPhoneTitle = 'guestProviderPhoneTitle';
   static const String providerLogin = 'providerLogin';
   static const String iAmProvider = 'iAmProvider';
   static const String guestAccountCreatedHint = 'guestAccountCreatedHint';

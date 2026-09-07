@@ -187,6 +187,7 @@
   "guestHelpOrderSent": "Your request was sent successfully",
   "guestActiveOrderTitle": "You have an active request",
   "guestActiveOrderDismiss": "OK",
+  "guestProviderPhoneTitle": "Provider phone number",
   "guestAccountCreatedHint": "Your account was created. You can complete your profile later in settings",
   "otpCode": "Verification code",
   "sendOtp": "Send code",

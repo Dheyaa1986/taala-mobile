@@ -162,6 +162,22 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
   void _showGuestHelpError(String message) {
     final text = ApiErrorMessage.from(message);
+    if (_isProviderPhoneError(text)) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.guestProviderPhoneTitle.tr()),
+          content: Text(text),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(AppStrings.guestActiveOrderDismiss.tr()),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     if (_isActiveOrderBlockingError(text)) {
       showDialog<void>(
         context: context,
@@ -184,6 +200,13 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   bool _isActiveOrderBlockingError(String text) {
     return text.contains('طلب خدمة نشط') ||
         text.toLowerCase().contains('active service request');
+  }
+
+  bool _isProviderPhoneError(String text) {
+    return text.contains('مسجّل كمزود') ||
+        text.contains('مسجل كمزود') ||
+        text.toLowerCase().contains('registered as a service provider') ||
+        text.contains('غير موجود للدخول ك');
   }
 
   void _goToStep(int step) {

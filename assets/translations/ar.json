@@ -214,6 +214,7 @@
   "guestHelpOrderSent": "تم إرسال طلبك بنجاح",
   "guestActiveOrderTitle": "لديك طلب نشط",
   "guestActiveOrderDismiss": "حسناً",
+  "guestProviderPhoneTitle": "رقم مسجّل كمزود",
   "guestAccountCreatedHint": "تم إنشاء حسابك. يمكنك إكمال بياناتك لاحقاً من الإعدادات",
   "otpCode": "رمز التحقق",
   "sendOtp": "إرسال الرمز",
