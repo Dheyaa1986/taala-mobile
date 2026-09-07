@@ -18,6 +18,14 @@ class ApiErrorMessage {
     return _mapEnglish(text);
   }
 
+  static String validationOrGeneric(String? message) {
+    final resolved = from(message);
+    if (resolved != AppStrings.genericError.tr()) {
+      return resolved;
+    }
+    return AppStrings.validationFailed.tr();
+  }
+
   static bool _hasArabic(String text) =>
       RegExp(r'[\u0600-\u06FF]').hasMatch(text);
 
@@ -31,6 +39,8 @@ class ApiErrorMessage {
       case 'Unauthorized':
       case 'Unauthorized.':
       case 'Validation failed':
+      case 'validation failed':
+        return AppStrings.validationFailed.tr();
       case 'request_cancelled':
       case 'Something went wrong':
       case 'Something went wrong.':
@@ -54,10 +64,19 @@ class ApiErrorMessage {
             text.contains('unique constraint')) {
           return AppStrings.duplicateEntryError.tr();
         }
-        if (text.contains('phone') ||
-            text.contains('Phone') ||
-            text.contains('OTP') ||
-            text.contains('otp')) {
+        if (text.contains('invalid_otp') ||
+            text.contains('Invalid or expired verification code') ||
+            text.contains('OTP is required')) {
+          return AppStrings.invalidOtp.tr();
+        }
+        if (text.contains('must be a UUID') ||
+            text.contains('must be longer than or equal to 6') ||
+            text.contains('should not exist') ||
+            text.contains('must be a') ||
+            text.contains('must not be')) {
+          return AppStrings.validationFailed.tr();
+        }
+        if (text.contains('phone') || text.contains('Phone')) {
           return AppStrings.invalidPhone.tr();
         }
         return AppStrings.genericError.tr();

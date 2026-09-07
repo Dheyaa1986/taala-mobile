@@ -313,6 +313,8 @@ class AppStrings {
   static const String chatProviderUnavailable = 'chatProviderUnavailable';
   static const String chatOpenFailed = 'chatOpenFailed';
   static const String genericError = 'genericError';
+  static const String validationFailed = 'validationFailed';
+  static const String invalidOtp = 'invalidOtp';
   static const String networkError = 'networkError';
   static const String tooManyRequests = 'tooManyRequests';
   static const String requestCancelled = 'requestCancelled';

@@ -80,9 +80,10 @@ class ServiceOrderModel {
             )
           : null,
       messages: rawMessages
+          .whereType<Map>()
           .map(
             (item) => ServiceOrderMessageModel.fromJson(
-              item as Map<String, dynamic>,
+              Map<String, dynamic>.from(item),
             ),
           )
           .toList(),

@@ -215,6 +215,8 @@
   "chatProviderUnavailable": "Unable to open chat with this provider",
   "chatOpenFailed": "Unable to open chat. Please try again",
   "genericError": "Something went wrong, please try again later",
+  "validationFailed": "Invalid input. Check the fields and try again",
+  "invalidOtp": "Invalid or expired verification code",
   "networkError": "Could not connect to the server. Check your internet and try again",
   "tooManyRequests": "Too many requests. Please wait a minute and try again.",
   "requestCancelled": "Request cancelled",
