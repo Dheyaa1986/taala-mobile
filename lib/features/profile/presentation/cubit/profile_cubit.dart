@@ -20,6 +20,40 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
+  Future<bool> completeClientRegistration({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    String? address,
+    File? image,
+  }) async {
+    final current = state;
+    if (current is! ProfileLoaded) return false;
+
+    emit(ProfileUpdating(current.profile));
+    final result = await _repository.completeClientRegistration(
+      userId: current.profile.id,
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+      address: address,
+      image: image,
+    );
+
+    return result.fold(
+      (error) {
+        emit(ProfileError(error.message));
+        return false;
+      },
+      (_) {
+        loadProfile();
+        return true;
+      },
+    );
+  }
+
   Future<bool> updateProfile({
     required String name,
     File? image,

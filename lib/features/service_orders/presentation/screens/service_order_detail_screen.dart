@@ -125,6 +125,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
               getIt<AppAlertSoundService>().play();
             }
           }
+
+          final previousStatus = _order?.status;
+          if (previousStatus != null &&
+              previousStatus != order.status &&
+              (order.status == 'cancelled' || order.status == 'completed')) {
+            _handleTerminalStatus(order, remote: true);
+            return;
+          }
         }
 
         setState(() {
@@ -331,13 +339,25 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           _focusChat();
         }
         if (status == 'completed' || status == 'cancelled') {
-          getIt<ActiveOrderRefreshNotifier>().notifyChanged();
-          if (!_isProvider && context.mounted) {
-            context.pop();
-          }
+          _handleTerminalStatus(order, remote: false);
         }
       },
     );
+  }
+
+  void _handleTerminalStatus(ServiceOrderModel order, {required bool remote}) {
+    getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+    if (!mounted) return;
+
+    if (remote && !_isProvider && order.status == 'cancelled') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.orderCancelledByProvider.tr())),
+      );
+    }
+
+    if (context.mounted) {
+      context.pop();
+    }
   }
 
   void _focusChat() {
@@ -649,6 +669,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     child: CustomButton.outlined(
                       text: AppStrings.acceptAndChat.tr(),
                       onTap: _acceptOrder,
+                    ),
+                  ),
+                  8.height,
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: CustomButton.outlined(
+                      text: AppStrings.rejectOrder.tr(),
+                      onTap: () => _updateStatus('cancelled'),
                     ),
                   ),
                 ],

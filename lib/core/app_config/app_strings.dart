@@ -295,6 +295,8 @@ class AppStrings {
   static const String startTrip = 'startTrip';
   static const String arrived = 'arrived';
   static const String cancelOrder = 'cancelOrder';
+  static const String rejectOrder = 'rejectOrder';
+  static const String orderCancelledByProvider = 'orderCancelledByProvider';
   static const String writeMessage = 'writeMessage';
   static const String minutes = 'minutes';
   static const String orderStatusPending = 'orderStatusPending';

@@ -12,6 +12,7 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 import 'package:taal/features/service_orders/presentation/widgets/service_order_card.dart';
@@ -169,6 +170,27 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
     );
 
     if (confirmed == true && mounted) {
+      if (order.status == 'pending' || order.status == 'accepted') {
+        final result = await _repository.updateStatus(
+          orderId: id,
+          status: 'cancelled',
+        );
+        if (!mounted) return;
+        await result.fold(
+          (error) async {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(error.displayMessage)),
+            );
+          },
+          (_) async {
+            await ServiceOrderLocalStateHelper.dismiss(id);
+            getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+            await _load();
+          },
+        );
+        return;
+      }
+
       await ServiceOrderLocalStateHelper.dismiss(id);
       await _load();
     }

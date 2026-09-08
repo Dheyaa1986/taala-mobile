@@ -67,4 +67,8 @@ class UserProfileModel extends Equatable {
       ];
 
   bool get needsProfileCompletion => orderCount >= 1 && !profileComplete;
+
+  bool get isGuestEmail => email.toLowerCase().contains('@guest.taala.app');
+
+  String get registrationEmail => isGuestEmail ? '' : email;
 }

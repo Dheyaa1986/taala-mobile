@@ -49,6 +49,40 @@ class ProfileRepository extends Repository {
     });
   }
 
+  Future<Either<CustomException, BaseResponseModel>> completeClientRegistration({
+    required String userId,
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    String? address,
+    File? image,
+  }) {
+    return exceptionHandler(() async {
+      final body = <String, dynamic>{
+        'name': name,
+        'email': email.trim(),
+        'phone': phone.trim(),
+        'password': password,
+        'completeProfile': true,
+        if (address != null && address.trim().isNotEmpty) 'address': address.trim(),
+      };
+      if (image != null) {
+        body['profile'] = image;
+      }
+
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.clientUpdateProfile(userId),
+          method: RequestMethod.patch,
+          body: body,
+          isFormData: true,
+        ),
+        mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
   Future<Either<CustomException, BaseResponseModel>> updateProviderAvailability({
     required bool isAvailable,
   }) {

@@ -18,7 +18,6 @@ import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/features/guest/data/repository/guest_repository.dart';
-import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
@@ -336,10 +335,6 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppStrings.guestHelpOrderSent.tr())),
         );
-
-        if (response.isNewAccount) {
-          await ClientProfileGuard.promptAfterFirstOrder(context);
-        }
 
         final orderId = response.order.id;
         if (orderId != null && orderId.isNotEmpty) {

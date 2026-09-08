@@ -10,6 +10,7 @@ import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/features/notifications/data/repository/notification_repository.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
+import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/support/data/repository/support_ticket_repository.dart';
 
@@ -174,6 +175,15 @@ class AppAlertMonitor {
           _lastAlertTitle = 'تمت الموافقة على السعر';
           _lastAlertBody = 'العميل وافق — توجه إليه الآن';
           await getIt<ProviderLiveLocationService>().startTripTracking();
+        } else if (_initialized &&
+            !_isProvider &&
+            previousStatus != null &&
+            previousStatus != 'cancelled' &&
+            status == 'cancelled') {
+          changed = true;
+          _lastAlertTitle = 'تم رفض الطلب';
+          _lastAlertBody = 'رفض المزود طلبك';
+          getIt<ActiveOrderRefreshNotifier>().notifyChanged();
         }
 
         _knownOrderStatuses[id] = status;
