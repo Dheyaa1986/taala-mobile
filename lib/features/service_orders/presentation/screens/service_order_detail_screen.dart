@@ -515,6 +515,13 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: REdgeInsets.only(bottom: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                 if (order != null)
                   Container(
                     width: double.infinity,
@@ -750,11 +757,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       onTap: () => _updateStatus('completed'),
                     ),
                   ),
-                8.height,
-                Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    padding: REdgeInsets.all(12),
+                Padding(
+                  padding: REdgeInsets.all(12),
+                  child: Column(
                     children: [
                       GroupedConversationBox(
                         title: _isProvider
@@ -769,6 +774,10 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         isMine: true,
                       ),
                     ],
+                  ),
+                ),
+                      ],
+                    ),
                   ),
                 ),
                 if (canChat)

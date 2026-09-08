@@ -21,6 +21,7 @@ Future showLocationSheet(BuildContext context, {LocationModel? model}) async {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),

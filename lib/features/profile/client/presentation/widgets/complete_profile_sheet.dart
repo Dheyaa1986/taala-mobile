@@ -31,6 +31,7 @@ Future<bool?> showCompleteProfileSheet(
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     isDismissible: !required,
     enableDrag: !required,
     shape: const RoundedRectangleBorder(

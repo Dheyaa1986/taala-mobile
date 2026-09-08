@@ -58,21 +58,24 @@ class _BottomNavBarState extends State<BottomNavBar> {
           color: backgroundColor,
           child: SafeArea(
             top: false,
-            minimum: EdgeInsets.only(bottom: 12.h),
-            child: SizedBox(
-              height: 68.h,
-              child: Localizations.override(
-                context: context,
-                locale: context.locale,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(
-                    _navItems.length,
-                    (index) => _buildNavItem(
-                      item: _navItems[index],
-                      index: index,
-                      isSelected: widget.shell.currentIndex == index,
-                      primaryColor: primaryColor,
+            minimum: EdgeInsets.only(bottom: 8.h),
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.15,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 6.h),
+                child: Localizations.override(
+                  context: context,
+                  locale: context.locale,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(
+                      _navItems.length,
+                      (index) => _buildNavItem(
+                        item: _navItems[index],
+                        index: index,
+                        isSelected: widget.shell.currentIndex == index,
+                        primaryColor: primaryColor,
+                      ),
                     ),
                   ),
                 ),
@@ -97,10 +100,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
           onTap: () => _onItemTapped(index),
           splashColor: primaryColor.withValues(alpha: 0.12),
           highlightColor: primaryColor.withValues(alpha: 0.08),
-          child: SizedBox(
-            height: 64.h,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 4.h),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0, end: isSelected ? 40.w : 0),

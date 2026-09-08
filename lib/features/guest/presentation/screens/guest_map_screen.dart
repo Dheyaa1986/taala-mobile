@@ -302,8 +302,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             ),
           ),
           DraggableScrollableSheet(
-            initialChildSize: 0.34,
-            minChildSize: 0.22,
+            initialChildSize: 0.40,
+            minChildSize: 0.36,
             maxChildSize: 0.78,
             builder: (context, scrollController) {
               return Container(

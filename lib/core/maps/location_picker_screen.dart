@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
@@ -195,7 +196,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
-              padding: REdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: REdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                24 + context.safeBottomInset,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),

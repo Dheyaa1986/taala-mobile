@@ -1,5 +1,6 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:taal/core/extensions/device_insets_extension.dart';
 
 /// Keeps bottom actions above gesture bars, home indicators, and keyboards.
 class BottomSafeArea extends StatelessWidget {
@@ -18,16 +19,15 @@ class BottomSafeArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      minimum: EdgeInsets.only(bottom: minimumBottom),
-      child: Padding(
-        padding: context.bottomSafePadding(
-          extra: extra,
-          includeKeyboard: includeKeyboard,
-        ),
-        child: child,
-      ),
+    final mq = MediaQuery.of(context);
+    // viewPadding reflects the physical inset even when padding was consumed.
+    final systemBottom = mq.viewPadding.bottom;
+    final keyboard = includeKeyboard ? mq.viewInsets.bottom : 0;
+    final bottom = math.max(minimumBottom, systemBottom) + extra + keyboard;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: child,
     );
   }
 }

@@ -146,7 +146,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
                   ),
                 ),
                 16.height,
-                const ProviderServiceOrdersPanel(),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 260.h),
+                  child: const SingleChildScrollView(
+                    child: ProviderServiceOrdersPanel(),
+                  ),
+                ),
                 16.height,
                 GestureDetector(
                   onTap: () async {
