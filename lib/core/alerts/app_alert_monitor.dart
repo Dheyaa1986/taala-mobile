@@ -6,6 +6,7 @@ import 'package:taal/core/alerts/push_notification_service.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
+import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/features/notifications/data/repository/notification_repository.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
@@ -36,6 +37,7 @@ class AppAlertMonitor {
 
   final Set<String> _knownNotificationIds = {};
   final Set<String> _knownOrderIds = {};
+  final Map<String, String> _knownOrderStatuses = {};
   final Map<String, int> _knownMessageCounts = {};
   final Map<String, int> _knownSupportMessageCounts = {};
 
@@ -53,6 +55,7 @@ class AppAlertMonitor {
     _initialized = false;
     _knownNotificationIds.clear();
     _knownOrderIds.clear();
+    _knownOrderStatuses.clear();
     _knownMessageCounts.clear();
     _knownSupportMessageCounts.clear();
     _lastUnreadInboxCount = 0;
@@ -155,12 +158,25 @@ class AppAlertMonitor {
         if (id == null) continue;
 
         final isNewOrder = !_knownOrderIds.contains(id);
+        final status = order.status ?? '';
+        final previousStatus = _knownOrderStatuses[id];
+
         if (isNewOrder) {
-          if (_initialized && _isProvider && order.status == 'pending') {
+          if (_initialized && _isProvider && status == 'pending') {
             changed = true;
           }
           _knownOrderIds.add(id);
+        } else if (_initialized &&
+            _isProvider &&
+            previousStatus == 'pending' &&
+            status == 'en_route') {
+          changed = true;
+          _lastAlertTitle = 'تمت الموافقة على السعر';
+          _lastAlertBody = 'العميل وافق — توجه إليه الآن';
+          await getIt<ProviderLiveLocationService>().startTripTracking();
         }
+
+        _knownOrderStatuses[id] = status;
 
         if (order.status == 'completed' ||
             order.status == 'cancelled' ||

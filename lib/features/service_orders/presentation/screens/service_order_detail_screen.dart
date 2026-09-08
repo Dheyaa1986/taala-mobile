@@ -59,6 +59,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   Timer? _deviceLocationTimer;
   double? _providerDeviceLat;
   double? _providerDeviceLng;
+  bool _providerTripLaunched = false;
 
   @override
   void initState() {
@@ -131,6 +132,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           _loading = false;
         });
         _syncTripTracking(order);
+        _maybeAutoLaunchProviderTrip(order);
         _persistHistory(order);
         if (!silent) {
           _loadTracking();
@@ -426,6 +428,17 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     priceController.dispose();
   }
 
+  void _maybeAutoLaunchProviderTrip(ServiceOrderModel order) {
+    if (!_isProvider || _providerTripLaunched || order.status != 'en_route') {
+      return;
+    }
+    _providerTripLaunched = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _openExternalMaps(order);
+    });
+  }
+
   Future<void> _approveOrder() async {
     final order = _order;
     if (order?.agreedPrice == null) {
@@ -435,53 +448,11 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       return;
     }
 
-    final agreed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppStrings.approveOrder.tr()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ServiceOrderLocationSummary(order: order!, tracking: _tracking),
-            12.height,
-            Text(
-              '${AppStrings.proposedPrice.tr()}: ${order.agreedPrice}',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 16.sp,
-                color: AppColors.primaryColor,
-              ),
-            ),
-            8.height,
-            Text(
-              AppStrings.approveOrderMapHint.tr(),
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: AppColors.commentColor,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(AppStrings.cancel.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(AppStrings.approveOrder.tr()),
-          ),
-        ],
-      ),
+    await _updateStatus('accepted');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppStrings.orderApprovedLaunchMap.tr())),
     );
-    if (agreed == true) {
-      await _updateStatus('accepted');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.orderApprovedLaunchMap.tr())),
-      );
-    }
   }
 
   String _statusLabel(String? status) {
@@ -721,31 +692,37 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 12),
                       child: Text(
-                        AppStrings.approveOrderMapHint.tr(),
+                        '${AppStrings.proposedPrice.tr()}: ${order!.agreedPrice}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13.sp,
-                          color: AppColors.commentColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16.sp,
+                          color: AppColors.primaryColor,
                         ),
                       ),
                     ),
-                    8.height,
+                    12.height,
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 12),
-                      child: CustomButton.filled(
-                        text: AppStrings.approveOrder.tr(),
-                        onTap: _approveOrder,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton.outlined(
+                              text: AppStrings.cancelOrder.tr(),
+                              onTap: () => _updateStatus('cancelled'),
+                            ),
+                          ),
+                          12.width,
+                          Expanded(
+                            child: CustomButton.filled(
+                              text: AppStrings.approveOrder.tr(),
+                              onTap: _approveOrder,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                  8.height,
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.outlined(
-                      text: AppStrings.cancelOrder.tr(),
-                      onTap: () => _updateStatus('cancelled'),
-                    ),
-                  ),
                 ],
                 if (!_isProvider &&
                     (order?.status == 'arrived' ||

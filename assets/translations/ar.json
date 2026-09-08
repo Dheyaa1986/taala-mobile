@@ -291,7 +291,7 @@
   "meters": "م",
   "estimatedArrival": "الوقت المتوقع",
   "approveOrderMapHint": "بعد الموافقة على السعر يمكن للمزود التوجه إليك على الخريطة",
-  "orderApprovedLaunchMap": "تمت الموافقة — سيتوجه المزود إليك على الخريطة",
+  "orderApprovedLaunchMap": "تمت الموافقة — المزود في الطريق إليك",
   "requestLocationOnMap": "موقع الطلب على الخريطة",
   "providerAcceptedChat": "قبلت الطلب وجاهز للدردشة",
   "trackProviderOnMap": "تتبع المزود على الخريطة",
