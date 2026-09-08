@@ -8,6 +8,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
+import 'package:taal/features/service_orders/presentation/widgets/service_order_location_summary.dart';
 
 class ServiceOrderCard extends StatelessWidget {
   const ServiceOrderCard({
@@ -123,6 +124,27 @@ class ServiceOrderCard extends StatelessWidget {
                         color: AppColors.primaryColor,
                       ),
                     ),
+                    if (order.status == 'pending' ||
+                        order.distanceKm != null ||
+                        (order.clientAddress?.isNotEmpty ?? false)) ...[
+                      8.height,
+                      ServiceOrderLocationSummary(
+                        order: order,
+                        compact: true,
+                      ),
+                    ],
+                    if (order.agreedPrice != null) ...[
+                      6.height,
+                      Text(
+                        '${AppStrings.proposedPrice.tr()}: ${order.agreedPrice}',
+                        style: TextStyle(
+                          fontFamily: FontStyles.fontFamily,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.lightMainText,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -132,7 +154,9 @@ class ServiceOrderCard extends StatelessWidget {
         if (onAccept != null && order.status == 'pending') ...[
           8.height,
           CustomButton.filled(
-            text: AppStrings.acceptAndChat.tr(),
+            text: order.agreedPrice == null
+                ? AppStrings.proposePrice.tr()
+                : AppStrings.acceptAndChat.tr(),
             enabled: acceptEnabled,
             onTap: onAccept,
           ),

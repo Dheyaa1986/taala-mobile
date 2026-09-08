@@ -25,6 +25,7 @@ import 'package:taal/features/service_orders/data/repository/service_order_repos
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_tracking_map.dart';
+import 'package:taal/features/service_orders/presentation/widgets/service_order_location_summary.dart';
 
 class ServiceOrderDetailScreen extends StatefulWidget {
   const ServiceOrderDetailScreen({
@@ -373,16 +374,27 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   }
 
   Future<void> _proposePrice() async {
+    final order = _order;
     final priceController = TextEditingController();
     final proposed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppStrings.proposePrice.tr()),
-        content: CustomTextField(
-          controller: priceController,
-          label: AppStrings.agreedPrice.tr(),
-          hint: AppStrings.enterAgreedPrice.tr(),
-          keyboardType: TextInputType.number,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (order != null) ...[
+              ServiceOrderLocationSummary(order: order, tracking: _tracking),
+              12.height,
+            ],
+            CustomTextField(
+              controller: priceController,
+              label: AppStrings.agreedPrice.tr(),
+              hint: AppStrings.enterAgreedPrice.tr(),
+              keyboardType: TextInputType.number,
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -427,8 +439,29 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppStrings.approveOrder.tr()),
-        content: Text(
-          '${AppStrings.agreedPrice.tr()}: ${order!.agreedPrice}',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ServiceOrderLocationSummary(order: order!, tracking: _tracking),
+            12.height,
+            Text(
+              '${AppStrings.proposedPrice.tr()}: ${order.agreedPrice}',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16.sp,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            8.height,
+            Text(
+              AppStrings.approveOrderMapHint.tr(),
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: AppColors.commentColor,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -444,6 +477,10 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
     if (agreed == true) {
       await _updateStatus('accepted');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.orderApprovedLaunchMap.tr())),
+      );
     }
   }
 
@@ -516,17 +553,27 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                             color: AppColors.primaryColor,
                           ),
                         ),
+                        8.height,
+                        ServiceOrderLocationSummary(
+                          order: order,
+                          tracking: _tracking,
+                        ),
                         if (order.agreedPrice != null) ...[
-                          4.height,
+                          8.height,
                           Text(
-                            '${AppStrings.agreedPrice.tr()}: ${order.agreedPrice}',
-                            style: TextStyle(fontSize: 12.sp),
+                            '${AppStrings.proposedPrice.tr()}: ${order.agreedPrice}',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor,
+                            ),
                           ),
                         ],
                       ],
                     ),
                   ),
                 if (_tracking != null &&
+                    order?.status != 'pending' &&
                     (_tracking!.distanceKm != null ||
                         _tracking!.etaMinutes != null))
                   Container(
@@ -551,7 +598,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         Text(
                           [
                             if (_tracking!.distanceKm != null)
-                              '${_tracking!.distanceKm!.toStringAsFixed(1)} ${AppStrings.distanceKm.tr()}',
+                              '${_tracking!.distanceKm!.toStringAsFixed(2)} ${AppStrings.distanceKm.tr()}',
                             if (_tracking!.etaMinutes != null)
                               '${_tracking!.etaMinutes} ${AppStrings.minutes.tr()}',
                           ].join(' • '),
@@ -567,7 +614,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 if (order != null &&
                     order.clientLatitude != null &&
                     order.clientLongitude != null &&
-                    (order.status == 'accepted' ||
+                    (order.status == 'pending' ||
+                        order.status == 'accepted' ||
                         order.status == 'en_route' ||
                         order.status == 'arrived'))
                   Padding(
@@ -576,9 +624,11 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          _isProvider
-                              ? AppStrings.clientLocationOnMap.tr()
-                              : AppStrings.trackProviderOnMap.tr(),
+                          order.status == 'pending'
+                              ? AppStrings.requestLocationOnMap.tr()
+                              : _isProvider
+                                  ? AppStrings.clientLocationOnMap.tr()
+                                  : AppStrings.trackProviderOnMap.tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14.sp,
@@ -588,10 +638,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         OrderTrackingMap(
                           clientLatitude: order.clientLatitude!,
                           clientLongitude: order.clientLongitude!,
-                          providerLatitude: _mapProviderLat,
-                          providerLongitude: _mapProviderLng,
+                          providerLatitude: order.status == 'pending'
+                              ? null
+                              : _mapProviderLat,
+                          providerLongitude: order.status == 'pending'
+                              ? null
+                              : _mapProviderLng,
                         ),
-                        if (_canOpenExternalMaps(order)) ...[
+                        if (order.status != 'pending' &&
+                            _canOpenExternalMaps(order)) ...[
                           8.height,
                           CustomButton.outlined(
                             text: AppStrings.openInMapApp.tr(),
@@ -606,16 +661,16 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
-                      text: AppStrings.acceptAndChat.tr(),
-                      onTap: _acceptOrder,
+                      text: AppStrings.proposePrice.tr(),
+                      onTap: _proposePrice,
                     ),
                   ),
                   8.height,
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.outlined(
-                      text: AppStrings.proposePrice.tr(),
-                      onTap: _proposePrice,
+                      text: AppStrings.acceptAndChat.tr(),
+                      onTap: _acceptOrder,
                     ),
                   ),
                 ],
@@ -624,7 +679,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.filled(
                       text: AppStrings.startTrip.tr(),
-                      onTap: () => _updateStatus('en_route'),
+                      onTap: () async {
+                        await _updateStatus('en_route');
+                        if (!mounted) return;
+                        final current = _order;
+                        if (current != null) {
+                          await _openExternalMaps(current);
+                        }
+                      },
                     ),
                   ),
                 if (_isProvider && order?.status == 'en_route')
@@ -636,15 +698,27 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 if (!_isProvider && order?.status == 'pending') ...[
+                  if (order?.agreedPrice == null)
+                    Padding(
+                      padding: REdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        AppStrings.waitForProviderPrice.tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: AppColors.commentColor,
+                        ),
+                      ),
+                    ),
                   if (order?.agreedPrice != null) ...[
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 12),
                       child: Text(
-                        '${AppStrings.proposedPrice.tr()}: ${order!.agreedPrice}',
+                        AppStrings.approveOrderMapHint.tr(),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14.sp,
-                          color: AppColors.primaryColor,
+                          fontSize: 13.sp,
+                          color: AppColors.commentColor,
                         ),
                       ),
                     ),

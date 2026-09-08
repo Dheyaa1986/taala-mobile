@@ -330,6 +330,12 @@ class AppStrings {
   static const String sendPrice = 'sendPrice';
   static const String proposedPrice = 'proposedPrice';
   static const String waitForProviderPrice = 'waitForProviderPrice';
+  static const String orderDistance = 'orderDistance';
+  static const String meters = 'meters';
+  static const String estimatedArrival = 'estimatedArrival';
+  static const String approveOrderMapHint = 'approveOrderMapHint';
+  static const String orderApprovedLaunchMap = 'orderApprovedLaunchMap';
+  static const String requestLocationOnMap = 'requestLocationOnMap';
   static const String providerAcceptedChat = 'providerAcceptedChat';
   static const String trackProviderOnMap = 'trackProviderOnMap';
   static const String clientLocationOnMap = 'clientLocationOnMap';
