@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
@@ -29,6 +30,12 @@ class LocationCubit extends Cubit<LocationState> {
   }
 
   Future<void> getLocations({bool reset = false, String? query}) async {
+    final isProvider = await AuthSessionHelper.isProviderSession();
+    if (!isProvider) {
+      emit(LocationsEmpty());
+      return;
+    }
+
     emit(LocationsLoading());
     final providerId = await _resolveProviderId();
     if (providerId == null) {
@@ -48,10 +55,14 @@ class LocationCubit extends Cubit<LocationState> {
     );
 
     result.fold(
-      (error) => emit(LocationsError(error.message)),
+      (error) => emit(LocationsError(error.displayMessage)),
       (items) {
         locations = reset ? items : [...locations, ...items];
         reachedMax = items.length < pageSize;
+        if (locations.isEmpty) {
+          emit(LocationsEmpty());
+          return;
+        }
         emit(LocationsLoaded(locations: locations, reachedMax: reachedMax));
       },
     );
@@ -74,7 +85,7 @@ class LocationCubit extends Cubit<LocationState> {
     );
 
     await result.fold(
-      (error) async => emit(LocationsError(error.message)),
+      (error) async => emit(LocationsError(error.displayMessage)),
       (_) async => getLocations(reset: true),
     );
   }
@@ -90,7 +101,7 @@ class LocationCubit extends Cubit<LocationState> {
     );
 
     await result.fold(
-      (error) async => emit(LocationsError(error.message)),
+      (error) async => emit(LocationsError(error.displayMessage)),
       (_) async => getLocations(reset: true),
     );
   }
@@ -116,7 +127,7 @@ class LocationCubit extends Cubit<LocationState> {
     );
 
     await result.fold(
-      (error) async => emit(LocationsError(error.message)),
+      (error) async => emit(LocationsError(error.displayMessage)),
       (_) async => getLocations(reset: true),
     );
   }

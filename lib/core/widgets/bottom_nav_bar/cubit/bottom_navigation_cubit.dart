@@ -17,5 +17,5 @@ class BottomNavigationCubit extends Cubit<BottomNavigationState> {
     }
   }
 
-  bool isProvider = true;
+  bool isProvider = false;
 }

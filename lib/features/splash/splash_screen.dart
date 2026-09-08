@@ -34,8 +34,7 @@ class SplashScreen extends StatelessWidget {
         (await SecureLocalStorage.read(PrefsKeys.token))?.isNotEmpty == true;
 
     if (await AuthSessionHelper.hasActiveSession()) {
-      final isProviderAccount =
-          getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
+      final isProviderAccount = await AuthSessionHelper.isProviderSession();
       context.read<BottomNavigationCubit>().isProvider = isProviderAccount;
       context.goNamed(Routes.home);
     } else {

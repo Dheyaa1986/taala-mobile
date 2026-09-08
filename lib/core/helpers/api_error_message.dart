@@ -36,8 +36,12 @@ class ApiErrorMessage {
       case 'Internal Server Error':
       case 'Internal server error':
       case 'Database query failed':
+      case 'Forbidden':
+      case 'Forbidden resource':
+        return AppStrings.validationFailed.tr();
       case 'Unauthorized':
       case 'Unauthorized.':
+        return AppStrings.validationFailed.tr();
       case 'Validation failed':
       case 'validation failed':
         return AppStrings.validationFailed.tr();

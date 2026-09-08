@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -10,11 +11,14 @@ import '../app_config/app_urls.dart';
 import '../app_config/prefs_keys.dart';
 import '../alerts/app_icon_badge_service.dart';
 import '../di/service_locator.dart';
+import '../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'secure_local_storage.dart';
 import 'shared_pref_local_storage.dart';
 
 class AuthSessionHelper {
   const AuthSessionHelper._();
+
+  static const int providerRole = 3;
 
   static bool isAccessTokenValid(String? token) {
     if (token == null || token.isEmpty) return false;
@@ -73,6 +77,30 @@ class AuthSessionHelper {
     }
   }
 
+  static Future<bool> isProviderSession() async {
+    final token = await SecureLocalStorage.read(PrefsKeys.token);
+    if (isAccessTokenValid(token)) {
+      try {
+        final payload = JwtDecoder.decode(token!);
+        final role = payload['role'];
+        if (role is int) {
+          return role == providerRole;
+        }
+        return int.tryParse(role?.toString() ?? '') == providerRole;
+      } catch (_) {
+        // Fall back to persisted account type.
+      }
+    }
+    return getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
+  }
+
+  static void syncNavigationRole(bool isProvider) {
+    final context = AppRouter.appNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      context.read<BottomNavigationCubit>().isProvider = isProvider;
+    }
+  }
+
   static Future<void> establishClientSession({
     required String token,
     required String refreshToken,
@@ -83,6 +111,7 @@ class AuthSessionHelper {
     );
     await SecureLocalStorage.write(PrefsKeys.token, token);
     await SecureLocalStorage.write(PrefsKeys.refreshToken, refreshToken);
+    syncNavigationRole(false);
   }
 
   static Future<void> clearSession({bool clearRememberedCredentials = false}) async {

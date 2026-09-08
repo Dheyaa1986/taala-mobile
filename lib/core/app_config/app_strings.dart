@@ -35,6 +35,7 @@ class AppStrings {
   static const String locations = 'locations';
   static const String viewOnMap = 'viewOnMap';
   static const String addNewLocation = 'addNewLocation';
+  static const String noLocationsYet = 'noLocationsYet';
   static const String editLocation = 'editLocation';
 
   static const String whoAreYou = 'who_are_you';
