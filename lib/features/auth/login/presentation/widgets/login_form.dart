@@ -274,12 +274,22 @@ class _LoginFormState extends State<LoginForm> {
                   ),
                 )
               else if (_role == UserRole.client)
-                Padding(
-                  padding: REdgeInsets.only(top: 8),
-                  child: Text(
-                    AppStrings.clientUseGuestMap.tr(),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelSmall,
+                Center(
+                  child: ClickableTextWidget(
+                    textStyle: Theme.of(context).textTheme.labelSmall,
+                    clickableTextStyle: Theme.of(context)
+                        .textTheme
+                        .labelSmall!
+                        .copyWith(
+                            color: AppColors.primaryColor,
+                            decoration: TextDecoration.underline,
+                            decorationThickness: 1,
+                            decorationColor: AppColors.primaryColor),
+                    text: "  ${AppStrings.dontHaveAccount.tr()}  ",
+                    clickableText: AppStrings.register.tr(),
+                    onTap: () {
+                      context.pushReplacementNamed(Routes.register);
+                    },
                   ),
                 ),
               SizedBox(height: context.safeBottomInset + 16.h),

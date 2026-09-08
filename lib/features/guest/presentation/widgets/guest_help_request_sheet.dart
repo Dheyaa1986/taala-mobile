@@ -14,6 +14,7 @@ import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
+import 'package:taal/core/widgets/fields/password_field.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
@@ -81,7 +82,11 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   final _otpSectionKey = GlobalKey();
   final _descriptionFieldKey = GlobalKey();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _addressController = TextEditingController();
   final _nameFocusNode = FocusNode();
   final _phoneFocusNode = FocusNode();
   final _otpController = TextEditingController();
@@ -113,7 +118,11 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   void dispose() {
     _scrollController.dispose();
     _nameController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _addressController.dispose();
     _nameFocusNode.dispose();
     _phoneFocusNode.dispose();
     _otpController.dispose();
@@ -258,11 +267,14 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     if (!await ConnectivityHelper.connected) {
       final queued = await _guestRepository.queueHelpOffline(
         name: _nameController.text,
+        email: _emailController.text,
         phone: _phoneController.text,
+        password: _passwordController.text,
         serviceTypeId: _selectedServiceTypeId!,
         latitude: widget.location.latitude,
         longitude: widget.location.longitude,
         address: widget.location.address,
+        profileAddress: _addressController.text,
         description: _descriptionController.text,
         providerId: widget.providerId,
       );
@@ -286,11 +298,14 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
     final result = await _guestRepository.requestHelp(
       name: _nameController.text,
+      email: _emailController.text,
       phone: _phoneController.text,
+      password: _passwordController.text,
       serviceTypeId: _selectedServiceTypeId!,
       latitude: widget.location.latitude,
       longitude: widget.location.longitude,
       address: widget.location.address,
+      profileAddress: _addressController.text,
       description: _descriptionController.text,
       providerId: widget.providerId,
       otp: _otpController.text.trim(),
@@ -392,8 +407,17 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               focusNode: _nameFocusNode,
               label: AppStrings.name.tr(),
               hint: AppStrings.name.tr(),
-              validator: CustomValidators.validateEmpty,
+              helperText: AppStrings.tripleNameHint.tr(),
+              validator: CustomValidators.validateTripleName,
             ),
+          ),
+          12.height,
+          CustomTextField(
+            controller: _emailController,
+            label: AppStrings.email.tr(),
+            hint: AppStrings.enterEmail.tr(),
+            keyboardType: TextInputType.emailAddress,
+            validator: CustomValidators.validateEmail,
           ),
           12.height,
           KeyedSubtree(
@@ -406,6 +430,43 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               keyboardType: TextInputType.phone,
               validator: CustomValidators.validatePhone,
             ),
+          ),
+          12.height,
+          PasswordField(
+            controller: _passwordController,
+            label: AppStrings.password.tr(),
+            hint: AppStrings.enterPassword.tr(),
+            validator: (password) {
+              if (password == null || password.isEmpty) {
+                return AppStrings.pleaseEnterYourPassword.tr();
+              }
+              if (password.length < 8) {
+                return AppStrings.passwordLengthValidation.tr();
+              }
+              return null;
+            },
+          ),
+          12.height,
+          PasswordField(
+            controller: _confirmPasswordController,
+            label: AppStrings.confirmPassword.tr(),
+            hint: AppStrings.enterConfirmPassword.tr(),
+            validator: (confirmPassword) {
+              if (confirmPassword == null || confirmPassword.isEmpty) {
+                return AppStrings.pleaseEnterYourPassword.tr();
+              }
+              return CustomValidators.validateConfirmPassword(
+                confirmPassword,
+                _passwordController.text,
+              );
+            },
+          ),
+          12.height,
+          CustomTextField(
+            controller: _addressController,
+            label: AppStrings.address.tr(),
+            hint: AppStrings.enterAddress.tr(),
+            maxLines: 2,
           ),
           20.height,
         ],
@@ -425,7 +486,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           ),
           8.height,
           Text(
-            '${_nameController.text.trim()} • ${_phoneController.text.trim()}',
+            '${_nameController.text.trim()} • ${_emailController.text.trim()} • ${_phoneController.text.trim()}',
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,

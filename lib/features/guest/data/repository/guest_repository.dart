@@ -18,22 +18,28 @@ class GuestRepository extends Repository {
 
   Future<Either<CustomException, Unit>> queueHelpOffline({
     required String name,
+    required String email,
     required String phone,
+    required String password,
     required String serviceTypeId,
     required double latitude,
     required double longitude,
     String? address,
+    String? profileAddress,
     String? description,
     String? providerId,
   }) {
     return exceptionHandler(() async {
       final payload = EmergencyRequestPayload.create(
         name: name,
+        email: email,
         phone: phone,
+        password: password,
         serviceTypeId: serviceTypeId,
         latitude: latitude,
         longitude: longitude,
         address: address,
+        profileAddress: profileAddress,
         description: description,
         providerId: providerId,
       );
@@ -44,11 +50,14 @@ class GuestRepository extends Repository {
 
   Future<Either<CustomException, GuestHelpResponseModel>> requestHelp({
     required String name,
+    required String email,
     required String phone,
+    required String password,
     required String serviceTypeId,
     required double latitude,
     required double longitude,
     String? address,
+    String? profileAddress,
     String? description,
     String? providerId,
     String? clientRequestId,
@@ -63,11 +72,15 @@ class GuestRepository extends Repository {
           requestWithOutToken: true,
           body: {
             'name': name.trim(),
+            'email': email.trim(),
+            'password': password,
             'phone': PhoneFormatterHelper.normalizeForApi(phone.trim()),
             'serviceTypeId': serviceTypeId,
             'clientLatitude': latitude,
             'clientLongitude': longitude,
             if (otp != null && otp.trim().isNotEmpty) 'otp': otp.trim(),
+            if (profileAddress != null && profileAddress.trim().isNotEmpty)
+              'address': profileAddress.trim(),
             if (address != null && address.trim().isNotEmpty)
               'clientAddress': address.trim(),
             if (description != null && description.trim().isNotEmpty)

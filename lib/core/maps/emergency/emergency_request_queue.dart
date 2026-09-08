@@ -9,11 +9,14 @@ class EmergencyRequestPayload {
   EmergencyRequestPayload({
     required this.clientRequestId,
     required this.name,
+    required this.email,
     required this.phone,
+    required this.password,
     required this.serviceTypeId,
     required this.latitude,
     required this.longitude,
     this.address,
+    this.profileAddress,
     this.description,
     this.providerId,
     DateTime? queuedAt,
@@ -21,11 +24,14 @@ class EmergencyRequestPayload {
 
   final String clientRequestId;
   final String name;
+  final String email;
   final String phone;
+  final String password;
   final String serviceTypeId;
   final double latitude;
   final double longitude;
   final String? address;
+  final String? profileAddress;
   final String? description;
   final String? providerId;
   final DateTime queuedAt;
@@ -33,11 +39,14 @@ class EmergencyRequestPayload {
   Map<String, dynamic> toJson() => {
         'clientRequestId': clientRequestId,
         'name': name,
+        'email': email,
         'phone': phone,
+        'password': password,
         'serviceTypeId': serviceTypeId,
         'latitude': latitude,
         'longitude': longitude,
         'address': address,
+        'profileAddress': profileAddress,
         'description': description,
         'providerId': providerId,
         'queuedAt': queuedAt.toIso8601String(),
@@ -47,11 +56,14 @@ class EmergencyRequestPayload {
     return EmergencyRequestPayload(
       clientRequestId: json['clientRequestId']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
+      password: json['password']?.toString() ?? '',
       serviceTypeId: json['serviceTypeId']?.toString() ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       address: json['address']?.toString(),
+      profileAddress: json['profileAddress']?.toString(),
       description: json['description']?.toString(),
       providerId: json['providerId']?.toString(),
       queuedAt: DateTime.tryParse(json['queuedAt']?.toString() ?? '') ??
@@ -63,10 +75,14 @@ class EmergencyRequestPayload {
         'clientRequestId': clientRequestId,
         'queuedAt': queuedAt.toIso8601String(),
         'name': name,
+        'email': email,
+        'password': password,
         'phone': phone,
         'serviceTypeId': serviceTypeId,
         'clientLatitude': latitude,
         'clientLongitude': longitude,
+        if (profileAddress != null && profileAddress!.trim().isNotEmpty)
+          'address': profileAddress,
         if (address != null && address!.trim().isNotEmpty)
           'clientAddress': address,
         if (description != null && description!.trim().isNotEmpty)
@@ -77,22 +93,28 @@ class EmergencyRequestPayload {
 
   static EmergencyRequestPayload create({
     required String name,
+    required String email,
     required String phone,
+    required String password,
     required String serviceTypeId,
     required double latitude,
     required double longitude,
     String? address,
+    String? profileAddress,
     String? description,
     String? providerId,
   }) {
     return EmergencyRequestPayload(
       clientRequestId: const Uuid().v4(),
       name: name,
+      email: email,
       phone: phone,
+      password: password,
       serviceTypeId: serviceTypeId,
       latitude: latitude,
       longitude: longitude,
       address: address,
+      profileAddress: profileAddress,
       description: description,
       providerId: providerId,
     );

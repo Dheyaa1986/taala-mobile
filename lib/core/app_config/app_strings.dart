@@ -263,6 +263,7 @@ class AppStrings {
   static const String later = 'later';
   static const String debugOtp = 'debugOtp';
   static const String providerRegisterOnlyHint = 'providerRegisterOnlyHint';
+  static const String registerUnifiedHint = 'registerUnifiedHint';
   static const String requestHelp = 'requestHelp';
   static const String providerRegisterTitle = 'providerRegisterTitle';
   static const String providerRegisterStep1 = 'providerRegisterStep1';

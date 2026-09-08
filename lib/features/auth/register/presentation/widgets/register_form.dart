@@ -11,6 +11,7 @@ import 'package:taal/features/auth/register/presentation/widgets/phone_field.dar
 
 import '../../../../../config/routes/routes.dart';
 import '../../../../../core/app_config/app_colors.dart';
+import '../../../../../core/app_config/app_icons.dart';
 import '../../../../../core/app_config/app_strings.dart';
 import '../../../../../core/countries/data/model/country_model.dart';
 import '../../../../../core/countries/presentation/cubit/countries_cubit.dart';
@@ -22,6 +23,7 @@ import '../../../../../core/widgets/buttons/custom_button.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../../../core/widgets/fields/password_field.dart';
 import '../../../../../core/widgets/texts/clickable_text_widget.dart';
+import '../../../select_role/widgets/role_list_tile.dart';
 import '../../../widgets/auth_header_widget.dart';
 import '../../data/model/register_options.dart';
 import '../cubit/register_cubit.dart';
@@ -43,9 +45,14 @@ class _RegisterFormState extends State<RegisterForm> {
   File? _image;
 
   CountryModel? _country;
+  UserRole? _role;
 
   void _register() {
     FocusManager.instance.primaryFocus?.unfocus();
+    if (_role == null) {
+      AppMessages.showError(context, AppStrings.chooseAccountType.tr());
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
 
     final countriesState = context.read<CountriesCubit>().state;
@@ -75,6 +82,7 @@ class _RegisterFormState extends State<RegisterForm> {
         address: '',
         image: _image,
         country: selectedCountry?.name ?? '',
+        type: _role == UserRole.provider ? 'provider' : 'client',
       ),
     );
   }
@@ -136,9 +144,37 @@ class _RegisterFormState extends State<RegisterForm> {
                   ),
                   12.height,
                   Text(
-                    AppStrings.providerRegisterOnlyHint.tr(),
+                    AppStrings.registerUnifiedHint.tr(),
                     style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
+                  ),
+                  20.height,
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      AppStrings.chooseAccountType.tr(),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: AppColors.lightTText,
+                          ),
+                    ),
+                  ),
+                  12.height,
+                  RoleTile(
+                    title: AppStrings.imClient.tr(),
+                    body: AppStrings.clientDescription.tr(),
+                    icon: AppIcons.client,
+                    onTap: () => setState(() => _role = UserRole.client),
+                    role: UserRole.client,
+                    value: _role,
+                  ),
+                  10.height,
+                  RoleTile(
+                    title: AppStrings.imProvider.tr(),
+                    body: AppStrings.providerDescription.tr(),
+                    icon: AppIcons.provider,
+                    onTap: () => setState(() => _role = UserRole.provider),
+                    role: UserRole.provider,
+                    value: _role,
                   ),
                   20.height,
                   PhotoAvatar(
