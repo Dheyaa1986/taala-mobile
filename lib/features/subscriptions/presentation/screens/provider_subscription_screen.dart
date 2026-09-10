@@ -7,6 +7,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/subscriptions/data/models/provider_subscription_model.dart';
 import 'package:taal/features/subscriptions/data/repository/subscription_repository.dart';
+import 'package:taal/features/subscriptions/presentation/widgets/subscription_card_widget.dart';
 
 class ProviderSubscriptionScreen extends StatefulWidget {
   const ProviderSubscriptionScreen({super.key});
@@ -21,6 +22,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   late Future<({
     ProviderSubscriptionModel? subscription,
     List<SubscriptionPlanModel> plans,
+    TrialOfferModel? trialOffer,
     String? subscriptionError,
     String? plansError,
   })> _loadFuture;
@@ -34,11 +36,13 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   Future<({
     ProviderSubscriptionModel? subscription,
     List<SubscriptionPlanModel> plans,
+    TrialOfferModel? trialOffer,
     String? subscriptionError,
     String? plansError,
   })> _load() async {
     final subscriptionResult = await _repository.getMySubscription();
     final plansResult = await _repository.getPlans();
+    final trialResult = await _repository.getTrialOffer();
 
     var plans = <SubscriptionPlanModel>[];
     String? plansError;
@@ -47,33 +51,51 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
       (value) => plans = value,
     );
 
+    TrialOfferModel? trialOffer;
+    trialResult.fold(
+      (_) => trialOffer = null,
+      (value) => trialOffer = value,
+    );
+
     return subscriptionResult.fold(
       (error) => (
         subscription: null,
         plans: plans,
+        trialOffer: trialOffer,
         subscriptionError: error.displayMessage,
         plansError: plansError,
       ),
       (subscription) => (
         subscription: subscription,
         plans: plans,
+        trialOffer: trialOffer,
         subscriptionError: null,
         plansError: plansError,
       ),
     );
   }
 
-  String _statusLabel(String status) {
-    switch (status) {
-      case 'trial':
-        return AppStrings.subscriptionStatusTrial.tr();
-      case 'active':
-        return AppStrings.subscriptionStatusActive.tr();
-      case 'expired':
-        return AppStrings.subscriptionStatusExpired.tr();
-      default:
-        return status;
+  String _planSubtitle(SubscriptionPlanModel plan) {
+    if (plan.billingType == 'order_based') {
+      return '${AppStrings.orderBasedPlan.tr()} · ${plan.orderQuota ?? 0}';
     }
+    return AppStrings.timeBasedPlan.tr();
+  }
+
+  String _trialSubtitle(TrialOfferModel trial) {
+    return AppStrings.trialCardSubtitle.tr(
+      namedArgs: {
+        'days': '${trial.durationDays}',
+        'orders': '${trial.maxOrders}',
+      },
+    );
+  }
+
+  String _priceLabel(double price, String currency) {
+    if (price <= 0) {
+      return AppStrings.freePlan.tr();
+    }
+    return '${price.toStringAsFixed(0)} $currency';
   }
 
   @override
@@ -99,6 +121,9 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             return Center(child: Text(data.subscriptionError!));
           }
 
+          final hasCards =
+              data.trialOffer != null || data.plans.isNotEmpty;
+
           return RefreshIndicator(
             onRefresh: () async {
               setState(() => _loadFuture = _load());
@@ -107,50 +132,27 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             child: ListView(
               padding: REdgeInsets.all(16),
               children: [
-                if (subscription != null) ...[
-                  _InfoCard(
-                    title: AppStrings.currentPlan.tr(),
-                    children: [
-                      Text(
-                        subscription.planName ??
-                            _statusLabel(subscription.status),
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
+                if (subscription != null &&
+                    !subscription.canReceiveOrders &&
+                    subscription.message != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: REdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.redColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(
+                        color: AppColors.redColor.withValues(alpha: 0.35),
                       ),
-                      8.height,
-                      Text(
-                        '${AppStrings.subscriptionStatus.tr()}: ${_statusLabel(subscription.status)}',
+                    ),
+                    child: Text(
+                      subscription.message!,
+                      style: TextStyle(
+                        color: AppColors.redColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13.sp,
                       ),
-                      if (subscription.expiresAt != null) ...[
-                        4.height,
-                        Text(
-                          '${AppStrings.subscriptionExpires.tr()}: ${DateFormat.yMMMd(isArabic ? 'ar' : 'en').add_jm().format(subscription.expiresAt!.toLocal())}',
-                        ),
-                      ],
-                      if (subscription.ordersRemaining != null) ...[
-                        4.height,
-                        Text(
-                          '${AppStrings.ordersRemaining.tr()}: ${subscription.ordersRemaining}',
-                        ),
-                      ],
-                      4.height,
-                      Text(
-                        '${AppStrings.ordersUsed.tr()}: ${subscription.ordersUsed}',
-                      ),
-                      if (!subscription.canReceiveOrders &&
-                          subscription.message != null) ...[
-                        12.height,
-                        Text(
-                          subscription.message!,
-                          style: TextStyle(
-                            color: AppColors.redColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                   16.height,
                 ],
@@ -167,26 +169,41 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                     data.plansError!,
                     style: TextStyle(color: AppColors.redColor),
                   )
-                else if (data.plans.isEmpty)
+                else if (!hasCards)
                   Text(AppStrings.noPlansAvailable.tr())
-                else
-                  ...data.plans.map(
-                    (plan) => Card(
-                      margin: REdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(isArabic ? plan.nameAr : plan.nameEn),
-                        subtitle: Text(
-                          plan.billingType == 'order_based'
-                              ? AppStrings.orderBasedPlan.tr()
-                              : AppStrings.timeBasedPlan.tr(),
-                        ),
-                        trailing: Text(
-                          '${plan.price.toStringAsFixed(0)} ${plan.currency}',
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                else ...[
+                  if (data.trialOffer != null)
+                    SubscriptionCardWidget(
+                      title: isArabic
+                          ? data.trialOffer!.nameAr
+                          : data.trialOffer!.nameEn,
+                      subtitle: _trialSubtitle(data.trialOffer!),
+                      priceLabel: _priceLabel(
+                        data.trialOffer!.price,
+                        data.trialOffer!.currency,
                       ),
+                      cardColor: SubscriptionCardWidget.parseHexColor(
+                        data.trialOffer!.cardColor,
+                        fallback: const Color(0xff22C55E),
+                      ),
+                      cardStyle: data.trialOffer!.cardStyle,
+                      isCurrent: subscription?.isTrial ?? false,
+                      currentLabel: AppStrings.currentPlanBadge.tr(),
+                    ),
+                  ...data.plans.map(
+                    (plan) => SubscriptionCardWidget(
+                      title: isArabic ? plan.nameAr : plan.nameEn,
+                      subtitle: _planSubtitle(plan),
+                      priceLabel: _priceLabel(plan.price, plan.currency),
+                      cardColor: SubscriptionCardWidget.parseHexColor(
+                        plan.cardColor,
+                      ),
+                      cardStyle: plan.cardStyle,
+                      isCurrent: subscription?.planId == plan.id,
+                      currentLabel: AppStrings.currentPlanBadge.tr(),
                     ),
                   ),
+                ],
                 12.height,
                 Text(
                   AppStrings.paymentComingSoon.tr(),
@@ -200,37 +217,6 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: REdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 15.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
-            ),
-            12.height,
-            ...children,
-          ],
-        ),
       ),
     );
   }

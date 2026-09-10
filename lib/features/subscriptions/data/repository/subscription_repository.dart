@@ -43,4 +43,22 @@ class SubscriptionRepository extends Repository {
           .toList();
     });
   }
+
+  Future<Either<CustomException, TrialOfferModel?>> getTrialOffer() {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi<Map<String, dynamic>>(
+        NetworkRequest(
+          AppUrls.subscriptionsTrialOffer,
+          method: RequestMethod.get,
+          requestWithOutToken: true,
+        ),
+      );
+
+      final response = json['response'];
+      if (response == null) return null;
+      if (response is! Map) return null;
+
+      return TrialOfferModel.fromJson(Map<String, dynamic>.from(response));
+    });
+  }
 }

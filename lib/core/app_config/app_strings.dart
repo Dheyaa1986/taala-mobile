@@ -351,6 +351,9 @@ class AppStrings {
   static const String orderBasedPlan = 'orderBasedPlan';
   static const String timeBasedPlan = 'timeBasedPlan';
   static const String paymentComingSoon = 'paymentComingSoon';
+  static const String trialCardSubtitle = 'trialCardSubtitle';
+  static const String freePlan = 'freePlan';
+  static const String currentPlanBadge = 'currentPlanBadge';
   static const String orderApprovedLaunchMap = 'orderApprovedLaunchMap';
   static const String requestLocationOnMap = 'requestLocationOnMap';
   static const String providerAcceptedChat = 'providerAcceptedChat';
