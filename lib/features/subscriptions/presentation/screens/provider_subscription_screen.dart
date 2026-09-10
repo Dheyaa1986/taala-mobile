@@ -91,6 +91,26 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
     );
   }
 
+  String _activeTrialSubtitle(
+    ProviderSubscriptionModel subscription,
+    bool isArabic,
+  ) {
+    final parts = <String>[];
+    if (subscription.ordersRemaining != null) {
+      parts.add(
+        '${AppStrings.ordersRemaining.tr()}: ${subscription.ordersRemaining}',
+      );
+    }
+    if (subscription.expiresAt != null) {
+      parts.add(
+        '${AppStrings.subscriptionExpires.tr()}: ${DateFormat.yMMMd(isArabic ? 'ar' : 'en').format(subscription.expiresAt!.toLocal())}',
+      );
+    }
+    return parts.isEmpty
+        ? AppStrings.subscriptionStatusTrial.tr()
+        : parts.join(' · ');
+  }
+
   String _priceLabel(double price, String currency) {
     if (price <= 0) {
       return AppStrings.freePlan.tr();
@@ -121,8 +141,11 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             return Center(child: Text(data.subscriptionError!));
           }
 
-          final showTrialCard = data.trialOffer != null &&
+          final showTrialOfferCard = data.trialOffer != null &&
               (subscription?.shouldShowTrialOfferCard ?? true);
+          final showActiveTrialOnlyCard =
+              subscription?.isActiveTrial == true && data.trialOffer == null;
+          final showTrialCard = showTrialOfferCard || showActiveTrialOnlyCard;
           final hasCards = showTrialCard || data.plans.isNotEmpty;
 
           return RefreshIndicator(
@@ -174,7 +197,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                 else if (!hasCards)
                   Text(AppStrings.noPlansAvailable.tr())
                 else ...[
-                  if (showTrialCard)
+                  if (showTrialOfferCard)
                     SubscriptionCardWidget(
                       title: isArabic
                           ? data.trialOffer!.nameAr
@@ -190,6 +213,17 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                       ),
                       cardStyle: data.trialOffer!.cardStyle,
                       isCurrent: subscription?.isActiveTrial ?? false,
+                      currentLabel: AppStrings.currentPlanBadge.tr(),
+                    )
+                  else if (showActiveTrialOnlyCard)
+                    SubscriptionCardWidget(
+                      title: subscription!.planName ??
+                          AppStrings.subscriptionStatusTrial.tr(),
+                      subtitle: _activeTrialSubtitle(subscription, isArabic),
+                      priceLabel: AppStrings.freePlan.tr(),
+                      cardColor: const Color(0xff22C55E),
+                      cardStyle: 'border',
+                      isCurrent: true,
                       currentLabel: AppStrings.currentPlanBadge.tr(),
                     ),
                   ...data.plans.map(
