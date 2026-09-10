@@ -121,8 +121,9 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             return Center(child: Text(data.subscriptionError!));
           }
 
-          final hasCards =
-              data.trialOffer != null || data.plans.isNotEmpty;
+          final showTrialCard = data.trialOffer != null &&
+              (subscription?.shouldShowTrialOfferCard ?? true);
+          final hasCards = showTrialCard || data.plans.isNotEmpty;
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -172,7 +173,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                 else if (!hasCards)
                   Text(AppStrings.noPlansAvailable.tr())
                 else ...[
-                  if (data.trialOffer != null)
+                  if (showTrialCard)
                     SubscriptionCardWidget(
                       title: isArabic
                           ? data.trialOffer!.nameAr
@@ -187,7 +188,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                         fallback: const Color(0xff22C55E),
                       ),
                       cardStyle: data.trialOffer!.cardStyle,
-                      isCurrent: subscription?.isTrial ?? false,
+                      isCurrent: subscription?.isActiveTrial ?? false,
                       currentLabel: AppStrings.currentPlanBadge.tr(),
                     ),
                   ...data.plans.map(
@@ -199,7 +200,8 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                         plan.cardColor,
                       ),
                       cardStyle: plan.cardStyle,
-                      isCurrent: subscription?.planId == plan.id,
+                      isCurrent: subscription?.planId == plan.id &&
+                          (subscription?.canReceiveOrders ?? false),
                       currentLabel: AppStrings.currentPlanBadge.tr(),
                     ),
                   ),

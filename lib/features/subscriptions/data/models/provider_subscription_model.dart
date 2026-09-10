@@ -2,6 +2,7 @@ class ProviderSubscriptionModel {
   const ProviderSubscriptionModel({
     required this.status,
     required this.canReceiveOrders,
+    this.source,
     this.planId,
     this.ordersRemaining,
     this.ordersUsed = 0,
@@ -12,6 +13,7 @@ class ProviderSubscriptionModel {
 
   final String status;
   final bool canReceiveOrders;
+  final String? source;
   final String? planId;
   final int? ordersRemaining;
   final int ordersUsed;
@@ -21,11 +23,17 @@ class ProviderSubscriptionModel {
 
   bool get isTrial => status == 'trial';
 
+  bool get isActiveTrial => isTrial && canReceiveOrders;
+
+  bool get shouldShowTrialOfferCard =>
+      source == null || source == 'none' || isActiveTrial;
+
   factory ProviderSubscriptionModel.fromJson(Map<String, dynamic> json) {
     final plan = json['plan'] as Map<String, dynamic>?;
     return ProviderSubscriptionModel(
       status: json['status']?.toString() ?? 'expired',
       canReceiveOrders: json['canReceiveOrders'] == true,
+      source: json['source']?.toString(),
       planId: plan?['id']?.toString(),
       ordersRemaining: _parseInt(json['ordersRemaining']),
       ordersUsed: _parseInt(json['ordersUsed']) ?? 0,
