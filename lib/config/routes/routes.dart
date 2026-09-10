@@ -23,4 +23,5 @@ class Routes {
   static const String supportTicketDetail = '/supportTickets/:id';
   static const String serviceOrderDetail = '/service-orders/:id';
   static const String serviceOrders = '/serviceOrders';
+  static const String providerSubscription = '/providerSubscription';
 }

@@ -9,6 +9,7 @@ import 'package:taal/features/home/home_screen.dart';
 import 'package:taal/features/profile/client/presentation/screens/client_settings_screen.dart';
 import 'package:taal/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:taal/features/profile/presentation/screens/provider_profile_screen.dart';
+import 'package:taal/features/subscriptions/presentation/screens/provider_subscription_screen.dart';
 import 'package:taal/features/profile/settings_screen.dart';
 import 'package:taal/features/rating/base_rating_screen.dart';
 import 'package:taal/features/rating/client/presentation/screen/client_rating_screen.dart';
@@ -101,6 +102,15 @@ class AppRouter {
             context: context,
             state: state,
             child: const ProviderMyRatingsScreen(),
+          ),
+        ),
+        GoRoute(
+          path: Routes.providerSubscription,
+          name: Routes.providerSubscription,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const ProviderSubscriptionScreen(),
           ),
         ),
         GoRoute(
