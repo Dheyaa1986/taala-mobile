@@ -50,76 +50,57 @@ class SubscriptionCardWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: REdgeInsets.fromLTRB(18, 18, 18, 18),
-            child: Column(
+      child: Padding(
+        padding: REdgeInsets.fromLTRB(18, 18, 18, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w800,
-                    color: _primaryTextColor,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w800,
+                      color: _primaryTextColor,
+                      height: 1.25,
+                    ),
                   ),
                 ),
-                SizedBox(height: 6.h),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: _secondaryTextColor,
-                    height: 1.35,
+                if (isCurrent) ...[
+                  SizedBox(width: 10.w),
+                  _CurrentPlanBadge(
+                    label: currentLabel,
+                    cardColor: cardColor,
+                    isFill: _isFill,
                   ),
-                ),
-                SizedBox(height: 14.h),
-                Text(
-                  priceLabel,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w800,
-                    color: _isFill ? _contrastOn(cardColor) : cardColor,
-                  ),
-                ),
+                ],
               ],
             ),
-          ),
-          if (isCurrent)
-            Positioned(
-              top: 12.h,
-              right: 12.w,
-              child: Container(
-                padding: REdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: _isFill
-                      ? _contrastOn(cardColor).withValues(alpha: 0.18)
-                      : cardColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      size: 16.sp,
-                      color: _isFill ? _contrastOn(cardColor) : cardColor,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      currentLabel,
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w700,
-                        color: _isFill ? _contrastOn(cardColor) : cardColor,
-                      ),
-                    ),
-                  ],
-                ),
+            SizedBox(height: 6.h),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: _secondaryTextColor,
+                height: 1.35,
               ),
             ),
-        ],
+            SizedBox(height: 14.h),
+            Text(
+              priceLabel,
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w800,
+                color: _isFill ? _contrastOn(cardColor) : cardColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -136,5 +117,52 @@ class SubscriptionCardWidget extends StatelessWidget {
   static Color _contrastOn(Color background) {
     final luminance = background.computeLuminance();
     return luminance > 0.55 ? AppColors.lightMainText : Colors.white;
+  }
+}
+
+class _CurrentPlanBadge extends StatelessWidget {
+  const _CurrentPlanBadge({
+    required this.label,
+    required this.cardColor,
+    required this.isFill,
+  });
+
+  final String label;
+  final Color cardColor;
+  final bool isFill;
+
+  Color get _accent =>
+      isFill ? SubscriptionCardWidget._contrastOn(cardColor) : cardColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: REdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isFill
+            ? _accent.withValues(alpha: 0.18)
+            : cardColor.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            size: 16.sp,
+            color: _accent,
+          ),
+          SizedBox(width: 4.w),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w700,
+              color: _accent,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
