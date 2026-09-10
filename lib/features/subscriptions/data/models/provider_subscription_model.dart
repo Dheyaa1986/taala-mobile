@@ -25,8 +25,14 @@ class ProviderSubscriptionModel {
 
   bool get isActiveTrial => isTrial && canReceiveOrders;
 
-  bool get shouldShowTrialOfferCard =>
-      source == null || source == 'none' || isActiveTrial;
+  bool get hasConsumedTrial =>
+      source == 'trial' ||
+      (status == 'expired' &&
+          planId == null &&
+          source != null &&
+          source != 'none');
+
+  bool get shouldShowTrialOfferCard => isActiveTrial || !hasConsumedTrial;
 
   factory ProviderSubscriptionModel.fromJson(Map<String, dynamic> json) {
     final plan = json['plan'] as Map<String, dynamic>?;

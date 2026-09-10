@@ -134,6 +134,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
               padding: REdgeInsets.all(16),
               children: [
                 if (subscription != null &&
+                    !subscription.isActiveTrial &&
                     !subscription.canReceiveOrders &&
                     subscription.message != null) ...[
                   Container(
