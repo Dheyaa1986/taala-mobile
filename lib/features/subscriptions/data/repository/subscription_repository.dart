@@ -27,6 +27,7 @@ class SubscriptionRepository extends Repository {
         NetworkRequest(
           AppUrls.subscriptionsPlans,
           method: RequestMethod.get,
+          requestWithOutToken: true,
         ),
       );
 

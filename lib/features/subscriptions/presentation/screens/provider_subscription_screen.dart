@@ -21,7 +21,8 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   late Future<({
     ProviderSubscriptionModel? subscription,
     List<SubscriptionPlanModel> plans,
-    String? error,
+    String? subscriptionError,
+    String? plansError,
   })> _loadFuture;
 
   @override
@@ -33,24 +34,31 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   Future<({
     ProviderSubscriptionModel? subscription,
     List<SubscriptionPlanModel> plans,
-    String? error,
+    String? subscriptionError,
+    String? plansError,
   })> _load() async {
     final subscriptionResult = await _repository.getMySubscription();
     final plansResult = await _repository.getPlans();
 
     var plans = <SubscriptionPlanModel>[];
-    plansResult.fold((_) {}, (value) => plans = value);
+    String? plansError;
+    plansResult.fold(
+      (error) => plansError = error.displayMessage,
+      (value) => plans = value,
+    );
 
     return subscriptionResult.fold(
       (error) => (
         subscription: null,
         plans: plans,
-        error: error.displayMessage,
+        subscriptionError: error.displayMessage,
+        plansError: plansError,
       ),
       (subscription) => (
         subscription: subscription,
         plans: plans,
-        error: null,
+        subscriptionError: null,
+        plansError: plansError,
       ),
     );
   }
@@ -87,8 +95,8 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
           final data = snapshot.data!;
           final subscription = data.subscription;
 
-          if (data.error != null && subscription == null) {
-            return Center(child: Text(data.error!));
+          if (data.subscriptionError != null && subscription == null) {
+            return Center(child: Text(data.subscriptionError!));
           }
 
           return RefreshIndicator(
@@ -154,7 +162,12 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                   ),
                 ),
                 12.height,
-                if (data.plans.isEmpty)
+                if (data.plansError != null)
+                  Text(
+                    data.plansError!,
+                    style: TextStyle(color: AppColors.redColor),
+                  )
+                else if (data.plans.isEmpty)
                   Text(AppStrings.noPlansAvailable.tr())
                 else
                   ...data.plans.map(
