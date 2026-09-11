@@ -351,6 +351,11 @@ class AppStrings {
   static const String orderBasedPlan = 'orderBasedPlan';
   static const String timeBasedPlan = 'timeBasedPlan';
   static const String paymentComingSoon = 'paymentComingSoon';
+  static const String subscribeNow = 'subscribeNow';
+  static const String paymentProcessing = 'paymentProcessing';
+  static const String paymentSuccess = 'paymentSuccess';
+  static const String paymentFailed = 'paymentFailed';
+  static const String paymentMinAmountHint = 'paymentMinAmountHint';
   static const String trialCardSubtitle = 'trialCardSubtitle';
   static const String freePlan = 'freePlan';
   static const String currentPlanBadge = 'currentPlanBadge';

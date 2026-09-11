@@ -97,6 +97,9 @@ class AppUrls {
   static const String subscriptionsMe = '/subscriptions/me';
   static const String subscriptionsPlans = '/subscriptions/plans';
   static const String subscriptionsTrialOffer = '/subscriptions/trial-offer';
+  static const String subscriptionsCheckout = '/subscriptions/checkout';
+  static String subscriptionsPaymentStatus(String referenceId) =>
+      '/subscriptions/payments/$referenceId/status';
   static const String providerPortfolioCreate = '/providers/portofolio';
   static String providerPortfolioUpdate(String id) => '/providers/portofolio/$id';
   static String providerPortfolioDelete(String id) => '/providers/portofolio/$id';

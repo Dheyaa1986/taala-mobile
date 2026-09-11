@@ -106,6 +106,58 @@ class SubscriptionPlanModel {
   }
 }
 
+class SubscriptionCheckoutModel {
+  const SubscriptionCheckoutModel({
+    required this.referenceId,
+    required this.paymentUrl,
+    required this.amount,
+    required this.currency,
+    required this.planId,
+    required this.status,
+  });
+
+  final String referenceId;
+  final String paymentUrl;
+  final double amount;
+  final String currency;
+  final String planId;
+  final String status;
+
+  factory SubscriptionCheckoutModel.fromJson(Map<String, dynamic> json) {
+    return SubscriptionCheckoutModel(
+      referenceId: json['referenceId']?.toString() ?? '',
+      paymentUrl: json['paymentUrl']?.toString() ?? '',
+      amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0,
+      currency: json['currency']?.toString() ?? 'IQD',
+      planId: json['planId']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'pending',
+    );
+  }
+}
+
+class SubscriptionPaymentStatusModel {
+  const SubscriptionPaymentStatusModel({
+    required this.referenceId,
+    required this.status,
+    required this.paid,
+    required this.subscriptionActivated,
+  });
+
+  final String referenceId;
+  final String status;
+  final bool paid;
+  final bool subscriptionActivated;
+
+  factory SubscriptionPaymentStatusModel.fromJson(Map<String, dynamic> json) {
+    return SubscriptionPaymentStatusModel(
+      referenceId: json['referenceId']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'pending',
+      paid: json['paid'] == true,
+      subscriptionActivated: json['subscriptionActivated'] == true,
+    );
+  }
+}
+
 class TrialOfferModel {
   const TrialOfferModel({
     required this.id,

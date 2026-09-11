@@ -12,6 +12,9 @@ class SubscriptionCardWidget extends StatelessWidget {
     required this.cardStyle,
     required this.isCurrent,
     required this.currentLabel,
+    this.actionLabel,
+    this.onAction,
+    this.actionLoading = false,
   });
 
   final String title;
@@ -21,6 +24,9 @@ class SubscriptionCardWidget extends StatelessWidget {
   final String cardStyle;
   final bool isCurrent;
   final String currentLabel;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final bool actionLoading;
 
   bool get _isFill => cardStyle == 'fill';
 
@@ -99,6 +105,43 @@ class SubscriptionCardWidget extends StatelessWidget {
                 color: _isFill ? _contrastOn(cardColor) : cardColor,
               ),
             ),
+            if (actionLabel != null && onAction != null && !isCurrent) ...[
+              SizedBox(height: 14.h),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: actionLoading ? null : onAction,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: cardColor,
+                    foregroundColor: _isFill
+                        ? _contrastOn(cardColor)
+                        : AppColors.lightMainText,
+                    padding: REdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  child: actionLoading
+                      ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _isFill
+                                ? _contrastOn(cardColor)
+                                : AppColors.lightMainText,
+                          ),
+                        )
+                      : Text(
+                          actionLabel!,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

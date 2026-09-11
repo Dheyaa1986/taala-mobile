@@ -61,4 +61,36 @@ class SubscriptionRepository extends Repository {
       return TrialOfferModel.fromJson(Map<String, dynamic>.from(response));
     });
   }
+
+  Future<Either<CustomException, SubscriptionCheckoutModel>> createCheckout(
+    String planId,
+  ) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.subscriptionsCheckout,
+          method: RequestMethod.post,
+          body: {'planId': planId},
+        ),
+        mapper: (json) => SubscriptionCheckoutModel.fromJson(
+          ApiResponseHelper.unwrap(json),
+        ),
+      );
+    });
+  }
+
+  Future<Either<CustomException, SubscriptionPaymentStatusModel>>
+      getPaymentStatus(String referenceId) {
+    return exceptionHandler(() async {
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.subscriptionsPaymentStatus(referenceId),
+          method: RequestMethod.get,
+        ),
+        mapper: (json) => SubscriptionPaymentStatusModel.fromJson(
+          ApiResponseHelper.unwrap(json),
+        ),
+      );
+    });
+  }
 }
