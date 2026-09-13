@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/subscriptions/data/models/provider_subscription_model.dart';
 import 'package:taal/features/subscriptions/data/repository/subscription_repository.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/subscription_card_widget.dart';
+import 'package:taal/features/subscriptions/presentation/widgets/wayl_checkout_screen.dart';
 
 class ProviderSubscriptionScreen extends StatefulWidget {
   const ProviderSubscriptionScreen({super.key});
@@ -21,7 +21,6 @@ class ProviderSubscriptionScreen extends StatefulWidget {
 
 class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen> {
   final _repository = SubscriptionRepository();
-  final _launcher = CustomLauncher();
   String? _checkingOutPlanId;
   late Future<({
     ProviderSubscriptionModel? subscription,
@@ -137,35 +136,43 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
         AppMessages.showError(context, error.displayMessage);
       },
       (checkout) async {
-        AppMessages.showSuccess(context, AppStrings.paymentProcessing.tr());
-        await _launcher.openUrl(checkout.paymentUrl);
-        await _pollPaymentStatus(checkout.referenceId);
+        if (checkout.paymentUrl.trim().isEmpty) {
+          AppMessages.showError(context, AppStrings.paymentFailed.tr());
+          return;
+        }
+
+        final paid = await WaylCheckoutScreen.open(
+          context,
+          paymentUrl: checkout.paymentUrl,
+          referenceId: checkout.referenceId,
+          checkPaid: (referenceId) async {
+            final statusResult = await _repository.getPaymentStatus(referenceId);
+            return statusResult.fold((_) => false, (status) => status.paid);
+          },
+        );
+
+        if (!mounted) return;
+
+        if (paid) {
+          AppMessages.showSuccess(context, AppStrings.paymentSuccess.tr());
+          setState(() => _loadFuture = _load());
+          await _loadFuture;
+          return;
+        }
+
+        final statusResult =
+            await _repository.getPaymentStatus(checkout.referenceId);
+        final stillPending =
+            statusResult.fold((_) => true, (status) => !status.paid);
+        if (stillPending && mounted) {
+          AppMessages.showError(context, AppStrings.paymentFailed.tr());
+        }
       },
     );
 
     if (mounted) {
       setState(() => _checkingOutPlanId = null);
     }
-  }
-
-  Future<void> _pollPaymentStatus(String referenceId) async {
-    for (var attempt = 0; attempt < 20; attempt++) {
-      await Future<void>.delayed(const Duration(seconds: 3));
-      if (!mounted) return;
-
-      final statusResult = await _repository.getPaymentStatus(referenceId);
-      final paid = statusResult.fold((_) => false, (status) => status.paid);
-      if (paid) {
-        if (!mounted) return;
-        AppMessages.showSuccess(context, AppStrings.paymentSuccess.tr());
-        setState(() => _loadFuture = _load());
-        await _loadFuture;
-        return;
-      }
-    }
-
-    if (!mounted) return;
-    AppMessages.showError(context, AppStrings.paymentFailed.tr());
   }
 
   @override

@@ -356,6 +356,7 @@ class AppStrings {
   static const String paymentSuccess = 'paymentSuccess';
   static const String paymentFailed = 'paymentFailed';
   static const String paymentMinAmountHint = 'paymentMinAmountHint';
+  static const String choosePaymentMethod = 'choosePaymentMethod';
   static const String trialCardSubtitle = 'trialCardSubtitle';
   static const String freePlan = 'freePlan';
   static const String currentPlanBadge = 'currentPlanBadge';

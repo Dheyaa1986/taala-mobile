@@ -270,6 +270,7 @@
   "paymentSuccess": "Plan activated successfully",
   "paymentFailed": "Payment could not be completed",
   "paymentMinAmountHint": "Minimum payment is 1000 IQD",
+  "choosePaymentMethod": "Choose payment method",
   "trialCardSubtitle": "{days} days · {orders} orders",
   "freePlan": "Free",
   "currentPlanBadge": "Current plan",

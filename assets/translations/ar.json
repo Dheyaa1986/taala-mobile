@@ -313,6 +313,7 @@
   "paymentSuccess": "تم تفعيل الباقة بنجاح",
   "paymentFailed": "تعذّر إتمام الدفع",
   "paymentMinAmountHint": "الحد الأدنى للدفع 1000 د.ع",
+  "choosePaymentMethod": "اختر طريقة الدفع",
   "trialCardSubtitle": "{days} يوم · {orders} طلب",
   "freePlan": "مجاني",
   "currentPlanBadge": "الباقة الحالية",
