@@ -48,7 +48,7 @@ class ProviderSettingsScreen extends StatelessWidget {
           ),
           16.height,
           SettingsTile(
-            title: AppStrings.mySubscription,
+            title: AppStrings.subscriptions,
             onTap: () => context.pushNamed(Routes.providerSubscription),
           ),
           16.height,

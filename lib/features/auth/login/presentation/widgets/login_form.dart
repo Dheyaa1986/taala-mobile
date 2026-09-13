@@ -14,6 +14,7 @@ import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/validations/validators.dart';
 
 import '../../../../../config/routes/routes.dart';
+import '../../../../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 
 import '../../../../../core/app_config/app_colors.dart';
 
@@ -123,13 +124,17 @@ class _LoginFormState extends State<LoginForm> {
           context.pop();
 
           if (state is LoginSuccess) {
-            context.read<BottomNavigationCubit>().isProvider =
-                _role == UserRole.provider;
+            final isProvider = _role == UserRole.provider;
+            context.read<BottomNavigationCubit>().isProvider = isProvider;
             PushNotificationService.instance.syncTokenIfLoggedIn();
-            context.pushNamedAndRemoveUntil(
-              Routes.home,
-              predicate: (_) => false,
-            );
+            if (isProvider) {
+              ProviderSubscriptionGate.navigateAfterAuth(context);
+            } else {
+              context.pushNamedAndRemoveUntil(
+                Routes.home,
+                predicate: (_) => false,
+              );
+            }
           } else if (state is LoginError) {
             AppMessages.showError(context, state.error);
           } else if (state is AccountNotVerified) {

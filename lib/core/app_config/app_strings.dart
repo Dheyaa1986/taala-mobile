@@ -337,10 +337,11 @@ class AppStrings {
   static const String meters = 'meters';
   static const String estimatedArrival = 'estimatedArrival';
   static const String approveOrderMapHint = 'approveOrderMapHint';
-  static const String mySubscription = 'mySubscription';
+  static const String subscriptions = 'subscriptions';
+  static const String subscriptionRequiredMessage =
+      'subscriptionRequiredMessage';
   static const String currentPlan = 'currentPlan';
   static const String subscriptionStatus = 'subscriptionStatus';
-  static const String subscriptionStatusTrial = 'subscriptionStatusTrial';
   static const String subscriptionStatusActive = 'subscriptionStatusActive';
   static const String subscriptionStatusExpired = 'subscriptionStatusExpired';
   static const String subscriptionExpires = 'subscriptionExpires';
@@ -368,7 +369,6 @@ class AppStrings {
   static const String waylPaymentStepPay = 'waylPaymentStepPay';
   static const String waylPaymentRegisteredPhone = 'waylPaymentRegisteredPhone';
   static const String continueToPayment = 'continueToPayment';
-  static const String trialCardSubtitle = 'trialCardSubtitle';
   static const String freePlan = 'freePlan';
   static const String currentPlanBadge = 'currentPlanBadge';
   static const String orderApprovedLaunchMap = 'orderApprovedLaunchMap';

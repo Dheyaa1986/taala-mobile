@@ -10,6 +10,7 @@ import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 import '../../core/app_config/prefs_keys.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/helpers/auth_session_helper.dart';
+import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../../core/helpers/secure_local_storage.dart';
 import '../../core/helpers/shared_pref_local_storage.dart';
 import '../../core/updates/app_update_prompt.dart';
@@ -36,7 +37,11 @@ class SplashScreen extends StatelessWidget {
     if (await AuthSessionHelper.hasActiveSession()) {
       final isProviderAccount = await AuthSessionHelper.isProviderSession();
       context.read<BottomNavigationCubit>().isProvider = isProviderAccount;
-      context.goNamed(Routes.home);
+      if (isProviderAccount) {
+        await ProviderSubscriptionGate.navigateAfterAuth(context);
+      } else {
+        context.goNamed(Routes.home);
+      }
     } else {
       if (hadStoredToken) {
         await AuthSessionHelper.clearSession();

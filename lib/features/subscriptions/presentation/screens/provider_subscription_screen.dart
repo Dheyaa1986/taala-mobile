@@ -1,19 +1,29 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
+import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/subscriptions/data/models/provider_subscription_model.dart';
 import 'package:taal/features/subscriptions/data/repository/subscription_repository.dart';
+import 'package:taal/features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/subscription_card_widget.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/wayl_checkout_screen.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/wayl_payment_url.dart';
 
 class ProviderSubscriptionScreen extends StatefulWidget {
-  const ProviderSubscriptionScreen({super.key});
+  const ProviderSubscriptionScreen({
+    super.key,
+    this.isRequiredGate = false,
+  });
+
+  final bool isRequiredGate;
 
   @override
   State<ProviderSubscriptionScreen> createState() =>
@@ -26,7 +36,6 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   late Future<({
     ProviderSubscriptionModel? subscription,
     List<SubscriptionPlanModel> plans,
-    TrialOfferModel? trialOffer,
     String? subscriptionError,
     String? plansError,
   })> _loadFuture;
@@ -40,13 +49,11 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   Future<({
     ProviderSubscriptionModel? subscription,
     List<SubscriptionPlanModel> plans,
-    TrialOfferModel? trialOffer,
     String? subscriptionError,
     String? plansError,
   })> _load() async {
     final subscriptionResult = await _repository.getMySubscription();
     final plansResult = await _repository.getPlans();
-    final trialResult = await _repository.getTrialOffer();
 
     var plans = <SubscriptionPlanModel>[];
     String? plansError;
@@ -55,24 +62,16 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
       (value) => plans = value,
     );
 
-    TrialOfferModel? trialOffer;
-    trialResult.fold(
-      (_) => trialOffer = null,
-      (value) => trialOffer = value,
-    );
-
     return subscriptionResult.fold(
       (error) => (
         subscription: null,
         plans: plans,
-        trialOffer: trialOffer,
         subscriptionError: error.displayMessage,
         plansError: plansError,
       ),
       (subscription) => (
         subscription: subscription,
         plans: plans,
-        trialOffer: trialOffer,
         subscriptionError: null,
         plansError: plansError,
       ),
@@ -84,35 +83,6 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
       return '${AppStrings.orderBasedPlan.tr()} · ${plan.orderQuota ?? 0}';
     }
     return AppStrings.timeBasedPlan.tr();
-  }
-
-  String _trialSubtitle(TrialOfferModel trial) {
-    return AppStrings.trialCardSubtitle.tr(
-      namedArgs: {
-        'days': '${trial.durationDays}',
-        'orders': '${trial.maxOrders}',
-      },
-    );
-  }
-
-  String _activeTrialSubtitle(
-    ProviderSubscriptionModel subscription,
-    bool isArabic,
-  ) {
-    final parts = <String>[];
-    if (subscription.ordersRemaining != null) {
-      parts.add(
-        '${AppStrings.ordersRemaining.tr()}: ${subscription.ordersRemaining}',
-      );
-    }
-    if (subscription.expiresAt != null) {
-      parts.add(
-        '${AppStrings.subscriptionExpires.tr()}: ${DateFormat.yMMMd(isArabic ? 'ar' : 'en').format(subscription.expiresAt!.toLocal())}',
-      );
-    }
-    return parts.isEmpty
-        ? AppStrings.subscriptionStatusTrial.tr()
-        : parts.join(' · ');
   }
 
   String _priceLabel(double price, String currency) {
@@ -161,6 +131,13 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
 
         if (paid) {
           AppMessages.showSuccess(context, AppStrings.paymentSuccess.tr());
+          ProviderSubscriptionGate.invalidate();
+          if (widget.isRequiredGate) {
+            if (mounted) {
+              context.goNamed(Routes.home);
+            }
+            return;
+          }
           setState(() => _loadFuture = _load());
           await _loadFuture;
           return;
@@ -185,12 +162,32 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
 
-    return Scaffold(
-      appBar: CustomAppBar.backAppBar(
-        title: AppStrings.mySubscription.tr(),
-        centerTitle: true,
-      ),
-      body: FutureBuilder(
+    return PopScope(
+      canPop: !widget.isRequiredGate,
+      child: Scaffold(
+        appBar: widget.isRequiredGate
+            ? CustomAppBar(
+                centerTitle: true,
+                title: AppStrings.subscriptions.tr(),
+                actions: [
+                  TextButton(
+                    onPressed: () => getIt<DioService>().logout(),
+                    child: Text(
+                      AppStrings.logout.tr(),
+                      style: TextStyle(
+                        color: AppColors.redColor,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : CustomAppBar.backAppBar(
+                title: AppStrings.subscriptions.tr(),
+                centerTitle: true,
+              ),
+        body: FutureBuilder(
         future: _loadFuture,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -200,16 +197,18 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
           final data = snapshot.data!;
           final subscription = data.subscription;
 
+          if (widget.isRequiredGate &&
+              subscription?.canReceiveOrders == true) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context.goNamed(Routes.home);
+              }
+            });
+          }
+
           if (data.subscriptionError != null && subscription == null) {
             return Center(child: Text(data.subscriptionError!));
           }
-
-          final showTrialOfferCard = data.trialOffer != null &&
-              (subscription?.shouldShowTrialOfferCard ?? true);
-          final showActiveTrialOnlyCard =
-              subscription?.isActiveTrial == true && data.trialOffer == null;
-          final showTrialCard = showTrialOfferCard || showActiveTrialOnlyCard;
-          final hasCards = showTrialCard || data.plans.isNotEmpty;
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -219,10 +218,22 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             child: ListView(
               padding: REdgeInsets.all(16),
               children: [
+                if (widget.isRequiredGate) ...[
+                  Text(
+                    AppStrings.subscriptionRequiredMessage.tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      height: 1.5,
+                    ),
+                  ),
+                  16.height,
+                ],
                 if (subscription != null &&
-                    !subscription.isActiveTrial &&
                     !subscription.canReceiveOrders &&
-                    subscription.message != null) ...[
+                    subscription.message != null &&
+                    !widget.isRequiredGate) ...[
                   Container(
                     width: double.infinity,
                     padding: REdgeInsets.all(14),
@@ -257,38 +268,9 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                     data.plansError!,
                     style: TextStyle(color: AppColors.redColor),
                   )
-                else if (!hasCards)
+                else if (data.plans.isEmpty)
                   Text(AppStrings.noPlansAvailable.tr())
-                else ...[
-                  if (showTrialOfferCard)
-                    SubscriptionCardWidget(
-                      title: isArabic
-                          ? data.trialOffer!.nameAr
-                          : data.trialOffer!.nameEn,
-                      subtitle: _trialSubtitle(data.trialOffer!),
-                      priceLabel: _priceLabel(
-                        data.trialOffer!.price,
-                        data.trialOffer!.currency,
-                      ),
-                      cardColor: SubscriptionCardWidget.parseHexColor(
-                        data.trialOffer!.cardColor,
-                        fallback: const Color(0xff22C55E),
-                      ),
-                      cardStyle: data.trialOffer!.cardStyle,
-                      isCurrent: subscription?.isActiveTrial ?? false,
-                      currentLabel: AppStrings.currentPlanBadge.tr(),
-                    )
-                  else if (showActiveTrialOnlyCard)
-                    SubscriptionCardWidget(
-                      title: subscription!.planName ??
-                          AppStrings.subscriptionStatusTrial.tr(),
-                      subtitle: _activeTrialSubtitle(subscription, isArabic),
-                      priceLabel: AppStrings.freePlan.tr(),
-                      cardColor: const Color(0xff22C55E),
-                      cardStyle: 'border',
-                      isCurrent: true,
-                      currentLabel: AppStrings.currentPlanBadge.tr(),
-                    ),
+                else
                   ...data.plans.map(
                     (plan) {
                       final isCurrent = subscription?.planId == plan.id &&
@@ -313,7 +295,6 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                       );
                     },
                   ),
-                ],
                 if (data.plans.any((plan) => plan.price > 0 && plan.price < 1000))
                   Padding(
                     padding: REdgeInsets.only(top: 12),
@@ -330,6 +311,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             ),
           );
         },
+      ),
       ),
     );
   }

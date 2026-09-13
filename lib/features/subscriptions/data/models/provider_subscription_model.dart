@@ -21,19 +21,6 @@ class ProviderSubscriptionModel {
   final String? message;
   final String? planName;
 
-  bool get isTrial => status == 'trial';
-
-  bool get isActiveTrial => isTrial && canReceiveOrders;
-
-  bool get hasConsumedTrial =>
-      source == 'trial' ||
-      (status == 'expired' &&
-          planId == null &&
-          source != null &&
-          source != 'none');
-
-  bool get shouldShowTrialOfferCard => isActiveTrial || !hasConsumedTrial;
-
   factory ProviderSubscriptionModel.fromJson(Map<String, dynamic> json) {
     final plan = json['plan'] as Map<String, dynamic>?;
     return ProviderSubscriptionModel(
@@ -161,46 +148,3 @@ class SubscriptionPaymentStatusModel {
   }
 }
 
-class TrialOfferModel {
-  const TrialOfferModel({
-    required this.id,
-    required this.nameAr,
-    required this.nameEn,
-    required this.durationDays,
-    required this.maxOrders,
-    required this.cardColor,
-    required this.cardStyle,
-    this.price = 0,
-    this.currency = 'IQD',
-  });
-
-  final String id;
-  final String nameAr;
-  final String nameEn;
-  final int durationDays;
-  final int maxOrders;
-  final String cardColor;
-  final String cardStyle;
-  final double price;
-  final String currency;
-
-  factory TrialOfferModel.fromJson(Map<String, dynamic> json) {
-    return TrialOfferModel(
-      id: json['id']?.toString() ?? 'trial',
-      nameAr: json['nameAr']?.toString() ?? 'تجربة مجانية',
-      nameEn: json['nameEn']?.toString() ?? 'Free trial',
-      durationDays: _parseInt(json['durationDays']) ?? 14,
-      maxOrders: _parseInt(json['maxOrders']) ?? 10,
-      cardColor: json['cardColor']?.toString() ?? '#22C55E',
-      cardStyle: json['cardStyle']?.toString() ?? 'border',
-      price: double.tryParse(json['price']?.toString() ?? '') ?? 0,
-      currency: json['currency']?.toString() ?? 'IQD',
-    );
-  }
-
-  static int? _parseInt(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    return int.tryParse(value.toString());
-  }
-}

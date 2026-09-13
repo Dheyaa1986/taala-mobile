@@ -9,7 +9,9 @@ import 'package:taal/features/home/home_screen.dart';
 import 'package:taal/features/profile/client/presentation/screens/client_settings_screen.dart';
 import 'package:taal/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:taal/features/profile/presentation/screens/provider_profile_screen.dart';
+import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/features/subscriptions/presentation/screens/provider_subscription_screen.dart';
+import 'package:taal/features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import 'package:taal/features/profile/settings_screen.dart';
 import 'package:taal/features/rating/base_rating_screen.dart';
 import 'package:taal/features/rating/client/presentation/screen/client_rating_screen.dart';
@@ -132,6 +134,34 @@ class AppRouter {
       ],
       navigatorKey: appNavigatorKey,
       initialLocation: Routes.splashScreen,
+      redirect: (context, state) async {
+        final location = state.matchedLocation;
+        if (ProviderSubscriptionGate.isPublicRoute(location)) {
+          return null;
+        }
+
+        if (!await AuthSessionHelper.hasActiveSession()) {
+          return null;
+        }
+
+        if (!await AuthSessionHelper.isProviderSession()) {
+          return null;
+        }
+
+        final needsSubscription =
+            await ProviderSubscriptionGate.providerNeedsSubscription();
+        if (needsSubscription &&
+            location != Routes.providerSubscriptionRequired) {
+          return Routes.providerSubscriptionRequired;
+        }
+
+        if (!needsSubscription &&
+            location == Routes.providerSubscriptionRequired) {
+          return Routes.home;
+        }
+
+        return null;
+      },
       routes: <RouteBase>[
         StatefulShellRoute.indexedStack(
           parentNavigatorKey: appNavigatorKey,
@@ -173,6 +203,16 @@ class AppRouter {
             context: context,
             state: state,
             child: const GuestMapScreen(),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.providerSubscriptionRequired,
+          name: Routes.providerSubscriptionRequired,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const ProviderSubscriptionScreen(isRequiredGate: true),
           ),
         ),
         GoRoute(
