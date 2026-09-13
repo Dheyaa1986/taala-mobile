@@ -351,6 +351,15 @@ class AppStrings {
   static const String noPlansAvailable = 'noPlansAvailable';
   static const String orderBasedPlan = 'orderBasedPlan';
   static const String timeBasedPlan = 'timeBasedPlan';
+  static const String timeBasedPlanDetail = 'timeBasedPlanDetail';
+  static const String orderBasedPlanDetail = 'orderBasedPlanDetail';
+  static const String subscriptionExpiresOn = 'subscriptionExpiresOn';
+  static const String ordersRemainingCount = 'ordersRemainingCount';
+  static const String durationDay = 'durationDay';
+  static const String durationWeek = 'durationWeek';
+  static const String durationMonth = 'durationMonth';
+  static const String durationQuarter = 'durationQuarter';
+  static const String durationYear = 'durationYear';
   static const String paymentComingSoon = 'paymentComingSoon';
   static const String subscribeNow = 'subscribeNow';
   static const String paymentProcessing = 'paymentProcessing';

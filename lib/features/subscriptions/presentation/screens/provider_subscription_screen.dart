@@ -78,11 +78,56 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
     );
   }
 
+  String _durationUnitLabel(String? unit) {
+    switch (unit) {
+      case 'day':
+        return AppStrings.durationDay.tr();
+      case 'week':
+        return AppStrings.durationWeek.tr();
+      case 'month':
+        return AppStrings.durationMonth.tr();
+      case 'quarter':
+        return AppStrings.durationQuarter.tr();
+      case 'year':
+        return AppStrings.durationYear.tr();
+      default:
+        return '';
+    }
+  }
+
   String _planSubtitle(SubscriptionPlanModel plan) {
     if (plan.billingType == 'order_based') {
-      return '${AppStrings.orderBasedPlan.tr()} · ${plan.orderQuota ?? 0}';
+      return AppStrings.orderBasedPlanDetail.tr(
+        namedArgs: {'count': '${plan.orderQuota ?? 0}'},
+      );
     }
-    return AppStrings.timeBasedPlan.tr();
+
+    final unit = _durationUnitLabel(plan.durationUnit);
+    final value = plan.durationValue ?? 1;
+    if (unit.isEmpty) {
+      return AppStrings.timeBasedPlan.tr();
+    }
+    return AppStrings.timeBasedPlanDetail.tr(
+      namedArgs: {'value': '$value', 'unit': unit},
+    );
+  }
+
+  String? _activeSubscriptionDetail(ProviderSubscriptionModel subscription) {
+    if (!subscription.canReceiveOrders) return null;
+
+    if (subscription.expiresAt != null) {
+      final formatted = DateFormat.yMMMd(context.locale.languageCode)
+          .format(subscription.expiresAt!.toLocal());
+      return AppStrings.subscriptionExpiresOn.tr(namedArgs: {'date': formatted});
+    }
+
+    if (subscription.ordersRemaining != null) {
+      return AppStrings.ordersRemainingCount.tr(
+        namedArgs: {'count': '${subscription.ordersRemaining}'},
+      );
+    }
+
+    return null;
   }
 
   String _priceLabel(double price, String currency) {
@@ -226,6 +271,30 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w600,
                       height: 1.5,
+                    ),
+                  ),
+                  16.height,
+                ],
+                if (subscription != null &&
+                    subscription.canReceiveOrders &&
+                    _activeSubscriptionDetail(subscription) != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: REdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(
+                        color: AppColors.primaryColor.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Text(
+                      _activeSubscriptionDetail(subscription)!,
+                      style: TextStyle(
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13.sp,
+                      ),
                     ),
                   ),
                   16.height,
