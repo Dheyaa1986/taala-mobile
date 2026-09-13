@@ -357,6 +357,17 @@ class AppStrings {
   static const String paymentFailed = 'paymentFailed';
   static const String paymentMinAmountHint = 'paymentMinAmountHint';
   static const String choosePaymentMethod = 'choosePaymentMethod';
+  static const String openingPaymentPage = 'openingPaymentPage';
+  static const String completePaymentInBrowser = 'completePaymentInBrowser';
+  static const String waitingForPayment = 'waitingForPayment';
+  static const String paymentBrowserFailed = 'paymentBrowserFailed';
+  static const String retryPayment = 'retryPayment';
+  static const String waylPaymentStepsTitle = 'waylPaymentStepsTitle';
+  static const String waylPaymentStepPhone = 'waylPaymentStepPhone';
+  static const String waylPaymentStepMethod = 'waylPaymentStepMethod';
+  static const String waylPaymentStepPay = 'waylPaymentStepPay';
+  static const String waylPaymentRegisteredPhone = 'waylPaymentRegisteredPhone';
+  static const String continueToPayment = 'continueToPayment';
   static const String trialCardSubtitle = 'trialCardSubtitle';
   static const String freePlan = 'freePlan';
   static const String currentPlanBadge = 'currentPlanBadge';

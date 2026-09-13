@@ -2,10 +2,16 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+/// Opens Wayl checkout in an in-app browser tab (Custom Tabs / Safari VC).
+/// Wayl blocks embedded WebViews via CSP (`frame-ancestors`), so a full browser
+/// surface is required for payment methods to load.
 class WaylCheckoutScreen extends StatefulWidget {
   const WaylCheckoutScreen({
     super.key,
@@ -42,46 +48,19 @@ class WaylCheckoutScreen extends StatefulWidget {
 }
 
 class _WaylCheckoutScreenState extends State<WaylCheckoutScreen> {
-  late final WebViewController _controller;
   Timer? _pollTimer;
-  var _loading = true;
-  var _checkingPayment = false;
   var _closed = false;
+  var _checkingPayment = false;
+  var _browserOpen = false;
+  var _browserFailed = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (_) {
-            if (mounted) {
-              setState(() => _loading = true);
-            }
-          },
-          onPageFinished: (_) {
-            if (mounted) {
-              setState(() => _loading = false);
-            }
-          },
-          onUrlChange: (change) {
-            final url = change.url;
-            if (url != null) {
-              _handleUrlChange(url);
-            }
-          },
-          onNavigationRequest: (request) {
-            _handleUrlChange(request.url);
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.paymentUrl));
-
     _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       unawaited(_verifyPaymentAndClose());
     });
+    unawaited(_openCheckout());
   }
 
   @override
@@ -90,25 +69,41 @@ class _WaylCheckoutScreenState extends State<WaylCheckoutScreen> {
     super.dispose();
   }
 
-  bool _isCheckoutHost(String host) {
-    final normalized = host.toLowerCase();
-    return normalized.startsWith('checkout.') ||
-        normalized.startsWith('pay.') ||
-        normalized == 'api.thewayl.com';
-  }
-
-  void _handleUrlChange(String url) {
-    final uri = Uri.tryParse(url);
-    if (uri == null) {
+  Future<void> _openCheckout() async {
+    final uri = Uri.tryParse(widget.paymentUrl.trim());
+    if (uri == null || !await canLaunchUrl(uri)) {
+      if (mounted) {
+        setState(() => _browserFailed = true);
+      }
       return;
     }
 
-    final host = uri.host.toLowerCase();
-    if (!host.contains('thewayl.com') || _isCheckoutHost(host)) {
-      return;
+    if (mounted) {
+      setState(() => _browserOpen = true);
     }
 
-    unawaited(_verifyPaymentAndClose());
+    try {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.inAppBrowserView,
+        webViewConfiguration: const WebViewConfiguration(
+          enableJavaScript: true,
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() => _browserFailed = true);
+      }
+      return;
+    } finally {
+      if (mounted) {
+        setState(() => _browserOpen = false);
+      }
+    }
+
+    if (!_closed) {
+      await _verifyPaymentAndClose();
+    }
   }
 
   Future<void> _verifyPaymentAndClose() async {
@@ -136,6 +131,11 @@ class _WaylCheckoutScreenState extends State<WaylCheckoutScreen> {
     Navigator.of(context).pop(success);
   }
 
+  Future<void> _retryOpenCheckout() async {
+    setState(() => _browserFailed = false);
+    await _openCheckout();
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -151,12 +151,49 @@ class _WaylCheckoutScreenState extends State<WaylCheckoutScreen> {
           centerTitle: true,
           onBackPressed: () => _close(success: false),
         ),
-        body: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (_loading)
-              const Center(child: CircularProgressIndicator()),
-          ],
+        body: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.payments_outlined,
+                size: 72.sp,
+                color: AppColors.primaryColor,
+              ),
+              24.height,
+              Text(
+                _browserFailed
+                    ? AppStrings.paymentBrowserFailed.tr()
+                    : _browserOpen
+                        ? AppStrings.completePaymentInBrowser.tr()
+                        : AppStrings.openingPaymentPage.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              12.height,
+              Text(
+                AppStrings.waitingForPayment.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              32.height,
+              if (_browserFailed) ...[
+                FilledButton(
+                  onPressed: _retryOpenCheckout,
+                  child: Text(AppStrings.retryPayment.tr()),
+                ),
+                12.height,
+              ] else
+                const CircularProgressIndicator(),
+            ],
+          ),
         ),
       ),
     );

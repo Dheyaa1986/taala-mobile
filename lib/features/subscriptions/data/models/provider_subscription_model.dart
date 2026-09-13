@@ -114,6 +114,7 @@ class SubscriptionCheckoutModel {
     required this.currency,
     required this.planId,
     required this.status,
+    this.providerPhone,
   });
 
   final String referenceId;
@@ -122,6 +123,7 @@ class SubscriptionCheckoutModel {
   final String currency;
   final String planId;
   final String status;
+  final String? providerPhone;
 
   factory SubscriptionCheckoutModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionCheckoutModel(
@@ -131,6 +133,7 @@ class SubscriptionCheckoutModel {
       currency: json['currency']?.toString() ?? 'IQD',
       planId: json['planId']?.toString() ?? '',
       status: json['status']?.toString() ?? 'pending',
+      providerPhone: json['providerPhone']?.toString(),
     );
   }
 }
