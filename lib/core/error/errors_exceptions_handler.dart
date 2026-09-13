@@ -104,9 +104,10 @@ class ErrorsExceptionsHandler {
             throw BadRequestException(_resolveMessage(errorMessage));
           case 500:
           case 501:
+            throw InternalServerErrorException(_resolveMessage(errorMessage));
           case 502:
           case 503:
-            throw InternalServerErrorException(_resolveMessage(errorMessage));
+            throw CustomException(_resolveMessage(errorMessage), code: statusCode);
           default:
             throw CustomException(_resolveMessage(errorMessage));
         }
