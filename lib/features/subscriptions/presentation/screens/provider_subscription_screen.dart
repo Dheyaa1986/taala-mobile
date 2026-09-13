@@ -10,7 +10,6 @@ import 'package:taal/features/subscriptions/data/models/provider_subscription_mo
 import 'package:taal/features/subscriptions/data/repository/subscription_repository.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/subscription_card_widget.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/wayl_checkout_screen.dart';
-import 'package:taal/features/subscriptions/presentation/widgets/wayl_payment_instructions_sheet.dart';
 import 'package:taal/features/subscriptions/presentation/widgets/wayl_payment_url.dart';
 
 class ProviderSubscriptionScreen extends StatefulWidget {
@@ -142,12 +141,6 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
           AppMessages.showError(context, AppStrings.paymentFailed.tr());
           return;
         }
-
-        final proceed = await showWaylPaymentInstructionsSheet(
-          context,
-          providerPhone: checkout.providerPhone,
-        );
-        if (!proceed || !mounted) return;
 
         final paymentUrl = WaylPaymentUrl.withProviderPhone(
           checkout.paymentUrl,
