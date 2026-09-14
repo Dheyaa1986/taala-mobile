@@ -185,6 +185,31 @@ class ProfileRepository extends Repository {
     });
   }
 
+  Future<Either<CustomException, BaseResponseModel>> createPortfolioVideo({
+    required String description,
+    required File video,
+  }) {
+    return exceptionHandler(() async {
+      final formData = FormData.fromMap({'description': description});
+      formData.files.add(
+        MapEntry(
+          'video',
+          await fileToMultipartFile(video),
+        ),
+      );
+
+      return dioService.callApi(
+        NetworkRequest(
+          AppUrls.providerPortfolioVideoCreate,
+          method: RequestMethod.post,
+          formDataBody: formData,
+          isFormData: true,
+        ),
+        mapper: (json) => BaseResponseModel.fromJson(json),
+      );
+    });
+  }
+
   Future<Either<CustomException, void>> deletePortfolio(String portfolioId) {
     return exceptionHandler(() async {
       await dioService.callApi(

@@ -2,10 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
-import 'package:taal/core/app_config/app_urls.dart';
-import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/profile/data/models/portfolio_model.dart';
 import 'package:taal/features/profile/presentation/screens/portfolio_gallery_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PortfolioCard extends StatelessWidget {
   final PortfolioModel portfolio;
@@ -21,7 +20,7 @@ class PortfolioCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final coverImage = _resolveImage(portfolio.images);
+    final coverImage = portfolio.coverImage;
     final extraCount = portfolio.images.length - 1;
 
     return Card(
@@ -63,20 +62,13 @@ class PortfolioCard extends StatelessWidget {
                   ),
               ],
             ),
-            12.height,
+            SizedBox(height: 12.h),
             GestureDetector(
               onTap: coverImage.isEmpty
                   ? null
-                  : () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PortfolioGalleryScreen(
-                            images: portfolio.images,
-                            title: portfolio.description,
-                          ),
-                        ),
-                      ),
+                  : () => _openPortfolio(context),
               child: Stack(
+                alignment: Alignment.center,
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8).r,
@@ -96,6 +88,20 @@ class PortfolioCard extends StatelessWidget {
                             height: 167.h,
                           ),
                   ),
+                  if (portfolio.hasVideo)
+                    Container(
+                      width: 48.r,
+                      height: 48.r,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 32.r,
+                      ),
+                    ),
                   if (extraCount > 0)
                     Positioned(
                       bottom: 8,
@@ -128,10 +134,27 @@ class PortfolioCard extends StatelessWidget {
     );
   }
 
-  String _resolveImage(List<String> images) {
-    if (images.isEmpty) return '';
-    final image = images.first;
-    if (image.startsWith('http')) return image;
-    return AppUrls.imageLink(image);
+  Future<void> _openPortfolio(BuildContext context) async {
+    final youtubeUrl = portfolio.youtubeUrl?.trim();
+    if (portfolio.hasVideo && youtubeUrl != null && youtubeUrl.isNotEmpty) {
+      final uri = Uri.parse(youtubeUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+      return;
+    }
+
+    if (portfolio.images.isEmpty) return;
+
+    if (!context.mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PortfolioGalleryScreen(
+          images: portfolio.images,
+          title: portfolio.description,
+        ),
+      ),
+    );
   }
 }

@@ -210,6 +210,10 @@ class AppStrings {
   static const addPortfolioImages = 'addPortfolioImages';
   static const portfolioDescriptionHint = 'portfolioDescriptionHint';
   static const portfolioValidation = 'portfolioValidation';
+  static const portfolioVideoValidation = 'portfolioVideoValidation';
+  static const portfolioPhotos = 'portfolioPhotos';
+  static const portfolioVideo = 'portfolioVideo';
+  static const addPortfolioVideo = 'addPortfolioVideo';
   static const portfolioSaved = 'portfolioSaved';
   static const portfolioEmpty = 'portfolioEmpty';
   static const deletePortfolio = 'deletePortfolio';

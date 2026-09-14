@@ -100,6 +100,7 @@ class AppUrls {
   static String subscriptionsPaymentStatus(String referenceId) =>
       '/subscriptions/payments/$referenceId/status';
   static const String providerPortfolioCreate = '/providers/portofolio';
+  static const String providerPortfolioVideoCreate = '/providers/portofolio/video';
   static String providerPortfolioUpdate(String id) => '/providers/portofolio/$id';
   static String providerPortfolioDelete(String id) => '/providers/portofolio/$id';
   static const String refreshToken = '$_baseApi/auth/refresh-token';

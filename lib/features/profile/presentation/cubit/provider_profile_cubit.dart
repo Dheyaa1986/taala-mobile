@@ -86,6 +86,23 @@ class ProviderProfileCubit extends Cubit<ProviderProfileState> {
     );
   }
 
+  Future<String?> createPortfolioVideo({
+    required String description,
+    required File video,
+  }) async {
+    final result = await _repository.createPortfolioVideo(
+      description: description,
+      video: video,
+    );
+    return result.fold(
+      (error) => error.message,
+      (_) {
+        refresh();
+        return null;
+      },
+    );
+  }
+
   Future<String?> deletePortfolio(String portfolioId) async {
     final result = await _repository.deletePortfolio(portfolioId);
     return result.fold(
