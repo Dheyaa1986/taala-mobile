@@ -321,6 +321,29 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
+  Future<void> _confirmCancelOrder() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.cancelOrder.tr()),
+        content: Text(AppStrings.cancelOrderConfirm.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppStrings.cancel.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppStrings.cancelOrder.tr()),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await _updateStatus('cancelled');
+    }
+  }
+
   Future<void> _updateStatus(String status, {double? agreedPrice}) async {
     final result = await _repository.updateStatus(
       orderId: widget.orderId,
@@ -706,7 +729,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 if (!_isProvider && order?.status == 'pending') ...[
-                  if (order?.agreedPrice == null)
+                  if (order?.agreedPrice == null) ...[
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 12),
                       child: Text(
@@ -718,6 +741,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         ),
                       ),
                     ),
+                    12.height,
+                    Padding(
+                      padding: REdgeInsets.symmetric(horizontal: 12),
+                      child: CustomButton.outlined(
+                        text: AppStrings.cancelOrder.tr(),
+                        onTap: _confirmCancelOrder,
+                      ),
+                    ),
+                  ],
                   if (order?.agreedPrice != null) ...[
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 12),
@@ -739,7 +771,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           Expanded(
                             child: CustomButton.outlined(
                               text: AppStrings.cancelOrder.tr(),
-                              onTap: () => _updateStatus('cancelled'),
+                              onTap: _confirmCancelOrder,
                             ),
                           ),
                           12.width,
@@ -755,13 +787,48 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   ],
                 ],
                 if (!_isProvider &&
-                    (order?.status == 'arrived' ||
-                        order?.status == 'accepted'))
+                    (order?.status == 'accepted' ||
+                        order?.status == 'en_route')) ...[
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.filled(
-                      text: AppStrings.completeOrder.tr(),
-                      onTap: () => _updateStatus('completed'),
+                    child: Text(
+                      AppStrings.cancelOrderActiveHint.tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: AppColors.commentColor,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  12.height,
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: CustomButton.outlined(
+                      text: AppStrings.cancelOrder.tr(),
+                      onTap: _confirmCancelOrder,
+                    ),
+                  ),
+                ],
+                if (!_isProvider && order?.status == 'arrived')
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomButton.outlined(
+                            text: AppStrings.cancelOrder.tr(),
+                            onTap: _confirmCancelOrder,
+                          ),
+                        ),
+                        12.width,
+                        Expanded(
+                          child: CustomButton.filled(
+                            text: AppStrings.completeOrder.tr(),
+                            onTap: () => _updateStatus('completed'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 Padding(

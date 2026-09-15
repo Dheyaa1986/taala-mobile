@@ -265,6 +265,8 @@
   "startTrip": "بدء التوجه للعميل",
   "arrived": "وصلت",
   "cancelOrder": "إلغاء الطلب",
+  "cancelOrderConfirm": "هل تريد إلغاء هذا الطلب؟ يمكنك طلب خدمة جديدة بعد الإلغاء.",
+  "cancelOrderActiveHint": "إذا تأخر المزود أو لم يكمل الخدمة، يمكنك إلغاء الطلب والبحث عن مزود آخر.",
   "rejectOrder": "رفض الطلب",
   "orderCancelledByProvider": "رفض المزود طلبك",
   "writeMessage": "اكتب رسالة...",

@@ -249,6 +249,8 @@
   "startTrip": "Start trip",
   "arrived": "Arrived",
   "cancelOrder": "Cancel order",
+  "cancelOrderConfirm": "Cancel this request? You can place a new one after cancellation.",
+  "cancelOrderActiveHint": "If the provider is delayed or did not complete the service, you can cancel and search for another provider.",
   "rejectOrder": "Reject order",
   "orderCancelledByProvider": "The provider rejected your request",
   "approveOrder": "Approve agreement",

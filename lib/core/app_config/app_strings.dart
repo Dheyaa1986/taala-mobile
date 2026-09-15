@@ -308,6 +308,8 @@ class AppStrings {
   static const String startTrip = 'startTrip';
   static const String arrived = 'arrived';
   static const String cancelOrder = 'cancelOrder';
+  static const String cancelOrderConfirm = 'cancelOrderConfirm';
+  static const String cancelOrderActiveHint = 'cancelOrderActiveHint';
   static const String rejectOrder = 'rejectOrder';
   static const String orderCancelledByProvider = 'orderCancelledByProvider';
   static const String writeMessage = 'writeMessage';
