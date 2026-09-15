@@ -14,12 +14,16 @@ class OrderTrackingMap extends StatefulWidget {
     required this.clientLongitude,
     this.providerLatitude,
     this.providerLongitude,
+    this.destinationLatitude,
+    this.destinationLongitude,
   });
 
   final double clientLatitude;
   final double clientLongitude;
   final double? providerLatitude;
   final double? providerLongitude;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
 
   @override
   State<OrderTrackingMap> createState() => _OrderTrackingMapState();
@@ -28,7 +32,8 @@ class OrderTrackingMap extends StatefulWidget {
 class _OrderTrackingMapState extends State<OrderTrackingMap> {
   final _mapController = MapController();
   final _routing = getIt<OsrmRoutingService>();
-  List<LatLng> _routePoints = [];
+  List<LatLng> _providerRoutePoints = [];
+  List<LatLng> _destinationRoutePoints = [];
   bool _loadingRoute = false;
   LatLng? _lastRouteFrom;
 
@@ -36,7 +41,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadRoute();
+      _loadRoutes();
       _fitCamera();
     });
   }
@@ -47,8 +52,11 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
     final providerChanged =
         oldWidget.providerLatitude != widget.providerLatitude ||
             oldWidget.providerLongitude != widget.providerLongitude;
-    if (providerChanged) {
-      _loadRoute();
+    final destinationChanged =
+        oldWidget.destinationLatitude != widget.destinationLatitude ||
+            oldWidget.destinationLongitude != widget.destinationLongitude;
+    if (providerChanged || destinationChanged) {
+      _loadRoutes();
       _fitCamera();
     }
   }
@@ -63,41 +71,71 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
     return LatLng(widget.providerLatitude!, widget.providerLongitude!);
   }
 
+  LatLng? get _destinationPoint {
+    if (widget.destinationLatitude == null ||
+        widget.destinationLongitude == null) {
+      return null;
+    }
+    return LatLng(widget.destinationLatitude!, widget.destinationLongitude!);
+  }
+
   bool _shouldRefetchRoute(LatLng from) {
     if (_lastRouteFrom == null) return true;
     const distance = Distance();
     return distance(_lastRouteFrom!, from) > 80;
   }
 
-  Future<void> _loadRoute() async {
+  Future<void> _loadRoutes() async {
     final provider = _providerPoint;
-    if (provider == null) {
+    final destination = _destinationPoint;
+    if (provider == null && destination == null) {
       if (mounted) {
         setState(() {
-          _routePoints = [];
+          _providerRoutePoints = [];
+          _destinationRoutePoints = [];
           _loadingRoute = false;
         });
       }
       return;
     }
 
-    if (!_shouldRefetchRoute(provider)) return;
-
     setState(() => _loadingRoute = true);
-    final points = await _routing.fetchDrivingRoute(provider, _clientPoint);
+
+    List<LatLng> providerRoute = [];
+    List<LatLng> destinationRoute = [];
+
+    if (provider != null && _shouldRefetchRoute(provider)) {
+      providerRoute = await _routing.fetchDrivingRoute(provider, _clientPoint);
+    } else if (provider != null) {
+      providerRoute = _providerRoutePoints;
+    }
+
+    if (destination != null) {
+      destinationRoute =
+          await _routing.fetchDrivingRoute(_clientPoint, destination);
+    }
+
     if (!mounted) return;
     setState(() {
-      _routePoints = points;
+      if (provider != null && _shouldRefetchRoute(provider)) {
+        _providerRoutePoints = providerRoute;
+        _lastRouteFrom = provider;
+      }
+      _destinationRoutePoints = destinationRoute;
       _loadingRoute = false;
-      _lastRouteFrom = provider;
     });
   }
 
   void _fitCamera() {
     final provider = _providerPoint;
+    final destination = _destinationPoint;
     final points = <LatLng>[_clientPoint];
     if (provider != null) points.add(provider);
-    if (_routePoints.isNotEmpty) points.addAll(_routePoints);
+    if (destination != null) points.add(destination);
+    if (_providerRoutePoints.isNotEmpty) points.addAll(_providerRoutePoints);
+    if (_destinationRoutePoints.isNotEmpty) {
+      points.addAll(_destinationRoutePoints);
+    }
 
     if (points.length == 1) {
       _mapController.move(_clientPoint, 15);
@@ -115,8 +153,9 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
   @override
   Widget build(BuildContext context) {
     final provider = _providerPoint;
-    final routePolyline = _routePoints.isNotEmpty
-        ? _routePoints
+    final destination = _destinationPoint;
+    final providerPolyline = _providerRoutePoints.isNotEmpty
+        ? _providerRoutePoints
         : provider != null
             ? [provider, _clientPoint]
             : <LatLng>[];
@@ -143,13 +182,24 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
                   userAgentPackageName: MapStyleConfig.userAgentPackageName,
                   maxZoom: 19,
                 ),
-                if (routePolyline.length >= 2)
+                if (providerPolyline.length >= 2)
                   PolylineLayer(
                     polylines: [
                       Polyline(
-                        points: routePolyline,
+                        points: providerPolyline,
                         color: AppColors.primaryColor,
                         strokeWidth: 5,
+                      ),
+                    ],
+                  ),
+                if (_destinationRoutePoints.length >= 2)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: _destinationRoutePoints,
+                        color: Colors.green.shade700,
+                        strokeWidth: 4,
+                        pattern: StrokePattern.dashed(segments: [8, 10]),
                       ),
                     ],
                   ),
@@ -160,8 +210,8 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
                       width: 44,
                       height: 44,
                       child: const Icon(
-                        Icons.home_rounded,
-                        color: Colors.blue,
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange,
                         size: 34,
                       ),
                     ),
@@ -173,6 +223,17 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
                         child: Icon(
                           Icons.local_shipping_rounded,
                           color: AppColors.primaryColor,
+                          size: 34,
+                        ),
+                      ),
+                    if (destination != null)
+                      Marker(
+                        point: destination,
+                        width: 44,
+                        height: 44,
+                        child: Icon(
+                          Icons.flag_rounded,
+                          color: Colors.green.shade700,
                           size: 34,
                         ),
                       ),

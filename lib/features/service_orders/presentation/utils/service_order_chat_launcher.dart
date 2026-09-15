@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/app_router.dart';
 import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -12,12 +11,14 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
+import 'package:taal/features/service_orders/presentation/utils/towing_order_locations.dart';
 
 class ServiceOrderChatLauncher {
   static Future<void> startChat({
     required ServiceProviderModel provider,
     required String serviceTypeId,
     required String description,
+    String? serviceCategoryCode,
     int sheetsToClose = 0,
   }) async {
     final hasSession = await AuthSessionHelper.hasActiveSession();
@@ -49,6 +50,21 @@ class ServiceOrderChatLauncher {
     final lat = await prefs.get(key: PrefsKeys.clientLocationLat);
     final lng = await prefs.get(key: PrefsKeys.clientLocationLng);
 
+    String? destinationAddress;
+    double? destinationLatitude;
+    double? destinationLongitude;
+    if (TowingOrderLocations.isTowingCategory(serviceCategoryCode)) {
+      final destination =
+          await TowingOrderLocations.readDestinationFromPrefs(prefs);
+      if (destination == null) {
+        _showMessage(AppStrings.towingDestinationRequired.tr());
+        return;
+      }
+      destinationAddress = destination.address;
+      destinationLatitude = destination.latitude;
+      destinationLongitude = destination.longitude;
+    }
+
     final result = await getIt<ServiceOrderRepository>().createOrder(
       serviceTypeId: serviceTypeId,
       description: description.trim().isEmpty
@@ -58,6 +74,9 @@ class ServiceOrderChatLauncher {
       clientAddress: address is String ? address : null,
       clientLatitude: lat is String ? double.tryParse(lat) : null,
       clientLongitude: lng is String ? double.tryParse(lng) : null,
+      destinationAddress: destinationAddress,
+      destinationLatitude: destinationLatitude,
+      destinationLongitude: destinationLongitude,
     );
 
     result.fold(

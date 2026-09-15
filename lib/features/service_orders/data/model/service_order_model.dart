@@ -36,6 +36,9 @@ class ServiceOrderModel {
   final String? clientAddress;
   final double? clientLatitude;
   final double? clientLongitude;
+  final String? destinationAddress;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
   final double? agreedPrice;
   final double? distanceKm;
   final int? etaMinutes;
@@ -51,6 +54,9 @@ class ServiceOrderModel {
     this.clientAddress,
     this.clientLatitude,
     this.clientLongitude,
+    this.destinationAddress,
+    this.destinationLatitude,
+    this.destinationLongitude,
     this.agreedPrice,
     this.distanceKm,
     this.etaMinutes,
@@ -69,6 +75,11 @@ class ServiceOrderModel {
       clientAddress: json['clientAddress']?.toString(),
       clientLatitude: ApiResponseHelper.parseDouble(json['clientLatitude']),
       clientLongitude: ApiResponseHelper.parseDouble(json['clientLongitude']),
+      destinationAddress: json['destinationAddress']?.toString(),
+      destinationLatitude:
+          ApiResponseHelper.parseDouble(json['destinationLatitude']),
+      destinationLongitude:
+          ApiResponseHelper.parseDouble(json['destinationLongitude']),
       agreedPrice: ApiResponseHelper.parseDouble(json['agreedPrice']),
       distanceKm: ApiResponseHelper.parseDouble(json['distanceKm']),
       etaMinutes: ApiResponseHelper.parseInt(json['etaMinutes']),

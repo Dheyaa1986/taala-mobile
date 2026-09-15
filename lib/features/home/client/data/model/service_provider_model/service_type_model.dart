@@ -5,6 +5,7 @@ class ServiceTypeModel {
   final String? categoryId;
   final String? categoryCode;
   final String? categoryName;
+  final bool isEnabled;
 
   const ServiceTypeModel({
     this.id,
@@ -13,6 +14,7 @@ class ServiceTypeModel {
     this.categoryId,
     this.categoryCode,
     this.categoryName,
+    this.isEnabled = true,
   });
 
   int? get profileId => int.tryParse(id ?? '');
@@ -27,6 +29,16 @@ class ServiceTypeModel {
       categoryName: json['categoryName']?.toString() ??
           json['categoryNameAr']?.toString() ??
           json['categoryNameEn']?.toString(),
+      isEnabled: _parseIsEnabled(json['isEnabled']),
     );
+  }
+
+  static bool _parseIsEnabled(dynamic value) {
+    if (value == null) return true;
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    final normalized = value.toString().trim().toLowerCase();
+    if (normalized == 'false' || normalized == '0') return false;
+    return true;
   }
 }

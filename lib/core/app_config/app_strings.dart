@@ -232,6 +232,14 @@ class AppStrings {
   static const String clientHomeWelcome = 'clientHomeWelcome';
   static const String clientHomeSubtitle = 'clientHomeSubtitle';
   static const String myLocation = 'myLocation';
+  static const String breakdownLocation = 'breakdownLocation';
+  static const String destinationLocation = 'destinationLocation';
+  static const String destinationLocationHint = 'destinationLocationHint';
+  static const String destinationLocationSaved = 'destinationLocationSaved';
+  static const String towingDestinationRequired = 'towingDestinationRequired';
+  static const String serviceAvailable = 'serviceAvailable';
+  static const String serviceComingSoon = 'serviceComingSoon';
+  static const String serviceUnavailable = 'serviceUnavailable';
   static const String locationSaved = 'locationSaved';
   static const String guestMapTitle = 'guestMapTitle';
   static const String guestMapHint = 'guestMapHint';

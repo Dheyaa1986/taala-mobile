@@ -29,19 +29,34 @@ class ServiceOrderLocationSummary extends StatelessWidget {
 
   int? get _etaMinutes => tracking?.etaMinutes ?? order.etaMinutes;
 
-  String? get _areaLabel {
+  String? get _breakdownAddress {
     final address = order.clientAddress?.trim();
     if (address == null || address.isEmpty) return null;
     return address;
   }
 
+  String? get _destinationAddress {
+    final address = order.destinationAddress?.trim();
+    if (address == null || address.isEmpty) return null;
+    return address;
+  }
+
+  bool get _hasTowingDestination =>
+      order.destinationLatitude != null &&
+      order.destinationLongitude != null &&
+      _destinationAddress != null;
+
   @override
   Widget build(BuildContext context) {
     final distance = _distanceLabel;
-    final area = _areaLabel;
+    final breakdown = _breakdownAddress;
+    final destination = _hasTowingDestination ? _destinationAddress : null;
     final eta = _etaMinutes;
 
-    if (distance == null && area == null && eta == null) {
+    if (distance == null &&
+        breakdown == null &&
+        destination == null &&
+        eta == null) {
       return const SizedBox.shrink();
     }
 
@@ -60,10 +75,22 @@ class ServiceOrderLocationSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (area != null) ...[
+        if (breakdown != null) ...[
           _SummaryRow(
-            label: AppStrings.region.tr(),
-            value: area,
+            label: _hasTowingDestination
+                ? AppStrings.breakdownLocation.tr()
+                : AppStrings.region.tr(),
+            value: breakdown,
+            labelStyle: textStyle,
+            valueStyle: valueStyle,
+          ),
+          if (destination != null || distance != null || eta != null)
+            (compact ? 4 : 6).height,
+        ],
+        if (destination != null) ...[
+          _SummaryRow(
+            label: AppStrings.destinationLocation.tr(),
+            value: destination,
             labelStyle: textStyle,
             valueStyle: valueStyle,
           ),

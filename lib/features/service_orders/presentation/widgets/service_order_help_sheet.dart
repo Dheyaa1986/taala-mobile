@@ -16,12 +16,14 @@ import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
+import 'package:taal/features/service_orders/presentation/utils/towing_order_locations.dart';
 
 Future<void> showServiceOrderHelpSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -76,10 +78,40 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
     return result.fold((_) => null, (profile) => profile.id);
   }
 
+  ServiceTypeModel? _selectedServiceType() {
+    for (final category in _serviceCatalog) {
+      for (final type in category.serviceTypes) {
+        if (type.id == _selectedServiceTypeId) {
+          return type;
+        }
+      }
+    }
+    return null;
+  }
+
+  String? _categoryCodeForSelectedType() {
+    final selected = _selectedServiceType();
+    if (selected == null) return null;
+    for (final category in _serviceCatalog) {
+      if (category.serviceTypes.any((type) => type.id == selected.id)) {
+        return selected.categoryCode ?? category.code;
+      }
+    }
+    return selected.categoryCode;
+  }
+
   Future<void> _requestHelp() async {
     if (_selectedServiceTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.selectServiceType.tr())),
+      );
+      return;
+    }
+
+    final selectedType = _selectedServiceType();
+    if (selectedType != null && !selectedType.isEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.serviceUnavailable.tr())),
       );
       return;
     }
@@ -120,6 +152,20 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
 
     final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
     if (!allowed || !mounted) return;
+
+    final categoryCode = _categoryCodeForSelectedType();
+    if (TowingOrderLocations.isTowingCategory(categoryCode)) {
+      final destination = await TowingOrderLocations.readDestinationFromPrefs(
+        getIt<SharedPref>(),
+      );
+      if (destination == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.towingDestinationRequired.tr())),
+        );
+        return;
+      }
+    }
 
     setState(() => _submitting = true);
 
@@ -172,6 +218,7 @@ class _ServiceOrderHelpSheetState extends State<ServiceOrderHelpSheet> {
         await ServiceOrderChatLauncher.startChat(
           provider: providers.first,
           serviceTypeId: _selectedServiceTypeId!,
+          serviceCategoryCode: categoryCode,
           description: AppStrings.chatRequestDefault.tr(),
           sheetsToClose: 1,
         );

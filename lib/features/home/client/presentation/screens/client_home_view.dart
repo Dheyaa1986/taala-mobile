@@ -43,13 +43,19 @@ class _ClientHomeViewState extends State<ClientHomeView> {
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
   PickedLocation? _pickedLocation;
+  PickedLocation? _destinationLocation;
   IraqGovernorate? _selectedGovernorate;
   bool _loadingGps = false;
 
   @override
   void initState() {
     super.initState();
-    _loadSavedLocation();
+    _loadSavedLocations();
+  }
+
+  Future<void> _loadSavedLocations() async {
+    await _loadSavedLocation();
+    await _loadSavedDestination();
   }
 
   Future<void> _loadSavedLocation() async {
@@ -88,7 +94,35 @@ class _ClientHomeViewState extends State<ClientHomeView> {
         );
       } catch (_) {}
     }
-    setState(() {});
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadSavedDestination() async {
+    final prefs = getIt<SharedPref>();
+    final address = await prefs.get(key: PrefsKeys.destinationLocationAddress);
+    final mapLink = await prefs.get(key: PrefsKeys.destinationLocationMapLink);
+    final lat = await prefs.get(key: PrefsKeys.destinationLocationLat);
+    final lng = await prefs.get(key: PrefsKeys.destinationLocationLng);
+    if (!mounted) return;
+    if (lat is String && lng is String) {
+      final parsedLat = double.tryParse(lat);
+      final parsedLng = double.tryParse(lng);
+      if (parsedLat != null && parsedLng != null) {
+        _destinationLocation = PickedLocation(
+          latitude: parsedLat,
+          longitude: parsedLng,
+          address: address is String ? address : null,
+        );
+      }
+    } else if (mapLink is String && mapLink.isNotEmpty) {
+      try {
+        _destinationLocation = PickedLocation.fromGoogleMapsUrl(
+          mapLink,
+          address: address is String ? address : null,
+        );
+      } catch (_) {}
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _useCurrentLocation() async {
@@ -160,6 +194,45 @@ class _ClientHomeViewState extends State<ClientHomeView> {
     _saveLocation();
   }
 
+  Future<void> _saveDestination({bool showSuccess = false}) async {
+    if (_destinationLocation == null) {
+      if (!_formKey.currentState!.validate()) return;
+    } else if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final prefs = getIt<SharedPref>();
+    await prefs.set(
+      key: PrefsKeys.destinationLocationAddress,
+      value: _destinationLocation?.address?.trim() ?? '',
+    );
+    if (_destinationLocation != null) {
+      await prefs.set(
+        key: PrefsKeys.destinationLocationMapLink,
+        value: _destinationLocation!.googleMapsUrl,
+      );
+      await prefs.set(
+        key: PrefsKeys.destinationLocationLat,
+        value: _destinationLocation!.lat,
+      );
+      await prefs.set(
+        key: PrefsKeys.destinationLocationLng,
+        value: _destinationLocation!.lng,
+      );
+    }
+    if (mounted && showSuccess) {
+      AppMessages.showSuccess(
+        context,
+        AppStrings.destinationLocationSaved.tr(),
+      );
+    }
+  }
+
+  void _onDestinationPicked(PickedLocation location) {
+    setState(() => _destinationLocation = location);
+    _saveDestination();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -169,13 +242,16 @@ class _ClientHomeViewState extends State<ClientHomeView> {
       child: _ClientHomeBody(
         formKey: _formKey,
         pickedLocation: _pickedLocation,
+        destinationLocation: _destinationLocation,
         selectedGovernorate: _selectedGovernorate,
         loadingGps: _loadingGps,
         onUseCurrentLocation: _useCurrentLocation,
         onLocationPicked: _onLocationPicked,
+        onDestinationPicked: _onDestinationPicked,
         onGovernorateChanged: (value) =>
             setState(() => _selectedGovernorate = value),
         onSaveLocation: () => _saveLocation(showSuccess: true),
+        onSaveDestination: () => _saveDestination(showSuccess: true),
         initialLoad: _pickedLocation != null,
       ),
     );
@@ -186,23 +262,29 @@ class _ClientHomeBody extends StatefulWidget {
   const _ClientHomeBody({
     required this.formKey,
     required this.pickedLocation,
+    required this.destinationLocation,
     required this.selectedGovernorate,
     required this.loadingGps,
     required this.onUseCurrentLocation,
     required this.onLocationPicked,
+    required this.onDestinationPicked,
     required this.onGovernorateChanged,
     required this.onSaveLocation,
+    required this.onSaveDestination,
     required this.initialLoad,
   });
 
   final GlobalKey<FormState> formKey;
   final PickedLocation? pickedLocation;
+  final PickedLocation? destinationLocation;
   final IraqGovernorate? selectedGovernorate;
   final bool loadingGps;
   final Future<void> Function() onUseCurrentLocation;
   final void Function(PickedLocation) onLocationPicked;
+  final void Function(PickedLocation) onDestinationPicked;
   final void Function(dynamic) onGovernorateChanged;
   final VoidCallback onSaveLocation;
+  final VoidCallback onSaveDestination;
   final bool initialLoad;
 
   @override
@@ -346,7 +428,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            AppStrings.myLocation.tr(),
+                            AppStrings.breakdownLocation.tr(),
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.w700,
@@ -379,6 +461,42 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                           CustomButton.outlined(
                             text: AppStrings.save.tr(),
                             onTap: widget.onSaveLocation,
+                          ),
+                        ],
+                      ),
+                    ),
+                    16.height,
+                    YellowHighlightCard(
+                      isHighlighted: true,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            AppStrings.destinationLocation.tr(),
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.lightMainText,
+                            ),
+                          ),
+                          6.height,
+                          Text(
+                            AppStrings.destinationLocationHint.tr(),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.commentColor,
+                              height: 1.4,
+                            ),
+                          ),
+                          12.height,
+                          MapLocationPickerField(
+                            value: widget.destinationLocation,
+                            onChanged: widget.onDestinationPicked,
+                          ),
+                          12.height,
+                          CustomButton.outlined(
+                            text: AppStrings.save.tr(),
+                            onTap: widget.onSaveDestination,
                           ),
                         ],
                       ),

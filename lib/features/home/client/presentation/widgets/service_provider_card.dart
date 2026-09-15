@@ -88,10 +88,19 @@ class ServiceProviderCard extends StatelessWidget {
       selected = picked;
     }
 
+    if (!selected.isEnabled) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.serviceUnavailable.tr())),
+      );
+      return;
+    }
+
     if (!context.mounted) return;
     await ServiceOrderChatLauncher.startChat(
       provider: model,
       serviceTypeId: selected.id!,
+      serviceCategoryCode: selected.categoryCode,
       description: AppStrings.chatRequestDefault.tr(),
     );
   }

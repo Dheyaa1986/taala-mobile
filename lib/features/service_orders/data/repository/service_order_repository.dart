@@ -13,6 +13,9 @@ abstract class ServiceOrderRepository {
     String? clientAddress,
     double? clientLatitude,
     double? clientLongitude,
+    String? destinationAddress,
+    double? destinationLatitude,
+    double? destinationLongitude,
     String? providerId,
   });
 
@@ -55,6 +58,9 @@ class ServiceOrderRepositoryImpl extends Repository
     String? clientAddress,
     double? clientLatitude,
     double? clientLongitude,
+    String? destinationAddress,
+    double? destinationLatitude,
+    double? destinationLongitude,
     String? providerId,
   }) {
     return exceptionHandler(() async {
@@ -68,6 +74,12 @@ class ServiceOrderRepositoryImpl extends Repository
             if (clientAddress != null) 'clientAddress': clientAddress,
             if (clientLatitude != null) 'clientLatitude': clientLatitude,
             if (clientLongitude != null) 'clientLongitude': clientLongitude,
+            if (destinationAddress != null)
+              'destinationAddress': destinationAddress,
+            if (destinationLatitude != null)
+              'destinationLatitude': destinationLatitude,
+            if (destinationLongitude != null)
+              'destinationLongitude': destinationLongitude,
             if (providerId != null) 'providerId': providerId,
           },
         ),

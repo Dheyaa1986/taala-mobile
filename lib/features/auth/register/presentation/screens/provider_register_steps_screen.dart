@@ -122,6 +122,18 @@ class _ProviderRegisterStepsScreenState
         AppMessages.showError(context, AppStrings.selectServiceType.tr());
         return;
       }
+      final hasDisabledSelection = _serviceCatalog.any(
+        (category) => category.serviceTypes.any(
+          (type) =>
+              type.id != null &&
+              _selectedServiceTypeIds.contains(type.id) &&
+              !type.isEnabled,
+        ),
+      );
+      if (hasDisabledSelection) {
+        AppMessages.showError(context, AppStrings.serviceUnavailable.tr());
+        return;
+      }
     }
     if (_step == 1) {
       final description = _descriptionController.text.trim();

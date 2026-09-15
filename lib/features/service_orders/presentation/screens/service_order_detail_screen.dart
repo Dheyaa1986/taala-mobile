@@ -642,6 +642,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           providerLongitude: order.status == 'pending'
                               ? null
                               : _mapProviderLng,
+                          destinationLatitude: order.destinationLatitude,
+                          destinationLongitude: order.destinationLongitude,
                         ),
                         if (order.status != 'pending' &&
                             _canOpenExternalMaps(order)) ...[

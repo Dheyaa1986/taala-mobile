@@ -14,6 +14,12 @@ class PrefsKeys {
   static const String clientLocationLat = 'client_location_lat';
   static const String clientLocationLng = 'client_location_lng';
   static const String clientLocationGovernorate = 'client_location_governorate';
+  static const String destinationLocationAddress =
+      'destination_location_address';
+  static const String destinationLocationMapLink =
+      'destination_location_map_link';
+  static const String destinationLocationLat = 'destination_location_lat';
+  static const String destinationLocationLng = 'destination_location_lng';
   static const String appAlertSoundEnabled = 'app_alert_sound_enabled';
   static const String appAlertSoundVolume = 'app_alert_sound_volume';
   static const String appAlertVibrationEnabled = 'app_alert_vibration_enabled';
