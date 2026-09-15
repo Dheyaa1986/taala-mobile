@@ -23,6 +23,7 @@ import '../../../../../core/widgets/buttons/custom_button.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../../../core/widgets/fields/password_field.dart';
 import '../../../../../core/widgets/texts/clickable_text_widget.dart';
+import '../../../../app_info/presentation/widgets/legal_consent_checkbox.dart';
 import '../../../select_role/widgets/role_list_tile.dart';
 import '../../../widgets/auth_header_widget.dart';
 import '../../data/model/register_options.dart';
@@ -46,6 +47,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
   CountryModel? _country;
   UserRole? _role;
+  bool _legalConsentAccepted = false;
 
   void _register() {
     FocusManager.instance.primaryFocus?.unfocus();
@@ -54,6 +56,10 @@ class _RegisterFormState extends State<RegisterForm> {
       return;
     }
     if (!_formKey.currentState!.validate()) return;
+    if (!_legalConsentAccepted) {
+      AppMessages.showError(context, AppStrings.legalConsentRequired.tr());
+      return;
+    }
 
     final countriesState = context.read<CountriesCubit>().state;
     final selectedCountry = countriesState is CountriesLoaded
@@ -246,7 +252,13 @@ class _RegisterFormState extends State<RegisterForm> {
                           confirmPassword, _passwordController.text);
                     },
                   ),
-                  68.height,
+                  16.height,
+                  LegalConsentCheckbox(
+                    value: _legalConsentAccepted,
+                    onChanged: (value) =>
+                        setState(() => _legalConsentAccepted = value),
+                  ),
+                  24.height,
                   CustomButton.filled(
                     text: AppStrings.next.tr(),
                     isBackgroundGradient: false,

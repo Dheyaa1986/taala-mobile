@@ -15,6 +15,8 @@ import 'package:taal/features/profile/presentation/widgets/conversation_history_
 import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
+import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
+import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_tile.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 
 class ProviderSettingsScreen extends StatelessWidget {
@@ -56,6 +58,24 @@ class ProviderSettingsScreen extends StatelessWidget {
             title: AppStrings.rateApp,
             onTap: () => showRateAppSheet(context),
           ),
+          16.height,
+          SettingsTile(
+            title: AppStrings.termsAndConditions,
+            onTap: () => context.pushNamed(
+              Routes.legalDocument,
+              extra: LegalDocumentType.terms,
+            ),
+          ),
+          16.height,
+          SettingsTile(
+            title: AppStrings.privacyPolicy,
+            onTap: () => context.pushNamed(
+              Routes.legalDocument,
+              extra: LegalDocumentType.privacy,
+            ),
+          ),
+          16.height,
+          const SupportWhatsAppTile(),
           _divider(),
           SettingsTile(
             title: AppStrings.deleteAccount,

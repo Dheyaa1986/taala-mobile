@@ -39,6 +39,7 @@ import '../../features/auth/login/presentation/cubit/login_cubit/login_cubit.dar
 import '../../features/auth/register/data/repository/register_repository.dart';
 import '../../features/auth/register/data/repository/register_repository_impl.dart';
 import '../../features/auth/register/presentation/cubit/register_cubit.dart';
+import '../../features/app_info/data/repository/app_public_info_repository.dart';
 import '../../features/service_orders/data/repository/service_order_repository.dart';
 import '../../features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import '../countries/data/services/countries_services.dart';
@@ -142,6 +143,8 @@ void _initRepositories() {
       () => SupportTicketRepository());
   getIt.registerLazySingleton<ServiceOrderRepository>(
       () => ServiceOrderRepositoryImpl());
+  getIt.registerLazySingleton<AppPublicInfoRepository>(
+      () => AppPublicInfoRepositoryImpl());
   getIt.registerLazySingleton<ActiveOrderRefreshNotifier>(
     () => ActiveOrderRefreshNotifier(),
   );

@@ -133,15 +133,26 @@ class CustomLauncher {
     }
   }
 
-  Future<void> openWhatsApp(String phone) async {
+  Future<void> openWhatsApp(String phone, {String? message}) async {
     final digits = PhoneLauncherHelper.forWhatsApp(phone);
     if (digits.isEmpty) {
       _showErrorToast("Can't open whatsapp");
       return;
     }
 
-    final webUrl = Uri.parse('https://wa.me/$digits');
-    final appUrl = Uri.parse('whatsapp://send?phone=$digits');
+    final encodedMessage = message != null && message.trim().isNotEmpty
+        ? Uri.encodeComponent(message.trim())
+        : null;
+    final webUrl = Uri.parse(
+      encodedMessage != null
+          ? 'https://wa.me/$digits?text=$encodedMessage'
+          : 'https://wa.me/$digits',
+    );
+    final appUrl = Uri.parse(
+      encodedMessage != null
+          ? 'whatsapp://send?phone=$digits&text=$encodedMessage'
+          : 'whatsapp://send?phone=$digits',
+    );
 
     try {
       if (Platform.isIOS) {

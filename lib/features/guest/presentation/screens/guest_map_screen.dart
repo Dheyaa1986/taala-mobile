@@ -25,6 +25,7 @@ import 'package:taal/features/guest/presentation/widgets/guest_help_request_shee
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_map_point.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
+import 'package:taal/features/app_info/presentation/widgets/legal_links_row.dart';
 import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 
 class GuestMapScreen extends StatefulWidget {
@@ -283,6 +284,12 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                 ),
               ],
             ),
+          ),
+          Positioned(
+            left: 16.w,
+            right: 16.w,
+            bottom: MediaQuery.sizeOf(context).height * 0.40 + 8.h,
+            child: const LegalLinksRow(),
           ),
           Positioned(
             right: 16.w,

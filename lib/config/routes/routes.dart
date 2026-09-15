@@ -26,4 +26,5 @@ class Routes {
   static const String providerSubscription = '/providerSubscription';
   static const String providerSubscriptionRequired =
       '/providerSubscriptionRequired';
+  static const String legalDocument = '/legal-document';
 }

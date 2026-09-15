@@ -18,6 +18,8 @@ import 'package:taal/features/rating/client/presentation/screen/client_rating_sc
 import 'package:taal/features/rating/presentation/screens/provider_my_ratings_screen.dart';
 import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
+import 'package:taal/features/app_info/presentation/screens/legal_document_screen.dart';
 import 'package:taal/features/guest/presentation/screens/guest_map_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
@@ -247,6 +249,19 @@ class AppRouter {
             child: const RegisterScreen(),
           ),
           routes: const [],
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.legalDocument,
+          name: Routes.legalDocument,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: LegalDocumentScreen(
+              documentType: state.extra as LegalDocumentType? ??
+                  LegalDocumentType.terms,
+            ),
+          ),
         ),
         GoRoute(
           parentNavigatorKey: appNavigatorKey,

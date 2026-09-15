@@ -51,6 +51,7 @@ class ProviderSubscriptionGate {
         location == Routes.selectRoleScreen ||
         location == Routes.providerRegisterSteps ||
         location == Routes.registrationOtp ||
+        location == Routes.legalDocument ||
         location == Routes.providerSubscriptionRequired;
   }
 }

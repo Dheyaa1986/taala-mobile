@@ -225,6 +225,13 @@ class AppStrings {
   static const ratingSubmitted = 'ratingSubmitted';
   static const profileTitle = 'profileTitle';
   static const retry = 'retry';
+  static const termsAndConditions = 'termsAndConditions';
+  static const privacyPolicy = 'privacyPolicy';
+  static const legalConsentPrefix = 'legalConsentPrefix';
+  static const legalConsentRequired = 'legalConsentRequired';
+  static const legalDocumentEmpty = 'legalDocumentEmpty';
+  static const contactSupportWhatsApp = 'contactSupportWhatsApp';
+  static const and = 'and';
   static const deleteAccount = 'deleteAccount';
   static const deleteAccountConfirm = 'deleteAccountConfirm';
   static const enterDescription = 'enterDescription';

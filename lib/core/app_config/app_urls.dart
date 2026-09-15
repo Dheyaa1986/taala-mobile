@@ -46,6 +46,7 @@ class AppUrls {
   static String notificationDelete(String id) =>
       '$_baseApi/notifications/$id';
   static const String supportTickets = '$_baseApi/support-tickets';
+  static const String appPublicInfo = '/app/public-info';
   static const String themesActive = '/themes/active';
   static const String countriesList = '/countries/list';
   static String governoratesList(String countryId) =>
