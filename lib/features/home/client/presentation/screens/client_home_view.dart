@@ -29,6 +29,8 @@ import 'package:taal/features/service_orders/data/repository/service_order_repos
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 import 'package:taal/features/home/client/presentation/widgets/service_provider_card.dart';
+import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_app_bar_button.dart';
+import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_fab.dart';
 import 'package:taal/features/service_orders/presentation/widgets/service_order_help_sheet.dart';
 
 class ClientHomeView extends StatefulWidget {
@@ -353,6 +355,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
               title: AppStrings.home.tr(),
               centerTitle: true,
               actions: [
+                const SupportWhatsAppAppBarButton(),
                 IconButton(
                   tooltip: AppStrings.myServiceOrders.tr(),
                   icon: const Icon(Icons.assignment_outlined),
@@ -360,6 +363,8 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                 ),
               ],
             ),
+            floatingActionButton: const SupportWhatsAppFab(),
+            floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
             body: SingleChildScrollView(
               padding: REdgeInsets.fromLTRB(
                 16,

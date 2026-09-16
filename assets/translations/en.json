@@ -194,6 +194,7 @@
   "legalConsentRequired": "Please accept the terms and privacy policy",
   "legalDocumentEmpty": "Content has not been added from the admin panel yet.",
   "contactSupportWhatsApp": "Contact support on WhatsApp",
+  "supportWhatsAppBannerHint": "Tap to chat with our support team",
   "and": "and",
   "guestMapTitle": "Where do you need help?",
   "guestMapHint": "Move the map and pin your location to see nearby providers",

@@ -26,6 +26,13 @@ class AppPublicInfoModel {
   String privacyForLocale(String languageCode) =>
       languageCode.startsWith('ar') ? privacyAr : privacyEn;
 
+  static String? _nullableString(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    if (text.isEmpty || text == 'null') return null;
+    return text;
+  }
+
   factory AppPublicInfoModel.fromJson(Map<String, dynamic> json) {
     return AppPublicInfoModel(
       termsAr: json['termsAr']?.toString() ?? '',
@@ -35,7 +42,7 @@ class AppPublicInfoModel {
       legalUpdatedAt: json['legalUpdatedAt'] != null
           ? DateTime.tryParse(json['legalUpdatedAt'].toString())
           : null,
-      supportWhatsApp: json['supportWhatsApp']?.toString(),
+      supportWhatsApp: _nullableString(json['supportWhatsApp']),
       supportWhatsAppMessage: json['supportWhatsAppMessage']?.toString() ?? '',
     );
   }

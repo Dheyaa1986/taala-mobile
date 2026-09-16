@@ -231,6 +231,7 @@ class AppStrings {
   static const legalConsentRequired = 'legalConsentRequired';
   static const legalDocumentEmpty = 'legalDocumentEmpty';
   static const contactSupportWhatsApp = 'contactSupportWhatsApp';
+  static const supportWhatsAppBannerHint = 'supportWhatsAppBannerHint';
   static const and = 'and';
   static const deleteAccount = 'deleteAccount';
   static const deleteAccountConfirm = 'deleteAccountConfirm';

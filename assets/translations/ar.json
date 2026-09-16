@@ -203,6 +203,7 @@
   "legalConsentRequired": "يرجى الموافقة على الشروط وسياسة الخصوصية",
   "legalDocumentEmpty": "لم يُضف المحتوى بعد من لوحة التحكم.",
   "contactSupportWhatsApp": "تواصل مع الدعم عبر واتساب",
+  "supportWhatsAppBannerHint": "اضغط للتواصل مع فريق الدعم مباشرة",
   "and": "و",
   "locationSaved": "تم حفظ موقعك",
   "pickLocationOnMap": "حدد الموقع على الخريطة",

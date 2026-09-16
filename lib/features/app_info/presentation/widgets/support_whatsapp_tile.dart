@@ -1,10 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/di/service_locator.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
-import 'package:taal/features/app_info/data/repository/app_public_info_repository.dart';
+import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_helper.dart';
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 
 class SupportWhatsAppTile extends StatefulWidget {
@@ -25,29 +23,23 @@ class _SupportWhatsAppTileState extends State<SupportWhatsAppTile> {
   }
 
   Future<void> _load() async {
-    final result = await getIt<AppPublicInfoRepository>().getPublicInfo();
+    final info = await SupportWhatsAppHelper.load(forceRefresh: true);
     if (!mounted) return;
-    result.fold(
-      (_) => setState(() => _loading = false),
-      (info) => setState(() {
-        _info = info;
-        _loading = false;
-      }),
-    );
+    setState(() {
+      _info = info;
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading || _info == null || !_info!.hasSupportWhatsApp) {
+    if (_loading || _info == null) {
       return const SizedBox.shrink();
     }
 
     return SettingsTile(
       title: AppStrings.contactSupportWhatsApp.tr(),
-      onTap: () => getIt<CustomLauncher>().openWhatsApp(
-        _info!.supportWhatsApp!,
-        message: _info!.supportWhatsAppMessage,
-      ),
+      onTap: () => SupportWhatsAppHelper.open(),
     );
   }
 }
