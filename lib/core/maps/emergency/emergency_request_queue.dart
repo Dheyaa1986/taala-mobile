@@ -19,6 +19,9 @@ class EmergencyRequestPayload {
     this.profileAddress,
     this.description,
     this.providerId,
+    this.destinationAddress,
+    this.destinationLatitude,
+    this.destinationLongitude,
     DateTime? queuedAt,
   }) : queuedAt = queuedAt ?? DateTime.now().toUtc();
 
@@ -34,6 +37,9 @@ class EmergencyRequestPayload {
   final String? profileAddress;
   final String? description;
   final String? providerId;
+  final String? destinationAddress;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
   final DateTime queuedAt;
 
   Map<String, dynamic> toJson() => {
@@ -49,6 +55,9 @@ class EmergencyRequestPayload {
         'profileAddress': profileAddress,
         'description': description,
         'providerId': providerId,
+        'destinationAddress': destinationAddress,
+        'destinationLatitude': destinationLatitude,
+        'destinationLongitude': destinationLongitude,
         'queuedAt': queuedAt.toIso8601String(),
       };
 
@@ -66,6 +75,9 @@ class EmergencyRequestPayload {
       profileAddress: json['profileAddress']?.toString(),
       description: json['description']?.toString(),
       providerId: json['providerId']?.toString(),
+      destinationAddress: json['destinationAddress']?.toString(),
+      destinationLatitude: (json['destinationLatitude'] as num?)?.toDouble(),
+      destinationLongitude: (json['destinationLongitude'] as num?)?.toDouble(),
       queuedAt: DateTime.tryParse(json['queuedAt']?.toString() ?? '') ??
           DateTime.now().toUtc(),
     );
@@ -89,6 +101,12 @@ class EmergencyRequestPayload {
           'description': description,
         if (providerId != null && providerId!.isNotEmpty)
           'providerId': providerId,
+        if (destinationAddress != null && destinationAddress!.trim().isNotEmpty)
+          'destinationAddress': destinationAddress,
+        if (destinationLatitude != null)
+          'destinationLatitude': destinationLatitude,
+        if (destinationLongitude != null)
+          'destinationLongitude': destinationLongitude,
       };
 
   static EmergencyRequestPayload create({
@@ -103,6 +121,9 @@ class EmergencyRequestPayload {
     String? profileAddress,
     String? description,
     String? providerId,
+    String? destinationAddress,
+    double? destinationLatitude,
+    double? destinationLongitude,
   }) {
     return EmergencyRequestPayload(
       clientRequestId: const Uuid().v4(),
@@ -117,6 +138,9 @@ class EmergencyRequestPayload {
       profileAddress: profileAddress,
       description: description,
       providerId: providerId,
+      destinationAddress: destinationAddress,
+      destinationLatitude: destinationLatitude,
+      destinationLongitude: destinationLongitude,
     );
   }
 }

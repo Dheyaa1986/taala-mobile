@@ -9,7 +9,9 @@ import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/picked_location.dart';
+import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
@@ -41,7 +43,22 @@ class _ClientHomeViewState extends State<ClientHomeView> {
   }
 
   Future<void> _loadSavedLocation() async {
-    final saved = await OrderLocationPrefs.readClient(getIt<SharedPref>());
+    var saved = await OrderLocationPrefs.readClient(getIt<SharedPref>());
+    if (saved == null) {
+      final current = await getIt<DeviceLocationService>().getCurrentLocation();
+      if (current != null) {
+        var picked = PickedLocation(
+          latitude: current.latitude,
+          longitude: current.longitude,
+        );
+        picked = await OrderLocationPrefs.ensureAddress(
+          picked,
+          getIt<ReverseGeocodingService>(),
+        );
+        await OrderLocationPrefs.saveClient(getIt<SharedPref>(), picked);
+        saved = picked;
+      }
+    }
     if (!mounted) return;
     setState(() => _clientLocation = saved);
   }

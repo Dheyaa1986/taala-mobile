@@ -25,7 +25,10 @@ import 'package:taal/features/home/provider/presentation/widgets/sheet_header.da
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
+import 'package:taal/core/maps/reverse_geocoding_service.dart';
+import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
+import 'package:taal/features/service_orders/presentation/widgets/order_destination_picker_section.dart';
 
 import '../../../../core/helpers/auth_session_helper.dart';
 
@@ -101,6 +104,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   bool _submitting = false;
   bool _otpSendSucceeded = false;
   int _step = 0;
+  PickedLocation? _destinationLocation;
 
   @override
   void initState() {
@@ -262,6 +266,18 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       return;
     }
 
+    var destination = _destinationLocation;
+    if (destination != null) {
+      destination = await OrderLocationPrefs.ensureAddress(
+        destination,
+        getIt<ReverseGeocodingService>(),
+      );
+    }
+    if (!OrderLocationPrefsValidators.isValidDestination(destination)) {
+      _showError(AppStrings.destinationRequired.tr());
+      return;
+    }
+
     setState(() => _submitting = true);
 
     if (!await ConnectivityHelper.connected) {
@@ -277,6 +293,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         profileAddress: _addressController.text,
         description: _descriptionController.text,
         providerId: widget.providerId,
+        destinationAddress: destination!.address,
+        destinationLatitude: destination.latitude,
+        destinationLongitude: destination.longitude,
       );
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -309,6 +328,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       description: _descriptionController.text,
       providerId: widget.providerId,
       otp: _otpController.text.trim(),
+      destinationAddress: destination!.address,
+      destinationLatitude: destination.latitude,
+      destinationLongitude: destination.longitude,
     );
 
     if (!mounted) return;
@@ -530,6 +552,14 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               hint: AppStrings.enterDescription.tr(),
               maxLines: 2,
             ),
+          ),
+          16.height,
+          OrderDestinationPickerSection(
+            clientLocation: widget.location,
+            destination: _destinationLocation,
+            onDestinationChanged: (location) {
+              setState(() => _destinationLocation = location);
+            },
           ),
           16.height,
         ],

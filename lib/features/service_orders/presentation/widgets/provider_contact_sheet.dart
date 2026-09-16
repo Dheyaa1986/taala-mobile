@@ -10,7 +10,9 @@ import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/cached_network_image/custom_cached_network_image.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
-import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
+import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
 
 Future<void> showProviderContactSheet(
   BuildContext context, {
@@ -56,11 +58,14 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
     if (_creatingChat) return;
     setState(() => _creatingChat = true);
 
-    await ServiceOrderChatLauncher.startChat(
-      provider: widget.provider,
-      serviceTypeId: widget.serviceTypeId,
-      description: widget.description,
-      sheetsToClose: 2,
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    context.pushNamed(
+      Routes.createServiceOrder,
+      extra: CreateServiceOrderArgs(
+        provider: widget.provider,
+        serviceTypeId: widget.serviceTypeId,
+      ),
     );
 
     if (!mounted) return;

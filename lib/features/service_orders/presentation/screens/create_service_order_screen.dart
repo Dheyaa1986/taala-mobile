@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,24 +12,29 @@ import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/location_picker_screen.dart';
 import 'package:taal/core/maps/picked_location.dart';
-import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
+import 'package:taal/core/widgets/yellow_highlight_card.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
+import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 import 'package:taal/features/profile/client/presentation/widgets/complete_profile_sheet.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
+import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
-import 'package:taal/features/service_orders/presentation/widgets/dual_location_preview_map.dart';
+import 'package:taal/features/service_orders/presentation/widgets/order_destination_picker_section.dart';
 
 class CreateServiceOrderScreen extends StatefulWidget {
-  const CreateServiceOrderScreen({super.key});
+  const CreateServiceOrderScreen({super.key, this.args});
+
+  final CreateServiceOrderArgs? args;
 
   @override
   State<CreateServiceOrderScreen> createState() =>
@@ -41,44 +44,32 @@ class CreateServiceOrderScreen extends StatefulWidget {
 class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
-  final _placeSearch = getIt<PlaceSearchService>();
-  final _destinationController = TextEditingController();
-  final _searchFocus = FocusNode();
+  final _descriptionController = TextEditingController();
 
   List<ServiceCategoryCatalogModel> _catalog = [];
   String? _selectedServiceTypeId;
   PickedLocation? _clientLocation;
   PickedLocation? _destinationLocation;
-  List<PlaceSuggestion> _suggestions = [];
   bool _loadingCatalog = true;
   bool _loadingGps = false;
-  bool _searching = false;
   bool _submitting = false;
-  bool _showMap = false;
-  Timer? _searchDebounce;
+  bool _locationPermissionDenied = false;
+
+  ServiceProviderModel? get _presetProvider => widget.args?.provider;
 
   @override
   void initState() {
     super.initState();
+    _selectedServiceTypeId = widget.args?.serviceTypeId;
     _loadCatalog();
     _initClientLocation();
     _initDestination();
-    _destinationController.addListener(_onDestinationTextChanged);
   }
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
-    _destinationController.dispose();
-    _searchFocus.dispose();
+    _descriptionController.dispose();
     super.dispose();
-  }
-
-  bool get _hasValidDestination {
-    final destination = _destinationLocation;
-    if (destination == null) return false;
-    final address = destination.address?.trim() ?? '';
-    return address.isNotEmpty;
   }
 
   Future<void> _loadCatalog() async {
@@ -98,10 +89,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   Future<void> _initClientLocation() async {
     final saved = await OrderLocationPrefs.readClient(getIt<SharedPref>());
     if (saved != null && mounted) {
-      setState(() {
-        _clientLocation = saved;
-        _showMap = true;
-      });
+      setState(() => _clientLocation = saved);
       return;
     }
     await _useCurrentLocation(silent: true);
@@ -110,20 +98,22 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   Future<void> _initDestination() async {
     final saved = await OrderLocationPrefs.readDestination(getIt<SharedPref>());
     if (saved == null || !mounted) return;
-    setState(() {
-      _destinationLocation = saved;
-      _destinationController.text = saved.address ?? '';
-      _showMap = _clientLocation != null;
-    });
+    setState(() => _destinationLocation = saved);
   }
 
   Future<void> _useCurrentLocation({bool silent = false}) async {
-    setState(() => _loadingGps = true);
+    setState(() {
+      _loadingGps = true;
+      _locationPermissionDenied = false;
+    });
     final current = await _deviceLocation.getCurrentLocation();
     if (!mounted) return;
 
     if (current == null) {
-      setState(() => _loadingGps = false);
+      setState(() {
+        _loadingGps = false;
+        _locationPermissionDenied = true;
+      });
       if (!silent) {
         AppMessages.showError(
           context,
@@ -133,24 +123,17 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
 
-    final address = await _geocoding.resolveAddress(
-      current.latitude,
-      current.longitude,
-    );
-
-    final picked = PickedLocation(
+    var picked = PickedLocation(
       latitude: current.latitude,
       longitude: current.longitude,
-      address: address,
     );
-
+    picked = await OrderLocationPrefs.ensureAddress(picked, _geocoding);
     await OrderLocationPrefs.saveClient(getIt<SharedPref>(), picked);
 
     if (!mounted) return;
     setState(() {
       _clientLocation = picked;
       _loadingGps = false;
-      _showMap = true;
     });
   }
 
@@ -160,50 +143,19 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       initial: _clientLocation,
     );
     if (result == null || !mounted) return;
-    await OrderLocationPrefs.saveClient(getIt<SharedPref>(), result);
+    final resolved = await OrderLocationPrefs.ensureAddress(result, _geocoding);
+    await OrderLocationPrefs.saveClient(getIt<SharedPref>(), resolved);
     setState(() {
-      _clientLocation = result;
-      _showMap = true;
+      _clientLocation = resolved;
+      _locationPermissionDenied = false;
     });
   }
 
-  Future<void> _pickDestinationOnMap() async {
-    final result = await LocationPickerScreen.open(
-      context,
-      initial: _destinationLocation,
-    );
-    if (result == null || !mounted) return;
-    await _applyDestination(result);
-  }
-
-  Future<void> _applyDestination(PickedLocation location) async {
-    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), location);
+  Future<void> _onDestinationChanged(PickedLocation location) async {
+    final resolved = await OrderLocationPrefs.ensureAddress(location, _geocoding);
+    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), resolved);
     if (!mounted) return;
-    setState(() {
-      _destinationLocation = location;
-      _destinationController.text = location.address ?? '';
-      _suggestions = [];
-      _showMap = true;
-    });
-    _searchFocus.unfocus();
-  }
-
-  void _onDestinationTextChanged() {
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 400), () async {
-      final query = _destinationController.text.trim();
-      if (query.length < 3) {
-        if (mounted) setState(() => _suggestions = []);
-        return;
-      }
-      setState(() => _searching = true);
-      final results = await _placeSearch.search(query);
-      if (!mounted) return;
-      setState(() {
-        _suggestions = results;
-        _searching = false;
-      });
-    });
+    setState(() => _destinationLocation = resolved);
   }
 
   ServiceTypeModel? _selectedServiceType() {
@@ -226,6 +178,24 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     return selected.categoryCode;
   }
 
+  Future<PickedLocation?> _resolveClientForSubmit() async {
+    if (_clientLocation == null) return null;
+    final resolved =
+        await OrderLocationPrefs.ensureAddress(_clientLocation!, _geocoding);
+    await OrderLocationPrefs.saveClient(getIt<SharedPref>(), resolved);
+    return resolved;
+  }
+
+  Future<PickedLocation?> _resolveDestinationForSubmit() async {
+    if (_destinationLocation == null) return null;
+    final resolved = await OrderLocationPrefs.ensureAddress(
+      _destinationLocation!,
+      _geocoding,
+    );
+    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), resolved);
+    return resolved;
+  }
+
   Future<void> _submit() async {
     if (_selectedServiceTypeId == null) {
       AppMessages.showError(context, AppStrings.selectServiceType.tr());
@@ -238,16 +208,15 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
 
-    if (_clientLocation == null) {
+    final client = await _resolveClientForSubmit();
+    if (!OrderLocationPrefsValidators.isValidClient(client)) {
       AppMessages.showError(context, AppStrings.clientLocationRequired.tr());
       return;
     }
 
-    if (!_hasValidDestination) {
-      AppMessages.showError(
-        context,
-        AppStrings.destinationRequired.tr(),
-      );
+    final destination = await _resolveDestinationForSubmit();
+    if (!OrderLocationPrefsValidators.isValidDestination(destination)) {
+      AppMessages.showError(context, AppStrings.destinationRequired.tr());
       return;
     }
 
@@ -271,6 +240,26 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
     setState(() => _submitting = true);
 
+    final description = _descriptionController.text.trim();
+    final orderDescription = description.isEmpty
+        ? AppStrings.chatRequestDefault.tr()
+        : description;
+
+    final presetProvider = _presetProvider;
+    if (presetProvider != null) {
+      await ServiceOrderChatLauncher.startChat(
+        provider: presetProvider,
+        serviceTypeId: _selectedServiceTypeId!,
+        description: orderDescription,
+        serviceCategoryCode: _categoryCodeForSelectedType(),
+        clientLocation: client,
+        destinationLocation: destination,
+        popRoutesBeforeDetail: 1,
+      );
+      if (mounted) setState(() => _submitting = false);
+      return;
+    }
+
     final profileResult = await getIt<ProfileRepository>().getMyProfile();
     final clientId = profileResult.fold((_) => null, (p) => p.id);
     if (clientId == null) {
@@ -280,7 +269,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
 
-    final client = _clientLocation!;
     final providersResult = await getIt<ProviderRepository>().getProviders(
       clientId: clientId,
       options: ProvidersPaginationOptions(
@@ -290,7 +278,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           serviceTypeId: _selectedServiceTypeId,
           active: true,
         ),
-        clientLatitude: client.latitude,
+        clientLatitude: client!.latitude,
         clientLongitude: client.longitude,
       ),
     );
@@ -312,10 +300,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         await ServiceOrderChatLauncher.startChat(
           provider: providers.first,
           serviceTypeId: _selectedServiceTypeId!,
-          description: AppStrings.chatRequestDefault.tr(),
+          description: orderDescription,
           serviceCategoryCode: _categoryCodeForSelectedType(),
           clientLocation: client,
-          destinationLocation: _destinationLocation,
+          destinationLocation: destination,
+          popRoutesBeforeDetail: 1,
         );
 
         if (mounted) setState(() => _submitting = false);
@@ -325,6 +314,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final presetProvider = _presetProvider;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.createOrderTitle.tr()),
@@ -342,6 +333,32 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (presetProvider != null) ...[
+                    YellowHighlightCard(
+                      isHighlighted: true,
+                      child: Text(
+                        AppStrings.orderWithSelectedProvider.tr(
+                          namedArgs: {'name': presetProvider.name ?? ''},
+                        ),
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    16.height,
+                  ],
+                  if (_locationPermissionDenied) ...[
+                    YellowHighlightCard(
+                      isHighlighted: true,
+                      child: Text(
+                        AppStrings.locationPermissionDenied.tr(),
+                        style: TextStyle(fontSize: 13.sp, height: 1.4),
+                      ),
+                    ),
+                    12.height,
+                  ],
                   Text(
                     AppStrings.createOrderStepService.tr(),
                     style: TextStyle(
@@ -365,7 +382,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                   ),
                   24.height,
                   Text(
-                    AppStrings.myLocation.tr(),
+                    AppStrings.createOrderStepLocation.tr(),
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -379,102 +396,18 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                     onPickMap: _pickClientOnMap,
                   ),
                   24.height,
-                  Text(
-                    AppStrings.whereToGo.tr(),
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    6.height,
-                    Text(
-                      AppStrings.searchDestinationHint.tr(),
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: AppColors.commentColor,
-                        height: 1.4,
-                      ),
-                    ),
-                    12.height,
-                    TextField(
-                      controller: _destinationController,
-                      focusNode: _searchFocus,
-                      decoration: InputDecoration(
-                        hintText: AppStrings.typeDestinationHint.tr(),
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searching
-                            ? Padding(
-                                padding: REdgeInsets.all(12),
-                                child: SizedBox(
-                                  width: 18.r,
-                                  height: 18.r,
-                                  child: const CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: AppColors.textFieldFillColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                    if (_suggestions.isNotEmpty) ...[
-                      8.height,
-                      Material(
-                        elevation: 2,
-                        borderRadius: BorderRadius.circular(12.r),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _suggestions.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final item = _suggestions[index];
-                            return ListTile(
-                              dense: true,
-                              leading: const Icon(Icons.place_outlined),
-                              title: Text(
-                                item.displayName,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 13.sp),
-                              ),
-                              onTap: () => _applyDestination(
-                                PickedLocation(
-                                  latitude: item.latitude,
-                                  longitude: item.longitude,
-                                  address: item.displayName,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                    12.height,
-                  CustomButton.outlined(
-                    text: AppStrings.pickLocationOnMap.tr(),
-                    onTap: _pickDestinationOnMap,
+                  OrderDestinationPickerSection(
+                    clientLocation: _clientLocation,
+                    destination: _destinationLocation,
+                    onDestinationChanged: _onDestinationChanged,
                   ),
-                  if (_showMap && _clientLocation != null) ...[
-                    24.height,
-                    Text(
-                      AppStrings.mapPreview.tr(),
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    12.height,
-                    DualLocationPreviewMap(
-                      origin: _clientLocation!,
-                      destination: _destinationLocation,
-                    ),
-                  ],
+                  24.height,
+                  CustomTextField(
+                    controller: _descriptionController,
+                    label: AppStrings.description.tr(),
+                    hint: AppStrings.enterDescription.tr(),
+                    maxLines: 3,
+                  ),
                   28.height,
                   CustomButton.filled(
                     text: AppStrings.requestHelp.tr(),

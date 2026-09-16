@@ -28,6 +28,9 @@ class GuestRepository extends Repository {
     String? profileAddress,
     String? description,
     String? providerId,
+    String? destinationAddress,
+    double? destinationLatitude,
+    double? destinationLongitude,
   }) {
     return exceptionHandler(() async {
       final payload = EmergencyRequestPayload.create(
@@ -42,6 +45,9 @@ class GuestRepository extends Repository {
         profileAddress: profileAddress,
         description: description,
         providerId: providerId,
+        destinationAddress: destinationAddress,
+        destinationLatitude: destinationLatitude,
+        destinationLongitude: destinationLongitude,
       );
       await _queue.enqueue(payload);
       return unit;
@@ -63,6 +69,9 @@ class GuestRepository extends Repository {
     String? clientRequestId,
     DateTime? queuedAt,
     String? otp,
+    String? destinationAddress,
+    double? destinationLatitude,
+    double? destinationLongitude,
   }) {
     return exceptionHandler(() async {
       return dioService.callApi(
@@ -91,6 +100,12 @@ class GuestRepository extends Repository {
               'clientRequestId': clientRequestId,
             if (queuedAt != null)
               'queuedAt': queuedAt.toUtc().toIso8601String(),
+            if (destinationAddress != null && destinationAddress.trim().isNotEmpty)
+              'destinationAddress': destinationAddress.trim(),
+            if (destinationLatitude != null)
+              'destinationLatitude': destinationLatitude,
+            if (destinationLongitude != null)
+              'destinationLongitude': destinationLongitude,
           },
         ),
         mapper: (json) => GuestHelpResponseModel.fromJson(json),

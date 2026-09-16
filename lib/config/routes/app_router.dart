@@ -25,6 +25,7 @@ import 'package:taal/features/splash/splash_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
 import 'package:taal/features/support/presentation/screens/support_ticket_detail_screen.dart';
 import 'package:taal/features/support/presentation/screens/support_tickets_screen.dart';
+import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
 import 'package:taal/features/service_orders/presentation/screens/create_service_order_screen.dart';
 import 'package:taal/features/service_orders/presentation/screens/service_order_detail_screen.dart';
 import 'package:taal/features/service_orders/presentation/screens/service_orders_screen.dart';
@@ -320,7 +321,9 @@ class AppRouter {
           pageBuilder: (context, state) => screenWithFadeTransition(
             context: context,
             state: state,
-            child: const CreateServiceOrderScreen(),
+            child: CreateServiceOrderScreen(
+              args: state.extra as CreateServiceOrderArgs?,
+            ),
           ),
         ),
         GoRoute(

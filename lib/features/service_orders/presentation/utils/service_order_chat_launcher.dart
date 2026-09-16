@@ -21,6 +21,7 @@ class ServiceOrderChatLauncher {
     required String description,
     String? serviceCategoryCode,
     int sheetsToClose = 0,
+    int popRoutesBeforeDetail = 0,
     PickedLocation? clientLocation,
     PickedLocation? destinationLocation,
   }) async {
@@ -40,12 +41,6 @@ class ServiceOrderChatLauncher {
     if (provider.id == null || provider.id!.isEmpty) {
       _showMessage(AppStrings.chatProviderUnavailable.tr());
       return;
-    }
-
-    final context = AppRouter.appNavigatorKey.currentContext;
-    if (context != null && context.mounted) {
-      final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
-      if (!allowed) return;
     }
 
     final prefs = getIt<SharedPref>();
@@ -103,10 +98,11 @@ class ServiceOrderChatLauncher {
           return;
         }
 
-        if (sheetsToClose > 0) {
+        final routesToPop = popRoutesBeforeDetail + sheetsToClose;
+        if (routesToPop > 0) {
           ServiceOrderNavigation.closeSheetsThenOpenDetail(
             orderId,
-            sheetsToClose: sheetsToClose,
+            sheetsToClose: routesToPop,
             openChat: true,
           );
         } else {

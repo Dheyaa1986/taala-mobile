@@ -1,8 +1,45 @@
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/picked_location.dart';
+import 'package:taal/core/maps/reverse_geocoding_service.dart';
+
+class OrderLocationPrefsValidators {
+  static bool hasCoordinates(PickedLocation? location) =>
+      location != null &&
+      location.latitude.isFinite &&
+      location.longitude.isFinite;
+
+  static bool isValidClient(PickedLocation? location) =>
+      hasCoordinates(location);
+
+  static bool isValidDestination(PickedLocation? location) {
+    if (!hasCoordinates(location)) return false;
+    return location!.address?.trim().isNotEmpty ?? false;
+  }
+}
 
 class OrderLocationPrefs {
+  static Future<PickedLocation> ensureAddress(
+    PickedLocation location,
+    ReverseGeocodingService geocoding,
+  ) async {
+    if (location.address?.trim().isNotEmpty ?? false) {
+      return location;
+    }
+    final address = await geocoding.resolveAddress(
+      location.latitude,
+      location.longitude,
+    );
+    if (address == null || address.trim().isEmpty) {
+      return location;
+    }
+    return PickedLocation(
+      latitude: location.latitude,
+      longitude: location.longitude,
+      address: address,
+    );
+  }
+
   static Future<void> saveClient(
     SharedPref prefs,
     PickedLocation location,

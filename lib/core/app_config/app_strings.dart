@@ -242,6 +242,9 @@ class AppStrings {
   static const String clientHomeSubtitle = 'clientHomeSubtitle';
   static const String createOrderTitle = 'createOrderTitle';
   static const String createOrderStepService = 'createOrderStepService';
+  static const String createOrderStepLocation = 'createOrderStepLocation';
+  static const String orderWithSelectedProvider = 'orderWithSelectedProvider';
+  static const String noPlaceResults = 'noPlaceResults';
   static const String whereToGo = 'whereToGo';
   static const String searchDestinationHint = 'searchDestinationHint';
   static const String typeDestinationHint = 'typeDestinationHint';
