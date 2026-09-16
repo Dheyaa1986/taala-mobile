@@ -1,8 +1,12 @@
+import 'package:taal/core/app_config/api_base_config.dart';
 import 'package:taal/core/app_config/service_types_audience.dart';
 
 class AppUrls {
   const AppUrls._();
-  static const String base = 'https://api.taal1.com';
+
+  static String get base => ApiBaseConfig.activeBase;
+  static String get baseApi => ApiBaseConfig.activeBase;
+
   static String imageLink(String image) {
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
@@ -10,42 +14,37 @@ class AppUrls {
     final path = image.startsWith('/') ? image : '/$image';
     return '$base$path';
   }
-  static const String baseApi = base;
-  static const String _baseApi = baseApi;
-  static const String clientLogin = '$_baseApi/auth/client/login';
-  static const String clientLoginPhone = '$_baseApi/auth/client/login-phone';
-  static const String clientSendOtp = '$_baseApi/auth/client/send-otp';
-  static const String clientVerifyOtp = '$_baseApi/auth/client/verify-otp';
-  static const String providerLogin = '$_baseApi/auth/provider/login';
-  static const String login = clientLogin;
-  static const String registerClient = '$_baseApi/auth/register';
-  static const String registerCompany = '$_baseApi/auth/company-register';
-  static const String logout = '$_baseApi/logout';
-  static const String emailVerify = '$_baseApi/email/verify';
-  static const String forgetPassword = '$_baseApi/auth/forget-password';
-  static const String passwordReset = '$_baseApi/auth/update-password';
-  static const String changePassword = '$_baseApi/auth/change-password';
-  static const String updatePassword = '$_baseApi/updatePassword';
-  static const String countries = '$_baseApi/countries';
-  static const String sendCode = '$_baseApi/auth/verify-email';
-  static const String resendCode = '$_baseApi/email/verify-sent-code';
-  static const String verify = '$_baseApi/auth/validate-otp';
-  static const String verifyRegister = '$_baseApi/auth/validate-email-otp';
-  static const String profile = '$_baseApi/profile';
-  static const String authMe = '$_baseApi/auth/me';
-  static const String deleteAccount = '$_baseApi/auth/me/account';
-  static const String notificationsMe = '$_baseApi/notifications/me';
-  static const String notificationsUnreadCount =
-      '$_baseApi/notifications/me/unread-count';
-  static const String notificationsReadAll =
-      '$_baseApi/notifications/me/read-all';
-  static const String notificationsFcmToken =
-      '$_baseApi/notifications/me/fcm-token';
-  static String notificationRead(String id) =>
-      '$_baseApi/notifications/$id/read';
-  static String notificationDelete(String id) =>
-      '$_baseApi/notifications/$id';
-  static const String supportTickets = '$_baseApi/support-tickets';
+
+  static String get clientLogin => '$base/auth/client/login';
+  static String get clientLoginPhone => '$base/auth/client/login-phone';
+  static String get clientSendOtp => '$base/auth/client/send-otp';
+  static String get clientVerifyOtp => '$base/auth/client/verify-otp';
+  static String get providerLogin => '$base/auth/provider/login';
+  static String get login => clientLogin;
+  static String get registerClient => '$base/auth/register';
+  static String get registerCompany => '$base/auth/company-register';
+  static String get logout => '$base/logout';
+  static String get emailVerify => '$base/email/verify';
+  static String get forgetPassword => '$base/auth/forget-password';
+  static String get passwordReset => '$base/auth/update-password';
+  static String get changePassword => '$base/auth/change-password';
+  static String get updatePassword => '$base/updatePassword';
+  static String get countries => '$base/countries';
+  static String get sendCode => '$base/auth/verify-email';
+  static String get resendCode => '$base/email/verify-sent-code';
+  static String get verify => '$base/auth/validate-otp';
+  static String get verifyRegister => '$base/auth/validate-email-otp';
+  static String get profile => '$base/profile';
+  static String get authMe => '$base/auth/me';
+  static String get deleteAccount => '$base/auth/me/account';
+  static String get notificationsMe => '$base/notifications/me';
+  static String get notificationsUnreadCount =>
+      '$base/notifications/me/unread-count';
+  static String get notificationsReadAll => '$base/notifications/me/read-all';
+  static String get notificationsFcmToken => '$base/notifications/me/fcm-token';
+  static String notificationRead(String id) => '$base/notifications/$id/read';
+  static String notificationDelete(String id) => '$base/notifications/$id';
+  static String get supportTickets => '$base/support-tickets';
   static const String appPublicInfo = '/app/public-info';
   static const String themesActive = '/themes/active';
   static const String countriesList = '/countries/list';
@@ -85,11 +84,10 @@ class AppUrls {
       '/service-orders/$id/tracking';
   static String serviceOrderMessages(String id) =>
       '/service-orders/$id/messages';
-  static String serviceOrderStatus(String id) =>
-      '/service-orders/$id/status';
+  static String serviceOrderStatus(String id) => '/service-orders/$id/status';
   static String serviceOrderPrice(String id) => '/service-orders/$id/price';
-  static String clientUpdateProfile(String id) => '$_baseApi/clients/$id';
-  static const String providerUpdateProfile = '$_baseApi/providers/profile';
+  static String clientUpdateProfile(String id) => '$base/clients/$id';
+  static String get providerUpdateProfile => '$base/providers/profile';
   static const String providerLiveLocation = '/providers/live-location';
   static String providerProfile(String id) => '/providers/$id/profile';
   static String providerRate(String id) => '/providers/$id/ratings';
@@ -101,16 +99,19 @@ class AppUrls {
   static String subscriptionsPaymentStatus(String referenceId) =>
       '/subscriptions/payments/$referenceId/status';
   static const String providerPortfolioCreate = '/providers/portofolio';
-  static const String providerPortfolioVideoCreate = '/providers/portofolio/video';
-  static String providerPortfolioUpdate(String id) => '/providers/portofolio/$id';
-  static String providerPortfolioDelete(String id) => '/providers/portofolio/$id';
-  static const String refreshToken = '$_baseApi/auth/refresh-token';
-  static const String auctionCategories = '$_baseApi/auction/categories';
-  static const String locations = '$_baseApi/locations';
-  static const String banners = '$_baseApi/banners';
+  static const String providerPortfolioVideoCreate =
+      '/providers/portofolio/video';
+  static String providerPortfolioUpdate(String id) =>
+      '/providers/portofolio/$id';
+  static String providerPortfolioDelete(String id) =>
+      '/providers/portofolio/$id';
+  static String get refreshToken => '$base/auth/refresh-token';
+  static String get auctionCategories => '$base/auction/categories';
+  static String get locations => '$base/locations';
+  static String get banners => '$base/banners';
 
-  static const String auctions = '$_baseApi/auction';
-  static const String addBid = '$auctions/add-bid';
-  static const String myAuctions = '$auctions/contributed';
+  static String get auctions => '$base/auction';
+  static String get addBid => '$auctions/add-bid';
+  static String get myAuctions => '$auctions/contributed';
   static String exitAuction(String id) => '$auctions/$id/exit';
 }

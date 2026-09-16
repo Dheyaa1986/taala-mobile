@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/service_type_selector_grid.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
@@ -13,12 +15,14 @@ class ServiceTypeCatalogSections extends StatelessWidget {
     required this.selectedIds,
     required this.onChanged,
     this.multiSelect = true,
+    this.isLoadError = false,
   });
 
   final List<ServiceCategoryCatalogModel> categories;
   final Set<String> selectedIds;
   final void Function(Set<String> selectedIds) onChanged;
   final bool multiSelect;
+  final bool isLoadError;
 
   static const _codeOrder = ['CRANE', 'OTHER'];
 
@@ -44,7 +48,10 @@ class ServiceTypeCatalogSections extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = _visibleCategories;
     if (sections.isEmpty) {
-      return const Center(child: Text('لا توجد خدمات متاحة حالياً'));
+      if (isLoadError) return const SizedBox.shrink();
+      return Center(
+        child: Text(AppStrings.noServiceTypesAvailable.tr()),
+      );
     }
 
     return Column(

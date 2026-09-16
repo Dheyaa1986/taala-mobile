@@ -132,7 +132,13 @@ class ErrorsExceptionsHandler {
       case DioExceptionType.cancel:
         throw CustomException(AppStrings.requestCancelled.tr());
       case DioExceptionType.unknown:
-        if (error.error is SocketException) {
+        final inner = error.error;
+        if (inner is SocketException ||
+            inner is HandshakeException ||
+            inner is TlsException) {
+          throw CustomException(_networkErrorMessage);
+        }
+        if (errorMessage == null || errorMessage.trim().isEmpty) {
           throw CustomException(_networkErrorMessage);
         }
         throw CustomException(_resolveMessage(errorMessage));

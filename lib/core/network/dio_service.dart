@@ -13,6 +13,7 @@ import 'package:taal/core/di/service_locator.dart';
 import '../error/errors_exceptions_handler.dart';
 import '../helpers/auth_session_helper.dart';
 import '../helpers/secure_local_storage.dart';
+import 'api_fallback_interceptor.dart';
 import 'interceptors.dart';
 import 'network_request.dart';
 import 'network_service.dart';
@@ -47,6 +48,7 @@ class DioService implements NetworkService {
         responseBody: true,
       ));
     }
+    _dio.interceptors.add(ApiFallbackInterceptor(_dio));
     _dio.interceptors.add(CustomInterceptor(dio: _dio));
   }
 

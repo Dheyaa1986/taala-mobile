@@ -52,6 +52,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   List<ServiceCategoryCatalogModel> _catalog = [];
   String? _selectedServiceTypeId;
   bool _loadingCatalog = true;
+  String? _catalogError;
   bool _submitting = false;
 
   ServiceProviderModel? get _presetProvider => widget.args?.provider;
@@ -82,15 +83,23 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   }
 
   Future<void> _loadCatalog() async {
+    setState(() {
+      _loadingCatalog = true;
+      _catalogError = null;
+    });
     final result = await getIt<LocationsRepository>().getServiceCatalog(
       audience: ServiceTypesAudience.client,
     );
     if (!mounted) return;
     result.fold(
-      (_) => setState(() => _loadingCatalog = false),
+      (error) => setState(() {
+        _loadingCatalog = false;
+        _catalogError = error.message;
+      }),
       (data) => setState(() {
         _catalog = data;
         _loadingCatalog = false;
+        _catalogError = null;
       }),
     );
   }
@@ -338,7 +347,9 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
               height: 180.h,
             ),
             8.height,
-            Row(
+            Wrap(
+              spacing: 4.w,
+              runSpacing: 4.h,
               children: [
                 TextButton.icon(
                   onPressed: () => setState(() => _step = _stepDeparture),
@@ -359,12 +370,30 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700),
           ),
           12.height,
+          if (_catalogError != null) ...[
+            Text(
+              _catalogError!,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Theme.of(context).colorScheme.error,
+                height: 1.4,
+              ),
+            ),
+            8.height,
+            TextButton.icon(
+              onPressed: _loadingCatalog ? null : _loadCatalog,
+              icon: const Icon(Icons.refresh),
+              label: Text(AppStrings.retry.tr()),
+            ),
+            12.height,
+          ],
           ServiceTypeCatalogSections(
             categories: _catalog,
             selectedIds: _selectedServiceTypeId == null
                 ? {}
                 : {_selectedServiceTypeId!},
             multiSelect: false,
+            isLoadError: _catalogError != null,
             onChanged: (ids) {
               setState(() {
                 _selectedServiceTypeId = ids.isEmpty ? null : ids.first;
