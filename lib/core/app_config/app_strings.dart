@@ -434,6 +434,13 @@ class AppStrings {
   static const String trackProviderOnMap = 'trackProviderOnMap';
   static const String clientLocationOnMap = 'clientLocationOnMap';
   static const String navigateToClient = 'navigateToClient';
+  static const String navigateToDestination = 'navigateToDestination';
+  static const String navigateInApp = 'navigateInApp';
+  static const String inAppNavigationHint =
+      'inAppNavigationHint';
+  static const String orderSubmittedTrackOnMap = 'orderSubmittedTrackOnMap';
+  static const String orderTrackingWaitingProvider =
+      'orderTrackingWaitingProvider';
   static const String openInMapApp = 'openInMapApp';
   static const String chooseMapApp = 'chooseMapApp';
   static const String noMapsInstalled = 'noMapsInstalled';

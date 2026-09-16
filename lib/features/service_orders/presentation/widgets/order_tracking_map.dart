@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/di/service_locator.dart';
-import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
+import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 
 class OrderTrackingMap extends StatefulWidget {
   const OrderTrackingMap({
@@ -16,6 +19,8 @@ class OrderTrackingMap extends StatefulWidget {
     this.providerLongitude,
     this.destinationLatitude,
     this.destinationLongitude,
+    this.expandToFill = false,
+    this.height,
   });
 
   final double clientLatitude;
@@ -24,12 +29,15 @@ class OrderTrackingMap extends StatefulWidget {
   final double? providerLongitude;
   final double? destinationLatitude;
   final double? destinationLongitude;
+  final bool expandToFill;
+  final double? height;
 
   @override
   State<OrderTrackingMap> createState() => _OrderTrackingMapState();
 }
 
-class _OrderTrackingMapState extends State<OrderTrackingMap> {
+class _OrderTrackingMapState extends State<OrderTrackingMap>
+    with TaalaOfflineMapMixin {
   final _mapController = MapController();
   final _routing = getIt<OsrmRoutingService>();
   List<LatLng> _providerRoutePoints = [];
@@ -40,6 +48,10 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
   @override
   void initState() {
     super.initState();
+    unawaited(refreshOfflineMapPath(
+      widget.clientLatitude,
+      widget.clientLongitude,
+    ));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadRoutes();
       _fitCamera();
@@ -160,28 +172,19 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
             ? [provider, _clientPoint]
             : <LatLng>[];
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12.r),
-      child: SizedBox(
-        height: 260.h,
-        child: Stack(
+    final mapStack = Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _clientPoint,
+            initialZoom: 14,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all,
+            ),
+          ),
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _clientPoint,
-                initialZoom: 14,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: MapStyleConfig.tileUrlTemplate,
-                  subdomains: MapStyleConfig.tileSubdomains,
-                  userAgentPackageName: MapStyleConfig.userAgentPackageName,
-                  maxZoom: 19,
-                ),
+            HybridMapTileLayer(offlineMapPath: offlineMapPath),
                 if (providerPolyline.length >= 2)
                   PolylineLayer(
                     polylines: [
@@ -241,25 +244,35 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
                 ),
               ],
             ),
-            if (_loadingRoute)
-              Positioned(
-                top: 8.h,
-                right: 8.w,
-                child: Container(
-                  padding: EdgeInsets.all(6.r),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: SizedBox(
-                    width: 18.r,
-                    height: 18.r,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
+        if (_loadingRoute)
+          Positioned(
+            top: 8.h,
+            right: 8.w,
+            child: Container(
+              padding: EdgeInsets.all(6.r),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.r),
               ),
-          ],
-        ),
+              child: SizedBox(
+                width: 18.r,
+                height: 18.r,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          ),
+      ],
+    );
+
+    if (widget.expandToFill) {
+      return mapStack;
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12.r),
+      child: SizedBox(
+        height: widget.height ?? 260.h,
+        child: mapStack,
       ),
     );
   }

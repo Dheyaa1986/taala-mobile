@@ -27,6 +27,7 @@ import 'package:taal/features/support/presentation/screens/support_ticket_detail
 import 'package:taal/features/support/presentation/screens/support_tickets_screen.dart';
 import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
 import 'package:taal/features/service_orders/presentation/screens/create_service_order_screen.dart';
+import 'package:taal/features/service_orders/presentation/screens/provider_in_app_navigation_screen.dart';
 import 'package:taal/features/service_orders/presentation/screens/service_order_detail_screen.dart';
 import 'package:taal/features/service_orders/presentation/screens/service_orders_screen.dart';
 
@@ -338,6 +339,20 @@ class AppRouter {
               openChatOnStart: state.extra == true,
             ),
           ),
+          routes: [
+            GoRoute(
+              parentNavigatorKey: appNavigatorKey,
+              path: Routes.providerInAppNavigation,
+              name: Routes.providerInAppNavigation,
+              pageBuilder: (context, state) => screenWithFadeTransition(
+                context: context,
+                state: state,
+                child: ProviderInAppNavigationScreen(
+                  args: state.extra! as ProviderInAppNavigationArgs,
+                ),
+              ),
+            ),
+          ],
         ),
         GoRoute(
           parentNavigatorKey: appNavigatorKey,

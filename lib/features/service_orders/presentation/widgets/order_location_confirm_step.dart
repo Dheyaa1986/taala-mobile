@@ -11,8 +11,9 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
-import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/maps_helper.dart';
+import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
@@ -28,6 +29,9 @@ class OrderLocationConfirmStep extends StatefulWidget {
     required this.onConfirmed,
     this.initial,
     this.autoGpsOnStart = true,
+    this.referenceLocation,
+    this.searchHint,
+    this.initialZoomWhenReference = 11,
   });
 
   final String title;
@@ -35,13 +39,19 @@ class OrderLocationConfirmStep extends StatefulWidget {
   final Future<void> Function(PickedLocation location) onConfirmed;
   final PickedLocation? initial;
   final bool autoGpsOnStart;
+  /// When [initial] is null, zoom near this point (e.g. departure) without
+  /// placing the pin on the same coordinates.
+  final PickedLocation? referenceLocation;
+  final String? searchHint;
+  final double initialZoomWhenReference;
 
   @override
   State<OrderLocationConfirmStep> createState() =>
       _OrderLocationConfirmStepState();
 }
 
-class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
+class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
+    with TaalaOfflineMapMixin {
   final _mapController = MapController();
   late final SafeMapController _safeMap = SafeMapController(_mapController);
   final _deviceLocation = getIt<DeviceLocationService>();
@@ -71,6 +81,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
       _searchController.text = widget.initial!.address ?? '';
     }
     _searchController.addListener(_onSearchChanged);
+    unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
   }
 
   void _onMapReady() {
@@ -87,7 +98,22 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
     }
     if (widget.autoGpsOnStart) {
       await _goToCurrentLocation(silent: true);
-    } else if (_address == null) {
+      return;
+    }
+
+    final reference = widget.referenceLocation;
+    if (reference != null) {
+      _center = LatLng(reference.latitude, reference.longitude);
+      _safeMap.move(_center, widget.initialZoomWhenReference);
+      if (widget.searchHint != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _searchFocus.requestFocus();
+        });
+      }
+      return;
+    }
+
+    if (_address == null) {
       await _resolveAddress();
     }
   }
@@ -227,7 +253,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
             controller: _searchController,
             focusNode: _searchFocus,
             decoration: InputDecoration(
-              hintText: AppStrings.typeDestinationHint.tr(),
+              hintText: widget.searchHint ?? AppStrings.typeDestinationHint.tr(),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _searching
                   ? Padding(
@@ -300,13 +326,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
                       },
                     ),
                     children: [
-                      TileLayer(
-                        urlTemplate: MapStyleConfig.tileUrlTemplate,
-                        subdomains: MapStyleConfig.tileSubdomains,
-                        userAgentPackageName:
-                            MapStyleConfig.userAgentPackageName,
-                        maxZoom: 19,
-                      ),
+                      HybridMapTileLayer(offlineMapPath: offlineMapPath),
                     ],
                   ),
                   IgnorePointer(

@@ -24,7 +24,9 @@ import 'package:taal/features/service_orders/data/model/service_order_model.dart
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/helpers/service_order_local_state_helper.dart';
+import 'package:taal/features/service_orders/presentation/screens/provider_in_app_navigation_screen.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_tracking_map.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/features/service_orders/presentation/widgets/service_order_location_summary.dart';
 
 class ServiceOrderDetailScreen extends StatefulWidget {
@@ -295,8 +297,44 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
+  void _openInAppNavigation(ServiceOrderModel order) {
+    final navigateToDestination = order.status == 'arrived' &&
+        order.destinationLatitude != null &&
+        order.destinationLongitude != null;
+
+    final targetLat = navigateToDestination
+        ? order.destinationLatitude!
+        : order.clientLatitude;
+    final targetLng = navigateToDestination
+        ? order.destinationLongitude!
+        : order.clientLongitude;
+
+    if (targetLat == null || targetLng == null) return;
+
+    context.pushNamed(
+      Routes.providerInAppNavigation,
+      pathParameters: {'id': widget.orderId},
+      extra: ProviderInAppNavigationArgs(
+        targetLatitude: targetLat,
+        targetLongitude: targetLng,
+        targetTitle: navigateToDestination
+            ? AppStrings.navigateToDestination.tr()
+            : AppStrings.navigateToClient.tr(),
+      ),
+    );
+  }
+
+  bool _canOpenInAppNavigation(ServiceOrderModel order) {
+    if (!_isProvider) return false;
+    if (order.status == 'arrived') {
+      return order.destinationLatitude != null &&
+          order.destinationLongitude != null;
+    }
+    return order.clientLatitude != null && order.clientLongitude != null;
+  }
+
   bool _canOpenExternalMaps(ServiceOrderModel order) {
-    if (_isProvider) return true;
+    if (_isProvider) return _canOpenInAppNavigation(order);
     return _mapProviderLat != null && _mapProviderLng != null;
   }
 
@@ -476,9 +514,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       return;
     }
     _providerTripLaunched = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      await _openExternalMaps(order);
+      _openInAppNavigation(order);
     });
   }
 
@@ -669,6 +707,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           destinationLongitude: order.destinationLongitude,
                         ),
                         if (order.status != 'pending' &&
+                            _canOpenInAppNavigation(order)) ...[
+                          8.height,
+                          CustomButton.filled(
+                            text: AppStrings.navigateInApp.tr(),
+                            onTap: () => _openInAppNavigation(order),
+                          ),
+                        ],
+                        if (order.status != 'pending' &&
                             _canOpenExternalMaps(order)) ...[
                           8.height,
                           CustomButton.outlined(
@@ -715,8 +761,20 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         if (!mounted) return;
                         final current = _order;
                         if (current != null) {
-                          await _openExternalMaps(current);
+                          _openInAppNavigation(current);
                         }
+                      },
+                    ),
+                  ),
+                if (_isProvider &&
+                    (order?.status == 'en_route' || order?.status == 'arrived'))
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: CustomButton.outlined(
+                      text: AppStrings.navigateInApp.tr(),
+                      onTap: () {
+                        final current = _order;
+                        if (current != null) _openInAppNavigation(current);
                       },
                     ),
                   ),

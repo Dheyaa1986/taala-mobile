@@ -22,6 +22,7 @@ class Routes {
   static const String providerMyRatings = '/providerMyRatings';
   static const String supportTicketDetail = '/supportTickets/:id';
   static const String serviceOrderDetail = '/service-orders/:id';
+  static const String providerInAppNavigation = 'navigate';
   static const String serviceOrders = '/serviceOrders';
   static const String createServiceOrder = '/createServiceOrder';
   static const String providerSubscription = '/providerSubscription';

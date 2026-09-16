@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/features/service_orders/data/model/service_order_model.dart';
+import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
+import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
+import 'package:taal/features/service_orders/presentation/widgets/order_tracking_map.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/service_types_audience.dart';
@@ -27,7 +33,6 @@ import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
-import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
 import 'package:taal/features/service_orders/presentation/widgets/dual_location_preview_map.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_location_confirm_step.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_wizard_step_indicator.dart';
@@ -46,10 +51,15 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   static const _stepDeparture = 0;
   static const _stepDestination = 1;
   static const _stepService = 2;
+  static const _stepTracking = 3;
 
   final _descriptionController = TextEditingController();
 
   int _step = _stepDeparture;
+  String? _trackingOrderId;
+  ServiceOrderModel? _trackingOrder;
+  ServiceOrderTrackingModel? _trackingInfo;
+  Timer? _trackingTimer;
   PickedLocation? _clientLocation;
   PickedLocation? _destinationLocation;
   List<ServiceCategoryCatalogModel> _catalog = [];
@@ -71,6 +81,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
   @override
   void dispose() {
+    _trackingTimer?.cancel();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -115,17 +126,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       }
     }
     return null;
-  }
-
-  String? _categoryCodeForSelectedType() {
-    final selected = _selectedServiceType();
-    if (selected == null) return null;
-    for (final category in _catalog) {
-      if (category.serviceTypes.any((type) => type.id == selected.id)) {
-        return selected.categoryCode ?? category.code;
-      }
-    }
-    return selected.categoryCode;
   }
 
   Future<void> _onDepartureConfirmed(PickedLocation location) async {
@@ -207,6 +207,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
     await OrderLocationPrefs.saveClient(getIt<SharedPref>(), client);
     await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), destination);
+    if (!mounted) return;
 
     final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
     if (!allowed || !mounted) return;
@@ -267,17 +268,68 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       );
     }
 
-    await ServiceOrderChatLauncher.startChat(
-      provider: selectedProvider,
+    final providerId = selectedProvider?.id?.trim();
+
+    final createResult = await getIt<ServiceOrderRepository>().createOrder(
       serviceTypeId: _selectedServiceTypeId!,
       description: orderDescription,
-      serviceCategoryCode: _categoryCodeForSelectedType(),
-      clientLocation: client,
-      destinationLocation: destination,
-      popRoutesBeforeDetail: 1,
+      providerId: (providerId == null || providerId.isEmpty) ? null : providerId,
+      clientAddress: client.address,
+      clientLatitude: client.latitude,
+      clientLongitude: client.longitude,
+      destinationAddress: destination.address,
+      destinationLatitude: destination.latitude,
+      destinationLongitude: destination.longitude,
     );
 
-    if (mounted) setState(() => _submitting = false);
+    if (!mounted) return;
+    setState(() => _submitting = false);
+
+    createResult.fold(
+      (error) {
+        if (error.message.contains('ملفك')) {
+          ClientProfileGuard.ensureReadyForNewOrder(context);
+          return;
+        }
+        AppMessages.showError(context, error.message);
+      },
+      (order) {
+        final orderId = order.id;
+        if (orderId == null || orderId.isEmpty) {
+          AppMessages.showError(context, AppStrings.chatOpenFailed.tr());
+          return;
+        }
+        getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+        setState(() {
+          _trackingOrderId = orderId;
+          _trackingOrder = order;
+          _step = _stepTracking;
+        });
+        _startTrackingPoll(orderId);
+        AppMessages.showSuccess(context, AppStrings.orderSubmittedTrackOnMap.tr());
+      },
+    );
+  }
+
+  void _startTrackingPoll(String orderId) {
+    _trackingTimer?.cancel();
+    unawaited(_refreshTracking(orderId));
+    _trackingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      unawaited(_refreshTracking(orderId));
+    });
+  }
+
+  Future<void> _refreshTracking(String orderId) async {
+    final repo = getIt<ServiceOrderRepository>();
+    final orderResult = await repo.getOrder(orderId);
+    final trackingResult = await repo.getTracking(orderId);
+    if (!mounted) return;
+    orderResult.fold((_) {}, (order) {
+      setState(() => _trackingOrder = order);
+    });
+    trackingResult.fold((_) {}, (tracking) {
+      setState(() => _trackingInfo = tracking);
+    });
   }
 
   String _stepTitle() {
@@ -286,8 +338,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         return AppStrings.orderStepDeparture.tr();
       case _stepDestination:
         return AppStrings.orderStepDestination.tr();
-      default:
+      case _stepService:
         return AppStrings.orderStepService.tr();
+      default:
+        return AppStrings.trackProviderOnMap.tr();
     }
   }
 
@@ -297,7 +351,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       appBar: AppBar(
         title: Text(_stepTitle()),
         centerTitle: true,
-        leading: _step > _stepDeparture
+        leading: _step > _stepDeparture && _step < _stepTracking
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
@@ -309,7 +363,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          OrderWizardStepIndicator(currentStep: _step),
+          if (_step < _stepTracking)
+            OrderWizardStepIndicator(currentStep: _step),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 380),
@@ -350,12 +405,97 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       _stepDestination => OrderLocationConfirmStep(
           title: AppStrings.destinationPointHint.tr(),
           confirmLabel: AppStrings.confirmDestinationPoint.tr(),
-          initial: _destinationLocation ?? _clientLocation,
+          initial: _destinationLocation,
+          referenceLocation: _clientLocation,
+          searchHint: AppStrings.searchDestinationHint.tr(),
           autoGpsOnStart: false,
           onConfirmed: _onDestinationConfirmed,
         ),
-      _ => _buildServiceStep(context),
+      _stepService => _buildServiceStep(context),
+      _ => _buildTrackingStep(context),
     };
+  }
+
+  Widget _buildTrackingStep(BuildContext context) {
+    final order = _trackingOrder;
+    final clientLat = order?.clientLatitude ?? _clientLocation?.latitude;
+    final clientLng = order?.clientLongitude ?? _clientLocation?.longitude;
+    final destinationLat =
+        order?.destinationLatitude ?? _destinationLocation?.latitude;
+    final destinationLng =
+        order?.destinationLongitude ?? _destinationLocation?.longitude;
+
+    if (clientLat == null || clientLng == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final status = order?.status ?? 'pending';
+    final providerLat = status == 'pending' ? null : _trackingInfo?.providerLatitude;
+    final providerLng = status == 'pending' ? null : _trackingInfo?.providerLongitude;
+
+    return Column(
+      key: const ValueKey('tracking_step'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: OrderTrackingMap(
+            expandToFill: true,
+            clientLatitude: clientLat,
+            clientLongitude: clientLng,
+            providerLatitude: providerLat,
+            providerLongitude: providerLng,
+            destinationLatitude: destinationLat,
+            destinationLongitude: destinationLng,
+          ),
+        ),
+        Padding(
+          padding: REdgeInsets.fromLTRB(
+            16,
+            12,
+            16,
+            12 + context.safeBottomInset,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                status == 'pending'
+                    ? AppStrings.orderTrackingWaitingProvider.tr()
+                    : AppStrings.trackProviderOnMap.tr(),
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (_trackingInfo?.etaMinutes != null) ...[
+                6.height,
+                Text(
+                  '${_trackingInfo!.etaMinutes} ${AppStrings.minutes.tr()}',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+              12.height,
+              CustomButton.filled(
+                text: AppStrings.openChat.tr(),
+                onTap: _trackingOrderId == null
+                    ? null
+                    : () {
+                        ServiceOrderNavigation.openDetail(
+                          _trackingOrderId!,
+                          openChat: true,
+                        );
+                      },
+                height: 48.h,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildServiceStep(BuildContext context) {
