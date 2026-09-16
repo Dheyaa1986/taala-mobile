@@ -12,13 +12,24 @@ class OrderLocationPrefsValidators {
   static bool isValidClient(PickedLocation? location) =>
       hasCoordinates(location);
 
-  static bool isValidDestination(PickedLocation? location) {
-    if (!hasCoordinates(location)) return false;
-    return location!.address?.trim().isNotEmpty ?? false;
-  }
+  static bool isValidDestination(PickedLocation? location) =>
+      hasCoordinates(location);
 }
 
 class OrderLocationPrefs {
+  static String coordinateLabel(double latitude, double longitude) =>
+      '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
+
+  static PickedLocation withResolvedAddress(PickedLocation location) {
+    final trimmed = location.address?.trim() ?? '';
+    if (trimmed.isNotEmpty) return location;
+    return PickedLocation(
+      latitude: location.latitude,
+      longitude: location.longitude,
+      address: coordinateLabel(location.latitude, location.longitude),
+    );
+  }
+
   static Future<PickedLocation> ensureAddress(
     PickedLocation location,
     ReverseGeocodingService geocoding,
@@ -30,14 +41,14 @@ class OrderLocationPrefs {
       location.latitude,
       location.longitude,
     );
-    if (address == null || address.trim().isEmpty) {
-      return location;
+    if (address != null && address.trim().isNotEmpty) {
+      return PickedLocation(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        address: address.trim(),
+      );
     }
-    return PickedLocation(
-      latitude: location.latitude,
-      longitude: location.longitude,
-      address: address,
-    );
+    return withResolvedAddress(location);
   }
 
   static Future<void> saveClient(
@@ -87,11 +98,12 @@ class OrderLocationPrefs {
     final parsedLng = double.tryParse(lng);
     if (parsedLat == null || parsedLng == null) return null;
     final trimmedAddress = address is String ? address.trim() : '';
-    if (trimmedAddress.isEmpty) return null;
     return PickedLocation(
       latitude: parsedLat,
       longitude: parsedLng,
-      address: trimmedAddress,
+      address: trimmedAddress.isNotEmpty
+          ? trimmedAddress
+          : coordinateLabel(parsedLat, parsedLng),
     );
   }
 
@@ -103,10 +115,13 @@ class OrderLocationPrefs {
     final parsedLat = double.tryParse(lat);
     final parsedLng = double.tryParse(lng);
     if (parsedLat == null || parsedLng == null) return null;
+    final trimmedAddress = address is String ? address.trim() : '';
     return PickedLocation(
       latitude: parsedLat,
       longitude: parsedLng,
-      address: address is String ? address : null,
+      address: trimmedAddress.isNotEmpty
+          ? trimmedAddress
+          : coordinateLabel(parsedLat, parsedLng),
     );
   }
 }

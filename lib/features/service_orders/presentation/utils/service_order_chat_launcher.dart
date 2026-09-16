@@ -8,6 +8,7 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/picked_location.dart';
+import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
@@ -52,17 +53,30 @@ class ServiceOrderChatLauncher {
       await OrderLocationPrefs.saveDestination(prefs, destinationLocation);
     }
 
-    final resolvedClient = clientLocation ??
-        await OrderLocationPrefs.readClient(prefs);
+    final geocoding = getIt<ReverseGeocodingService>();
 
-    final resolvedDestination = destinationLocation ??
-        await OrderLocationPrefs.readDestination(prefs);
+    PickedLocation? resolvedClient = clientLocation;
+    resolvedClient ??= await OrderLocationPrefs.readClient(prefs);
+    if (resolvedClient != null) {
+      resolvedClient =
+          await OrderLocationPrefs.ensureAddress(resolvedClient, geocoding);
+    }
+
+    PickedLocation? resolvedDestination = destinationLocation;
+    resolvedDestination ??= await OrderLocationPrefs.readDestination(prefs);
     if (resolvedDestination == null) {
       _showMessage(AppStrings.destinationRequired.tr());
       return;
     }
+    resolvedDestination = OrderLocationPrefs.withResolvedAddress(
+      await OrderLocationPrefs.ensureAddress(
+        resolvedDestination,
+        geocoding,
+      ),
+    );
 
-    final destinationAddress = resolvedDestination.address;
+    final destinationAddress = resolvedDestination.address!.trim();
+
     final destinationLatitude = resolvedDestination.latitude;
     final destinationLongitude = resolvedDestination.longitude;
 

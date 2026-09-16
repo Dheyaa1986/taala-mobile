@@ -9,6 +9,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/picked_location.dart';
+import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/options/pagination_options.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
@@ -114,20 +115,28 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     return selected.categoryCode;
   }
 
-  void _onDepartureConfirmed(PickedLocation location) async {
-    await OrderLocationPrefs.saveClient(getIt<SharedPref>(), location);
+  Future<void> _onDepartureConfirmed(PickedLocation location) async {
+    final resolved = await OrderLocationPrefs.ensureAddress(
+      location,
+      getIt<ReverseGeocodingService>(),
+    );
+    await OrderLocationPrefs.saveClient(getIt<SharedPref>(), resolved);
     if (!mounted) return;
     setState(() {
-      _clientLocation = location;
+      _clientLocation = resolved;
       _step = _stepDestination;
     });
   }
 
-  void _onDestinationConfirmed(PickedLocation location) async {
-    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), location);
+  Future<void> _onDestinationConfirmed(PickedLocation location) async {
+    final resolved = await OrderLocationPrefs.ensureAddress(
+      location,
+      getIt<ReverseGeocodingService>(),
+    );
+    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), resolved);
     if (!mounted) return;
     setState(() {
-      _destinationLocation = location;
+      _destinationLocation = resolved;
       _step = _stepService;
     });
   }
@@ -144,8 +153,22 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
 
-    final client = _clientLocation;
-    final destination = _destinationLocation;
+    if (_clientLocation == null || _destinationLocation == null) {
+      AppMessages.showError(context, AppStrings.destinationRequired.tr());
+      return;
+    }
+
+    final geocoding = getIt<ReverseGeocodingService>();
+    final client = await OrderLocationPrefs.ensureAddress(
+      _clientLocation!,
+      geocoding,
+    );
+    final destination = await OrderLocationPrefs.ensureAddress(
+      _destinationLocation!,
+      geocoding,
+    );
+    if (!mounted) return;
+
     if (!OrderLocationPrefsValidators.isValidClient(client)) {
       AppMessages.showError(context, AppStrings.clientLocationRequired.tr());
       return;
@@ -154,6 +177,9 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       AppMessages.showError(context, AppStrings.destinationRequired.tr());
       return;
     }
+
+    await OrderLocationPrefs.saveClient(getIt<SharedPref>(), client);
+    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), destination);
 
     final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
     if (!allowed || !mounted) return;
@@ -213,7 +239,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           serviceTypeId: _selectedServiceTypeId,
           active: true,
         ),
-        clientLatitude: client!.latitude,
+        clientLatitude: client.latitude,
         clientLongitude: client.longitude,
       ),
     );
@@ -283,7 +309,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         _stepDestination => OrderLocationConfirmStep(
             title: AppStrings.destinationPointHint.tr(),
             confirmLabel: AppStrings.confirmDestinationPoint.tr(),
-            initial: _destinationLocation,
+            initial: _destinationLocation ?? _clientLocation,
             autoGpsOnStart: false,
             onConfirmed: _onDestinationConfirmed,
           ),

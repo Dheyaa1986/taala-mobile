@@ -175,13 +175,14 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
   }
 
   Future<void> _confirm() async {
-    var picked = _currentPick;
-    picked = await OrderLocationPrefs.ensureAddress(picked, _geocoding);
-    if (!mounted) return;
-    if (!OrderLocationPrefsValidators.hasCoordinates(picked)) {
+    if (!OrderLocationPrefsValidators.hasCoordinates(_currentPick)) {
       AppMessages.showError(context, AppStrings.clientLocationRequired.tr());
       return;
     }
+
+    var picked = await OrderLocationPrefs.ensureAddress(_currentPick, _geocoding);
+    picked = OrderLocationPrefs.withResolvedAddress(picked);
+    if (!mounted) return;
     widget.onConfirmed(picked);
   }
 
