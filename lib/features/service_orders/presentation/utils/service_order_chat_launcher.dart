@@ -7,7 +7,9 @@ import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
+import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
+import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
@@ -20,6 +22,8 @@ class ServiceOrderChatLauncher {
     required String description,
     String? serviceCategoryCode,
     int sheetsToClose = 0,
+    PickedLocation? clientLocation,
+    PickedLocation? destinationLocation,
   }) async {
     final hasSession = await AuthSessionHelper.hasActiveSession();
     if (!hasSession) {
@@ -46,23 +50,36 @@ class ServiceOrderChatLauncher {
     }
 
     final prefs = getIt<SharedPref>();
-    final address = await prefs.get(key: PrefsKeys.clientLocationAddress);
-    final lat = await prefs.get(key: PrefsKeys.clientLocationLat);
-    final lng = await prefs.get(key: PrefsKeys.clientLocationLng);
+
+    if (clientLocation != null) {
+      await OrderLocationPrefs.saveClient(prefs, clientLocation);
+    }
+    if (destinationLocation != null) {
+      await OrderLocationPrefs.saveDestination(prefs, destinationLocation);
+    }
+
+    final resolvedClient = clientLocation ??
+        await OrderLocationPrefs.readClient(prefs);
 
     String? destinationAddress;
     double? destinationLatitude;
     double? destinationLongitude;
     if (TowingOrderLocations.isTowingCategory(serviceCategoryCode)) {
-      final destination =
-          await TowingOrderLocations.readDestinationFromPrefs(prefs);
-      if (destination == null) {
-        _showMessage(AppStrings.towingDestinationRequired.tr());
-        return;
+      if (destinationLocation != null) {
+        destinationAddress = destinationLocation.address;
+        destinationLatitude = destinationLocation.latitude;
+        destinationLongitude = destinationLocation.longitude;
+      } else {
+        final destination =
+            await TowingOrderLocations.readDestinationFromPrefs(prefs);
+        if (destination == null) {
+          _showMessage(AppStrings.towingDestinationRequired.tr());
+          return;
+        }
+        destinationAddress = destination.address;
+        destinationLatitude = destination.latitude;
+        destinationLongitude = destination.longitude;
       }
-      destinationAddress = destination.address;
-      destinationLatitude = destination.latitude;
-      destinationLongitude = destination.longitude;
     }
 
     final result = await getIt<ServiceOrderRepository>().createOrder(
@@ -71,9 +88,9 @@ class ServiceOrderChatLauncher {
           ? AppStrings.chatRequestDefault.tr()
           : description.trim(),
       providerId: provider.id,
-      clientAddress: address is String ? address : null,
-      clientLatitude: lat is String ? double.tryParse(lat) : null,
-      clientLongitude: lng is String ? double.tryParse(lng) : null,
+      clientAddress: resolvedClient?.address,
+      clientLatitude: resolvedClient?.latitude,
+      clientLongitude: resolvedClient?.longitude,
       destinationAddress: destinationAddress,
       destinationLatitude: destinationLatitude,
       destinationLongitude: destinationLongitude,

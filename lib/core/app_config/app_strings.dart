@@ -240,6 +240,13 @@ class AppStrings {
   static const String passwordInvalidLength = 'password_invalid_length';
   static const String clientHomeWelcome = 'clientHomeWelcome';
   static const String clientHomeSubtitle = 'clientHomeSubtitle';
+  static const String createOrderTitle = 'createOrderTitle';
+  static const String createOrderStepService = 'createOrderStepService';
+  static const String whereToGo = 'whereToGo';
+  static const String searchDestinationHint = 'searchDestinationHint';
+  static const String typeDestinationHint = 'typeDestinationHint';
+  static const String mapPreview = 'mapPreview';
+  static const String clientLocationRequired = 'clientLocationRequired';
   static const String myLocation = 'myLocation';
   static const String breakdownLocation = 'breakdownLocation';
   static const String destinationLocation = 'destinationLocation';
