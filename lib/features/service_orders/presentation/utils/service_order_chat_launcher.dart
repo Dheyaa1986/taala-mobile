@@ -13,7 +13,6 @@ import 'package:taal/features/service_orders/presentation/utils/order_location_p
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
-import 'package:taal/features/service_orders/presentation/utils/towing_order_locations.dart';
 
 class ServiceOrderChatLauncher {
   static Future<void> startChat({
@@ -61,26 +60,16 @@ class ServiceOrderChatLauncher {
     final resolvedClient = clientLocation ??
         await OrderLocationPrefs.readClient(prefs);
 
-    String? destinationAddress;
-    double? destinationLatitude;
-    double? destinationLongitude;
-    if (TowingOrderLocations.isTowingCategory(serviceCategoryCode)) {
-      if (destinationLocation != null) {
-        destinationAddress = destinationLocation.address;
-        destinationLatitude = destinationLocation.latitude;
-        destinationLongitude = destinationLocation.longitude;
-      } else {
-        final destination =
-            await TowingOrderLocations.readDestinationFromPrefs(prefs);
-        if (destination == null) {
-          _showMessage(AppStrings.towingDestinationRequired.tr());
-          return;
-        }
-        destinationAddress = destination.address;
-        destinationLatitude = destination.latitude;
-        destinationLongitude = destination.longitude;
-      }
+    final resolvedDestination = destinationLocation ??
+        await OrderLocationPrefs.readDestination(prefs);
+    if (resolvedDestination == null) {
+      _showMessage(AppStrings.destinationRequired.tr());
+      return;
     }
+
+    final destinationAddress = resolvedDestination.address;
+    final destinationLatitude = resolvedDestination.latitude;
+    final destinationLongitude = resolvedDestination.longitude;
 
     final result = await getIt<ServiceOrderRepository>().createOrder(
       serviceTypeId: serviceTypeId,

@@ -253,6 +253,7 @@ class AppStrings {
   static const String destinationLocationHint = 'destinationLocationHint';
   static const String destinationLocationSaved = 'destinationLocationSaved';
   static const String towingDestinationRequired = 'towingDestinationRequired';
+  static const String destinationRequired = 'destinationRequired';
   static const String serviceAvailable = 'serviceAvailable';
   static const String serviceComingSoon = 'serviceComingSoon';
   static const String serviceUnavailable = 'serviceUnavailable';

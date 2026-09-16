@@ -28,7 +28,6 @@ import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
-import 'package:taal/features/service_orders/presentation/utils/towing_order_locations.dart';
 import 'package:taal/features/service_orders/presentation/widgets/dual_location_preview_map.dart';
 
 class CreateServiceOrderScreen extends StatefulWidget {
@@ -63,6 +62,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     super.initState();
     _loadCatalog();
     _initClientLocation();
+    _initDestination();
     _destinationController.addListener(_onDestinationTextChanged);
   }
 
@@ -74,9 +74,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     super.dispose();
   }
 
-  bool get _needsDestination {
-    final code = _categoryCodeForSelectedType();
-    return TowingOrderLocations.isTowingCategory(code);
+  bool get _hasValidDestination {
+    final destination = _destinationLocation;
+    if (destination == null) return false;
+    final address = destination.address?.trim() ?? '';
+    return address.isNotEmpty;
   }
 
   Future<void> _loadCatalog() async {
@@ -103,6 +105,16 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
     await _useCurrentLocation(silent: true);
+  }
+
+  Future<void> _initDestination() async {
+    final saved = await OrderLocationPrefs.readDestination(getIt<SharedPref>());
+    if (saved == null || !mounted) return;
+    setState(() {
+      _destinationLocation = saved;
+      _destinationController.text = saved.address ?? '';
+      _showMap = _clientLocation != null;
+    });
   }
 
   Future<void> _useCurrentLocation({bool silent = false}) async {
@@ -231,10 +243,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
 
-    if (_needsDestination && _destinationLocation == null) {
+    if (!_hasValidDestination) {
       AppMessages.showError(
         context,
-        AppStrings.towingDestinationRequired.tr(),
+        AppStrings.destinationRequired.tr(),
       );
       return;
     }
@@ -303,7 +315,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           description: AppStrings.chatRequestDefault.tr(),
           serviceCategoryCode: _categoryCodeForSelectedType(),
           clientLocation: client,
-          destinationLocation: _needsDestination ? _destinationLocation : null,
+          destinationLocation: _destinationLocation,
         );
 
         if (mounted) setState(() => _submitting = false);
@@ -348,11 +360,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                       setState(() {
                         _selectedServiceTypeId =
                             ids.isEmpty ? null : ids.first;
-                        if (!_needsDestination) {
-                          _destinationLocation = null;
-                          _destinationController.clear();
-                          _suggestions = [];
-                        }
                       });
                     },
                   ),
@@ -371,10 +378,9 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                     onUseGps: () => _useCurrentLocation(),
                     onPickMap: _pickClientOnMap,
                   ),
-                  if (_needsDestination) ...[
-                    24.height,
-                    Text(
-                      AppStrings.whereToGo.tr(),
+                  24.height,
+                  Text(
+                    AppStrings.whereToGo.tr(),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
@@ -450,11 +456,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                       ),
                     ],
                     12.height,
-                    CustomButton.outlined(
-                      text: AppStrings.pickLocationOnMap.tr(),
-                      onTap: _pickDestinationOnMap,
-                    ),
-                  ],
+                  CustomButton.outlined(
+                    text: AppStrings.pickLocationOnMap.tr(),
+                    onTap: _pickDestinationOnMap,
+                  ),
                   if (_showMap && _clientLocation != null) ...[
                     24.height,
                     Text(
@@ -467,8 +472,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                     12.height,
                     DualLocationPreviewMap(
                       origin: _clientLocation!,
-                      destination:
-                          _needsDestination ? _destinationLocation : null,
+                      destination: _destinationLocation,
                     ),
                   ],
                   28.height,

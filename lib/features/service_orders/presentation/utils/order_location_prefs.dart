@@ -41,6 +41,23 @@ class OrderLocationPrefs {
     );
   }
 
+  static Future<PickedLocation?> readDestination(SharedPref prefs) async {
+    final lat = await prefs.get(key: PrefsKeys.destinationLocationLat);
+    final lng = await prefs.get(key: PrefsKeys.destinationLocationLng);
+    final address = await prefs.get(key: PrefsKeys.destinationLocationAddress);
+    if (lat is! String || lng is! String) return null;
+    final parsedLat = double.tryParse(lat);
+    final parsedLng = double.tryParse(lng);
+    if (parsedLat == null || parsedLng == null) return null;
+    final trimmedAddress = address is String ? address.trim() : '';
+    if (trimmedAddress.isEmpty) return null;
+    return PickedLocation(
+      latitude: parsedLat,
+      longitude: parsedLng,
+      address: trimmedAddress,
+    );
+  }
+
   static Future<PickedLocation?> readClient(SharedPref prefs) async {
     final lat = await prefs.get(key: PrefsKeys.clientLocationLat);
     final lng = await prefs.get(key: PrefsKeys.clientLocationLng);
