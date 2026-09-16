@@ -230,6 +230,7 @@ class AppStrings {
   static const legalConsentPrefix = 'legalConsentPrefix';
   static const legalConsentRequired = 'legalConsentRequired';
   static const legalDocumentEmpty = 'legalDocumentEmpty';
+  static const supportLabel = 'supportLabel';
   static const contactSupportWhatsApp = 'contactSupportWhatsApp';
   static const supportWhatsAppBannerHint = 'supportWhatsAppBannerHint';
   static const and = 'and';

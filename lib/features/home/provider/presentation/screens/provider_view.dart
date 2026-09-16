@@ -15,7 +15,6 @@ import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/presentation/cubit/locations/location_cubit.dart';
 import 'package:taal/features/home/provider/presentation/widgets/add_location_sheet.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
-import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_app_bar_button.dart';
 import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_fab.dart';
 import 'package:taal/features/service_orders/presentation/widgets/provider_orders_icon_button.dart';
 import 'package:taal/features/service_orders/presentation/widgets/provider_service_orders_panel.dart';
@@ -87,7 +86,6 @@ class _LocationsScreenState extends State<LocationsScreen> {
             centerTitle: true,
             title: AppStrings.locations.tr(),
             actions: const [
-              SupportWhatsAppAppBarButton(),
               ProviderOrdersIconButton(),
             ],
           ),

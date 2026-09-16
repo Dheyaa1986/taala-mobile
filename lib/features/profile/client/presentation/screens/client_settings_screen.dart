@@ -15,7 +15,6 @@ import 'package:taal/features/profile/presentation/widgets/conversation_history_
 import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
 import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
-import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_banner.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
 import '../widgets/settings_tile.dart';
 
@@ -32,7 +31,6 @@ class ClientSettingsScreen extends StatelessWidget {
       body: ListView(
         padding: REdgeInsets.all(16),
         children: [
-          const SupportWhatsAppBanner(),
           const ConversationHistoryPanel(),
           16.height,
           SettingsTile(

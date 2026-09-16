@@ -26,7 +26,7 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/app_info/presentation/widgets/legal_links_row.dart';
-import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_app_bar_button.dart';
+import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_fab.dart';
 import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 
 class GuestMapScreen extends StatefulWidget {
@@ -195,6 +195,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: const SupportWhatsAppFab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: Stack(
         children: [
           FlutterMap(
@@ -235,7 +237,6 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             child: Row(
               children: [
                 const LangPopup(),
-                const SupportWhatsAppAppBarButton(),
                 8.width,
                 Expanded(
                   child: Container(

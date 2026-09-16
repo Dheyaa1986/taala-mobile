@@ -35,15 +35,23 @@ class _SupportWhatsAppFabState extends State<SupportWhatsAppFab> {
 
     return Padding(
       padding: EdgeInsets.only(bottom: 72.h),
-      child: FloatingActionButton(
+      child: FloatingActionButton.extended(
         heroTag: 'support_whatsapp_fab',
         backgroundColor: const Color(0xFF25D366),
         tooltip: AppStrings.contactSupportWhatsApp.tr(),
         onPressed: () => SupportWhatsAppHelper.open(),
-        child: SvgImageWidget(
+        icon: SvgImageWidget(
           image: AppIcons.whatsapp,
-          width: 28.r,
-          height: 28.r,
+          width: 22.r,
+          height: 22.r,
+        ),
+        label: Text(
+          AppStrings.supportLabel.tr(),
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
     );
