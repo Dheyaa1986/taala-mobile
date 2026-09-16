@@ -245,6 +245,16 @@ class AppStrings {
   static const String createOrderStepLocation = 'createOrderStepLocation';
   static const String orderWithSelectedProvider = 'orderWithSelectedProvider';
   static const String noPlaceResults = 'noPlaceResults';
+  static const String orderStepDeparture = 'orderStepDeparture';
+  static const String orderStepDestination = 'orderStepDestination';
+  static const String orderStepService = 'orderStepService';
+  static const String departurePointHint = 'departurePointHint';
+  static const String destinationPointHint = 'destinationPointHint';
+  static const String confirmDeparturePoint = 'confirmDeparturePoint';
+  static const String confirmDestinationPoint = 'confirmDestinationPoint';
+  static const String openInPhoneMaps = 'openInPhoneMaps';
+  static const String editDeparturePoint = 'editDeparturePoint';
+  static const String editDestinationPoint = 'editDestinationPoint';
   static const String whereToGo = 'whereToGo';
   static const String searchDestinationHint = 'searchDestinationHint';
   static const String typeDestinationHint = 'typeDestinationHint';
