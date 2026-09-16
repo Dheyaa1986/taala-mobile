@@ -31,7 +31,11 @@ class AppPublicInfoRepositoryImpl extends Repository
 
     return exceptionHandler(() async {
       final json = await dioService.callApi(
-        NetworkRequest(AppUrls.appPublicInfo, method: RequestMethod.get),
+        NetworkRequest(
+          AppUrls.appPublicInfo,
+          method: RequestMethod.get,
+          requestWithOutToken: true,
+        ),
       );
       final model = AppPublicInfoModel.fromJson(
         ApiResponseHelper.unwrap(json),
