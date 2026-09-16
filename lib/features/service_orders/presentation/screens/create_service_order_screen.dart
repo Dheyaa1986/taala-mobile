@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/service_types_audience.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -28,6 +30,7 @@ import 'package:taal/features/service_orders/presentation/utils/order_location_p
 import 'package:taal/features/service_orders/presentation/utils/service_order_chat_launcher.dart';
 import 'package:taal/features/service_orders/presentation/widgets/dual_location_preview_map.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_location_confirm_step.dart';
+import 'package:taal/features/service_orders/presentation/widgets/order_wizard_step_indicator.dart';
 
 class CreateServiceOrderScreen extends StatefulWidget {
   const CreateServiceOrderScreen({super.key, this.args});
@@ -54,6 +57,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   bool _loadingCatalog = true;
   String? _catalogError;
   bool _submitting = false;
+  bool _highlightServiceStep = false;
 
   ServiceProviderModel? get _presetProvider => widget.args?.provider;
 
@@ -131,9 +135,16 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     );
     await OrderLocationPrefs.saveClient(getIt<SharedPref>(), resolved);
     if (!mounted) return;
+    await HapticFeedback.mediumImpact();
+    if (!mounted) return;
+    AppMessages.showSuccess(
+      context,
+      AppStrings.departurePointConfirmed.tr(),
+    );
     setState(() {
       _clientLocation = resolved;
       _step = _stepDestination;
+      _highlightServiceStep = false;
     });
   }
 
@@ -144,9 +155,16 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     );
     await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), resolved);
     if (!mounted) return;
+    await HapticFeedback.mediumImpact();
+    if (!mounted) return;
+    AppMessages.showSuccess(
+      context,
+      AppStrings.destinationPointConfirmed.tr(),
+    );
     setState(() {
       _destinationLocation = resolved;
       _step = _stepService;
+      _highlightServiceStep = true;
     });
   }
 
@@ -288,23 +306,56 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
               )
             : null,
       ),
-      body: switch (_step) {
-        _stepDeparture => OrderLocationConfirmStep(
-            title: AppStrings.departurePointHint.tr(),
-            confirmLabel: AppStrings.confirmDeparturePoint.tr(),
-            initial: _clientLocation,
-            onConfirmed: _onDepartureConfirmed,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OrderWizardStepIndicator(currentStep: _step),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 380),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                final slide = Tween<Offset>(
+                  begin: const Offset(0.12, 0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                ));
+                return SlideTransition(
+                  position: slide,
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: KeyedSubtree(
+                key: ValueKey<int>(_step),
+                child: _buildStepBody(context),
+              ),
+            ),
           ),
-        _stepDestination => OrderLocationConfirmStep(
-            title: AppStrings.destinationPointHint.tr(),
-            confirmLabel: AppStrings.confirmDestinationPoint.tr(),
-            initial: _destinationLocation ?? _clientLocation,
-            autoGpsOnStart: false,
-            onConfirmed: _onDestinationConfirmed,
-          ),
-        _ => _buildServiceStep(context),
-      },
+        ],
+      ),
     );
+  }
+
+  Widget _buildStepBody(BuildContext context) {
+    return switch (_step) {
+      _stepDeparture => OrderLocationConfirmStep(
+          title: AppStrings.departurePointHint.tr(),
+          confirmLabel: AppStrings.confirmDeparturePoint.tr(),
+          initial: _clientLocation,
+          onConfirmed: _onDepartureConfirmed,
+        ),
+      _stepDestination => OrderLocationConfirmStep(
+          title: AppStrings.destinationPointHint.tr(),
+          confirmLabel: AppStrings.confirmDestinationPoint.tr(),
+          initial: _destinationLocation ?? _clientLocation,
+          autoGpsOnStart: false,
+          onConfirmed: _onDestinationConfirmed,
+        ),
+      _ => _buildServiceStep(context),
+    };
   }
 
   Widget _buildServiceStep(BuildContext context) {
@@ -315,6 +366,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     }
 
     return SingleChildScrollView(
+      key: const ValueKey('service_step_scroll'),
       padding: REdgeInsets.fromLTRB(
         16,
         16,
@@ -324,6 +376,32 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (_highlightServiceStep) ...[
+            YellowHighlightCard(
+              isHighlighted: true,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: AppColors.primaryColor,
+                    size: 22.r,
+                  ),
+                  10.width,
+                  Expanded(
+                    child: Text(
+                      AppStrings.destinationPointConfirmed.tr(),
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            16.height,
+          ],
           if (presetProvider != null) ...[
             YellowHighlightCard(
               isHighlighted: true,
@@ -344,7 +422,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             DualLocationPreviewMap(
               origin: _clientLocation!,
               destination: _destinationLocation,
-              height: 180.h,
+              height: 240.h,
             ),
             8.height,
             Wrap(

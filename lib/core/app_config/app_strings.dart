@@ -252,6 +252,10 @@ class AppStrings {
   static const String destinationPointHint = 'destinationPointHint';
   static const String confirmDeparturePoint = 'confirmDeparturePoint';
   static const String confirmDestinationPoint = 'confirmDestinationPoint';
+  static const String wizardStepProgress = 'wizardStepProgress';
+  static const String inAppMapHint = 'inAppMapHint';
+  static const String departurePointConfirmed = 'departurePointConfirmed';
+  static const String destinationPointConfirmed = 'destinationPointConfirmed';
   static const String openInPhoneMaps = 'openInPhoneMaps';
   static const String editDeparturePoint = 'editDeparturePoint';
   static const String editDestinationPoint = 'editDestinationPoint';

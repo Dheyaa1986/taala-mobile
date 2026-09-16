@@ -7,7 +7,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
@@ -33,7 +32,7 @@ class OrderLocationConfirmStep extends StatefulWidget {
 
   final String title;
   final String confirmLabel;
-  final ValueChanged<PickedLocation> onConfirmed;
+  final Future<void> Function(PickedLocation location) onConfirmed;
   final PickedLocation? initial;
   final bool autoGpsOnStart;
 
@@ -58,6 +57,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
   bool _loadingAddress = false;
   bool _searching = false;
   bool _bootstrapping = false;
+  bool _confirming = false;
   Timer? _debounce;
 
   @override
@@ -172,24 +172,23 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
     _searchFocus.unfocus();
   }
 
-  Future<void> _openPhoneMaps() async {
-    await getIt<CustomLauncher>().openMaps(
-      _center.latitude,
-      _center.longitude,
-      _address ?? AppStrings.locationPicked.tr(),
-    );
-  }
-
   Future<void> _confirm() async {
+    if (_confirming) return;
     if (!OrderLocationPrefsValidators.hasCoordinates(_currentPick)) {
       AppMessages.showError(context, AppStrings.clientLocationRequired.tr());
       return;
     }
 
-    var picked = await OrderLocationPrefs.ensureAddress(_currentPick, _geocoding);
-    picked = OrderLocationPrefs.withResolvedAddress(picked);
-    if (!mounted) return;
-    widget.onConfirmed(picked);
+    setState(() => _confirming = true);
+    try {
+      var picked =
+          await OrderLocationPrefs.ensureAddress(_currentPick, _geocoding);
+      picked = OrderLocationPrefs.withResolvedAddress(picked);
+      if (!mounted) return;
+      await widget.onConfirmed(picked);
+    } finally {
+      if (mounted) setState(() => _confirming = false);
+    }
   }
 
   @override
@@ -199,12 +198,26 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
       children: [
         Padding(
           padding: REdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Text(
-            widget.title,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w700,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.title,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              6.height,
+              Text(
+                AppStrings.inAppMapHint.tr(),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: AppColors.commentColor,
+                  height: 1.35,
+                ),
+              ),
+            ],
           ),
         ),
         12.height,
@@ -337,15 +350,6 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
         ),
         12.height,
         Padding(
-          padding: REdgeInsets.symmetric(horizontal: 16),
-          child: CustomButton.outlined(
-            text: AppStrings.openInPhoneMaps.tr(),
-            onTap: _openPhoneMaps,
-            height: 44.h,
-          ),
-        ),
-        12.height,
-        Padding(
           padding: REdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -353,20 +357,45 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
               if (_loadingAddress)
                 const Center(child: CircularProgressIndicator())
               else if (_address != null && _address!.isNotEmpty)
-                Text(
-                  _address!,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
+                Container(
+                  padding: REdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.textFieldFillColor,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.place_outlined,
+                        size: 20.r,
+                        color: AppColors.primaryColor,
+                      ),
+                      8.width,
+                      Expanded(
+                        child: Text(
+                          _address!,
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              8.height,
+              12.height,
               CustomButton.filled(
                 text: widget.confirmLabel,
-                onTap: _confirm,
+                onTap: _confirming ? null : _confirm,
+                enabled: !_confirming,
                 height: 52.h,
               ),
+              if (_confirming) ...[
+                12.height,
+                const Center(child: CircularProgressIndicator()),
+              ],
             ],
           ),
         ),
