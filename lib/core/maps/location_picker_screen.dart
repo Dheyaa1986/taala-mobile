@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -14,6 +16,7 @@ import 'package:taal/core/maps/maps_helper.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
+import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 
 class LocationPickerScreen extends StatefulWidget {
@@ -38,6 +41,7 @@ class LocationPickerScreen extends StatefulWidget {
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final _mapController = MapController();
+  late final SafeMapController _safeMap = SafeMapController(_mapController);
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
 
@@ -53,12 +57,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         ? LatLng(widget.initial!.latitude, widget.initial!.longitude)
         : MapsHelper.defaultCenter;
     _address = widget.initial?.address;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _mapController.move(_center, 15);
-      if (widget.initial == null) {
-        _resolveAddress();
-      }
-    });
+  }
+
+  void _onMapReady() {
+    _safeMap.markReady();
+    _safeMap.move(_center, 15);
+    if (widget.initial == null) {
+      unawaited(_resolveAddress());
+    }
   }
 
   Future<void> _resolveAddress() async {
@@ -86,7 +92,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     }
 
     _center = LatLng(current.latitude, current.longitude);
-    _mapController.move(_center, 16);
+    _safeMap.move(_center, 16);
     await _resolveAddress();
   }
 
@@ -114,6 +120,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             options: MapOptions(
               initialCenter: _center,
               initialZoom: 14,
+              onMapReady: _onMapReady,
               onMapEvent: (event) {
                 if (event is MapEventMoveEnd) {
                   setState(() => _center = _mapController.camera.center);

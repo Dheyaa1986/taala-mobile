@@ -17,6 +17,7 @@ import 'package:taal/core/maps/maps_helper.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
+import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 
@@ -43,6 +44,7 @@ class OrderLocationConfirmStep extends StatefulWidget {
 
 class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
   final _mapController = MapController();
+  late final SafeMapController _safeMap = SafeMapController(_mapController);
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
   final _placeSearch = getIt<PlaceSearchService>();
@@ -55,7 +57,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
   bool _loadingGps = false;
   bool _loadingAddress = false;
   bool _searching = false;
-  bool _initialized = false;
+  bool _bootstrapping = false;
   Timer? _debounce;
 
   @override
@@ -69,13 +71,18 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
       _searchController.text = widget.initial!.address ?? '';
     }
     _searchController.addListener(_onSearchChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
   }
 
-  Future<void> _bootstrap() async {
-    _mapController.move(_center, 15);
+  void _onMapReady() {
+    _safeMap.markReady();
+    if (_bootstrapping) return;
+    _bootstrapping = true;
+    unawaited(_bootstrapAfterMapReady());
+  }
+
+  Future<void> _bootstrapAfterMapReady() async {
     if (widget.initial != null) {
-      setState(() => _initialized = true);
+      _safeMap.move(_center, 15);
       return;
     }
     if (widget.autoGpsOnStart) {
@@ -83,7 +90,6 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
     } else if (_address == null) {
       await _resolveAddress();
     }
-    if (mounted) setState(() => _initialized = true);
   }
 
   @override
@@ -133,7 +139,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
     }
 
     _center = LatLng(current.latitude, current.longitude);
-    _mapController.move(_center, 16);
+    _safeMap.move(_center, 16);
     await _resolveAddress();
   }
 
@@ -157,7 +163,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
 
   Future<void> _selectSuggestion(PlaceSuggestion item) async {
     _center = LatLng(item.latitude, item.longitude);
-    _mapController.move(_center, 16);
+    _safeMap.move(_center, 16);
     setState(() {
       _address = item.displayName;
       _searchController.text = item.displayName;
@@ -188,10 +194,6 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -274,6 +276,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep> {
                     options: MapOptions(
                       initialCenter: _center,
                       initialZoom: 15,
+                      onMapReady: _onMapReady,
                       onMapEvent: (event) {
                         if (event is MapEventMoveEnd) {
                           setState(

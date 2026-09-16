@@ -8,9 +8,27 @@ import '../helpers/api_error_message.dart';
 import 'exceptions.dart';
 
 class ErrorsExceptionsHandler {
+  static String _localizedOrFallback(String key, String fallbackAr) {
+    try {
+      final value = key.tr();
+      if (value != key) return value;
+    } catch (_) {}
+    return fallbackAr;
+  }
+
+  static String get _genericErrorMessage => _localizedOrFallback(
+        AppStrings.genericError,
+        'حدث خطأ، يرجى المحاولة لاحقاً',
+      );
+
+  static String get _networkErrorMessage => _localizedOrFallback(
+        AppStrings.networkError,
+        'تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مجدداً',
+      );
+
   static String _resolveMessage(String? message) {
     if (message == null || message.trim().isEmpty) {
-      return AppStrings.genericError.tr();
+      return _genericErrorMessage;
     }
     return ApiErrorMessage.from(message);
   }
@@ -70,7 +88,7 @@ class ErrorsExceptionsHandler {
     final errorMessage = _extractApiMessage(error.response?.data);
 
     if (error.error is SocketException) {
-      throw CustomException(AppStrings.networkError.tr());
+      throw CustomException(_networkErrorMessage);
     }
 
     switch (error.type) {
@@ -78,7 +96,7 @@ class ErrorsExceptionsHandler {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.connectionError:
-        throw CustomException(AppStrings.networkError.tr());
+        throw CustomException(_networkErrorMessage);
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         switch (statusCode) {
@@ -115,7 +133,7 @@ class ErrorsExceptionsHandler {
         throw CustomException(AppStrings.requestCancelled.tr());
       case DioExceptionType.unknown:
         if (error.error is SocketException) {
-          throw CustomException(AppStrings.networkError.tr());
+          throw CustomException(_networkErrorMessage);
         }
         throw CustomException(_resolveMessage(errorMessage));
       default:

@@ -2,7 +2,7 @@ import 'package:taal/core/app_config/service_types_audience.dart';
 
 class AppUrls {
   const AppUrls._();
-  static const String base = 'https://taala-back-production.up.railway.app';
+  static const String base = 'https://api.taal1.com';
   static String imageLink(String image) {
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;

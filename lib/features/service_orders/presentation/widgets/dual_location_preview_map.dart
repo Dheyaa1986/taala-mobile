@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/picked_location.dart';
+import 'package:taal/core/maps/safe_map_controller.dart';
 
 class DualLocationPreviewMap extends StatefulWidget {
   const DualLocationPreviewMap({
@@ -24,20 +25,20 @@ class DualLocationPreviewMap extends StatefulWidget {
 
 class _DualLocationPreviewMapState extends State<DualLocationPreviewMap> {
   final _mapController = MapController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fitCamera());
-  }
+  late final SafeMapController _safeMap = SafeMapController(_mapController);
 
   @override
   void didUpdateWidget(covariant DualLocationPreviewMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.origin != widget.origin ||
         oldWidget.destination != widget.destination) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _fitCamera());
+      _fitCamera();
     }
+  }
+
+  void _onMapReady() {
+    _safeMap.markReady();
+    _fitCamera();
   }
 
   void _fitCamera() {
@@ -50,12 +51,12 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap> {
     }
 
     if (points.length == 1) {
-      _mapController.move(points.first, 15);
+      _safeMap.move(points.first, 15);
       return;
     }
 
     final bounds = LatLngBounds.fromPoints(points);
-    _mapController.fitCamera(
+    _safeMap.fitCamera(
       CameraFit.bounds(
         bounds: bounds,
         padding: EdgeInsets.all(48.r),
@@ -81,6 +82,7 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap> {
           options: MapOptions(
             initialCenter: originPoint,
             initialZoom: 14,
+            onMapReady: _onMapReady,
             interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
