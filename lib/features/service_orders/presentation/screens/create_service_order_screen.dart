@@ -206,71 +206,51 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         ? AppStrings.chatRequestDefault.tr()
         : description;
 
-    final presetProvider = _presetProvider;
-    if (presetProvider != null) {
-      await ServiceOrderChatLauncher.startChat(
-        provider: presetProvider,
-        serviceTypeId: _selectedServiceTypeId!,
-        description: orderDescription,
-        serviceCategoryCode: _categoryCodeForSelectedType(),
-        clientLocation: client,
-        destinationLocation: destination,
-        popRoutesBeforeDetail: 1,
-      );
-      if (mounted) setState(() => _submitting = false);
-      return;
-    }
+    ServiceProviderModel? selectedProvider = _presetProvider;
 
-    final profileResult = await getIt<ProfileRepository>().getMyProfile();
-    final clientId = profileResult.fold((_) => null, (p) => p.id);
-    if (clientId == null) {
-      if (!mounted) return;
-      setState(() => _submitting = false);
-      AppMessages.showError(context, AppStrings.loginRequiredForHelp.tr());
-      return;
-    }
-
-    final providersResult = await getIt<ProviderRepository>().getProviders(
-      clientId: clientId,
-      options: ProvidersPaginationOptions(
-        page: 1,
-        limit: 1,
-        filter: FilterProvidersModel(
-          serviceTypeId: _selectedServiceTypeId,
-          active: true,
-        ),
-        clientLatitude: client.latitude,
-        clientLongitude: client.longitude,
-      ),
-    );
-
-    if (!mounted) return;
-
-    await providersResult.fold(
-      (error) async {
+    if (selectedProvider == null) {
+      final profileResult = await getIt<ProfileRepository>().getMyProfile();
+      final clientId = profileResult.fold((_) => null, (p) => p.id);
+      if (clientId == null) {
+        if (!mounted) return;
         setState(() => _submitting = false);
-        AppMessages.showError(context, error.message);
-      },
-      (providers) async {
-        if (providers.isEmpty) {
-          setState(() => _submitting = false);
-          AppMessages.showError(context, AppStrings.noProvidersNearby.tr());
-          return;
-        }
+        AppMessages.showError(context, AppStrings.loginRequiredForHelp.tr());
+        return;
+      }
 
-        await ServiceOrderChatLauncher.startChat(
-          provider: providers.first,
-          serviceTypeId: _selectedServiceTypeId!,
-          description: orderDescription,
-          serviceCategoryCode: _categoryCodeForSelectedType(),
-          clientLocation: client,
-          destinationLocation: destination,
-          popRoutesBeforeDetail: 1,
-        );
+      final providersResult = await getIt<ProviderRepository>().getProviders(
+        clientId: clientId,
+        options: ProvidersPaginationOptions(
+          page: 1,
+          limit: 1,
+          filter: FilterProvidersModel(
+            serviceTypeId: _selectedServiceTypeId,
+            active: true,
+          ),
+          clientLatitude: client.latitude,
+          clientLongitude: client.longitude,
+        ),
+      );
 
-        if (mounted) setState(() => _submitting = false);
-      },
+      if (!mounted) return;
+
+      selectedProvider = providersResult.fold(
+        (_) => null,
+        (providers) => providers.isEmpty ? null : providers.first,
+      );
+    }
+
+    await ServiceOrderChatLauncher.startChat(
+      provider: selectedProvider,
+      serviceTypeId: _selectedServiceTypeId!,
+      description: orderDescription,
+      serviceCategoryCode: _categoryCodeForSelectedType(),
+      clientLocation: client,
+      destinationLocation: destination,
+      popRoutesBeforeDetail: 1,
     );
+
+    if (mounted) setState(() => _submitting = false);
   }
 
   String _stepTitle() {

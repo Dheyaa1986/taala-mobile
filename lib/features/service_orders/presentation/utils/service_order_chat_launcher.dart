@@ -17,7 +17,7 @@ import 'package:taal/features/service_orders/presentation/utils/service_order_na
 
 class ServiceOrderChatLauncher {
   static Future<void> startChat({
-    required ServiceProviderModel provider,
+    ServiceProviderModel? provider,
     required String serviceTypeId,
     required String description,
     String? serviceCategoryCode,
@@ -39,7 +39,8 @@ class ServiceOrderChatLauncher {
       return;
     }
 
-    if (provider.id == null || provider.id!.isEmpty) {
+    final providerId = provider?.id?.trim();
+    if (provider != null && (providerId == null || providerId.isEmpty)) {
       _showMessage(AppStrings.chatProviderUnavailable.tr());
       return;
     }
@@ -85,7 +86,7 @@ class ServiceOrderChatLauncher {
       description: description.trim().isEmpty
           ? AppStrings.chatRequestDefault.tr()
           : description.trim(),
-      providerId: provider.id,
+      providerId: providerId,
       clientAddress: resolvedClient?.address,
       clientLatitude: resolvedClient?.latitude,
       clientLongitude: resolvedClient?.longitude,
