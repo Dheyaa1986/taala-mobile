@@ -39,7 +39,7 @@ class ProviderLiveLocationService {
     _tripActive = true;
     await _sendCurrentLocation();
     _stopTripTimer();
-    _tripTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _tripTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       _sendCurrentLocation();
     });
   }

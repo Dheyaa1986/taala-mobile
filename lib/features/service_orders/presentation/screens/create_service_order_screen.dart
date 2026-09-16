@@ -314,7 +314,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   void _startTrackingPoll(String orderId) {
     _trackingTimer?.cancel();
     unawaited(_refreshTracking(orderId));
-    _trackingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _trackingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       unawaited(_refreshTracking(orderId));
     });
   }
@@ -400,6 +400,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           title: AppStrings.departurePointHint.tr(),
           confirmLabel: AppStrings.confirmDeparturePoint.tr(),
           initial: _clientLocation,
+          followLiveLocation: true,
           onConfirmed: _onDepartureConfirmed,
         ),
       _stepDestination => OrderLocationConfirmStep(
@@ -429,9 +430,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final status = order?.status ?? 'pending';
-    final providerLat = status == 'pending' ? null : _trackingInfo?.providerLatitude;
-    final providerLng = status == 'pending' ? null : _trackingInfo?.providerLongitude;
+    final providerLat = _trackingInfo?.providerLatitude;
+    final providerLng = _trackingInfo?.providerLongitude;
 
     return Column(
       key: const ValueKey('tracking_step'),
@@ -459,7 +459,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                status == 'pending'
+                providerLat == null
                     ? AppStrings.orderTrackingWaitingProvider.tr()
                     : AppStrings.trackProviderOnMap.tr(),
                 style: TextStyle(

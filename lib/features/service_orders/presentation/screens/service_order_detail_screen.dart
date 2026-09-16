@@ -227,7 +227,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   void _syncTripTracking(ServiceOrderModel order) {
     if (!_isProvider) return;
     final liveLocation = getIt<ProviderLiveLocationService>();
-    if (order.status == 'en_route') {
+    if (order.status == 'accepted' || order.status == 'en_route') {
       if (!liveLocation.isTripTracking) {
         liveLocation.startTripTracking();
       }
@@ -245,7 +245,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   void _startDeviceLocationUpdates() {
     _deviceLocationTimer?.cancel();
     _refreshDeviceLocation();
-    _deviceLocationTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+    _deviceLocationTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       _refreshDeviceLocation();
     });
   }
@@ -697,12 +697,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         OrderTrackingMap(
                           clientLatitude: order.clientLatitude!,
                           clientLongitude: order.clientLongitude!,
-                          providerLatitude: order.status == 'pending'
-                              ? null
-                              : _mapProviderLat,
-                          providerLongitude: order.status == 'pending'
-                              ? null
-                              : _mapProviderLng,
+                          providerLatitude: _mapProviderLat,
+                          providerLongitude: _mapProviderLng,
                           destinationLatitude: order.destinationLatitude,
                           destinationLongitude: order.destinationLongitude,
                         ),

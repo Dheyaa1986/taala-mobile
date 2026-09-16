@@ -8,6 +8,7 @@ import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/live_map_marker.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 
 class OrderTrackingMap extends StatefulWidget {
@@ -21,6 +22,7 @@ class OrderTrackingMap extends StatefulWidget {
     this.destinationLongitude,
     this.expandToFill = false,
     this.height,
+    this.followProvider = true,
   });
 
   final double clientLatitude;
@@ -31,6 +33,7 @@ class OrderTrackingMap extends StatefulWidget {
   final double? destinationLongitude;
   final bool expandToFill;
   final double? height;
+  final bool followProvider;
 
   @override
   State<OrderTrackingMap> createState() => _OrderTrackingMapState();
@@ -69,8 +72,17 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
             oldWidget.destinationLongitude != widget.destinationLongitude;
     if (providerChanged || destinationChanged) {
       _loadRoutes();
-      _fitCamera();
+      if (providerChanged && widget.followProvider && _providerPoint != null) {
+        _followProvider(_providerPoint!);
+      } else {
+        _fitCamera();
+      }
     }
+  }
+
+  void _followProvider(LatLng provider) {
+    final zoom = _mapController.camera.zoom.clamp(13.0, 17.0);
+    _mapController.move(provider, zoom);
   }
 
   LatLng get _clientPoint =>
@@ -221,12 +233,12 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
                     if (provider != null)
                       Marker(
                         point: provider,
-                        width: 44,
-                        height: 44,
-                        child: Icon(
-                          Icons.local_shipping_rounded,
+                        width: 52,
+                        height: 52,
+                        child: LiveMapMarker(
+                          icon: Icons.local_shipping_rounded,
                           color: AppColors.primaryColor,
-                          size: 34,
+                          size: 30,
                         ),
                       ),
                     if (destination != null)

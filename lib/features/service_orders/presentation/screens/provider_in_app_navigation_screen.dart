@@ -14,6 +14,7 @@ import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/live_map_marker.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 
 class ProviderInAppNavigationArgs {
@@ -62,7 +63,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       widget.args.targetLatitude,
       widget.args.targetLongitude,
     ));
-    _locationTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+    _locationTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       unawaited(_refreshLocation());
     });
   }
@@ -160,12 +161,12 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                     if (provider != null)
                       Marker(
                         point: provider,
-                        width: 44,
-                        height: 44,
-                        child: Icon(
-                          Icons.local_shipping_rounded,
+                        width: 52,
+                        height: 52,
+                        child: LiveMapMarker(
+                          icon: Icons.local_shipping_rounded,
                           color: AppColors.primaryColor,
-                          size: 36,
+                          size: 32,
                         ),
                       ),
                     Marker(

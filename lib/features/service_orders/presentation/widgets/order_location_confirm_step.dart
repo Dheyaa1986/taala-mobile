@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:location/location.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
@@ -32,6 +33,7 @@ class OrderLocationConfirmStep extends StatefulWidget {
     this.referenceLocation,
     this.searchHint,
     this.initialZoomWhenReference = 11,
+    this.followLiveLocation = false,
   });
 
   final String title;
@@ -44,6 +46,7 @@ class OrderLocationConfirmStep extends StatefulWidget {
   final PickedLocation? referenceLocation;
   final String? searchHint;
   final double initialZoomWhenReference;
+  final bool followLiveLocation;
 
   @override
   State<OrderLocationConfirmStep> createState() =>
@@ -69,6 +72,8 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
   bool _bootstrapping = false;
   bool _confirming = false;
   Timer? _debounce;
+  StreamSubscription<LocationData>? _liveLocationSub;
+  final _location = Location();
 
   @override
   void initState() {
@@ -82,6 +87,48 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     }
     _searchController.addListener(_onSearchChanged);
     unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
+    if (widget.followLiveLocation || widget.autoGpsOnStart) {
+      unawaited(_startLiveLocationStream());
+    }
+  }
+
+  Future<void> _startLiveLocationStream() async {
+    var serviceEnabled = await _location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await _location.requestService();
+      if (!serviceEnabled) return;
+    }
+
+    var permission = await _location.hasPermission();
+    if (permission == PermissionStatus.denied) {
+      permission = await _location.requestPermission();
+      if (permission != PermissionStatus.granted &&
+          permission != PermissionStatus.grantedLimited) {
+        return;
+      }
+    }
+
+    await _location.changeSettings(
+      interval: 3000,
+      distanceFilter: 5,
+    );
+
+    _liveLocationSub?.cancel();
+    _liveLocationSub = _location.onLocationChanged.listen((data) {
+      final lat = data.latitude;
+      final lng = data.longitude;
+      if (lat == null || lng == null || !mounted) return;
+      if (_searchFocus.hasFocus) return;
+
+      final gpsPoint = LatLng(lat, lng);
+      const distance = Distance();
+      // Stop auto-follow when the user moved the pin away from GPS.
+      if (distance(_center, gpsPoint) > 120) return;
+
+      _center = gpsPoint;
+      _safeMap.move(_center, 16);
+      unawaited(_resolveAddress());
+    });
   }
 
   void _onMapReady() {
@@ -121,6 +168,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
   @override
   void dispose() {
     _debounce?.cancel();
+    _liveLocationSub?.cancel();
     _searchController.dispose();
     _searchFocus.dispose();
     super.dispose();
