@@ -46,3 +46,6 @@ app.*.map.json
 upload-certificate.pem
 *.pem
 android/key.properties
+
+# Legacy local Mapbox token file (use mapbox_local_token.sample.dart instead)
+lib/core/maps/mapbox/mapbox_local_token.dart

@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/di/service_locator.dart';
-import 'package:taal/core/maps/osrm_routing_service.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
-import 'package:taal/core/maps/widgets/live_map_marker.dart';
+import 'package:taal/core/maps/taala_routing_service.dart';
+import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 
 class OrderTrackingMap extends StatefulWidget {
@@ -41,8 +40,7 @@ class OrderTrackingMap extends StatefulWidget {
 
 class _OrderTrackingMapState extends State<OrderTrackingMap>
     with TaalaOfflineMapMixin {
-  final _mapController = MapController();
-  final _routing = getIt<OsrmRoutingService>();
+  final _routing = getIt<TaalaRoutingService>();
   List<LatLng> _providerRoutePoints = [];
   List<LatLng> _destinationRoutePoints = [];
   bool _loadingRoute = false;
@@ -56,8 +54,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
       widget.clientLongitude,
     ));
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadRoutes();
-      _fitCamera();
+      unawaited(_loadRoutes());
     });
   }
 
@@ -71,18 +68,8 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
         oldWidget.destinationLatitude != widget.destinationLatitude ||
             oldWidget.destinationLongitude != widget.destinationLongitude;
     if (providerChanged || destinationChanged) {
-      _loadRoutes();
-      if (providerChanged && widget.followProvider && _providerPoint != null) {
-        _followProvider(_providerPoint!);
-      } else {
-        _fitCamera();
-      }
+      unawaited(_loadRoutes());
     }
-  }
-
-  void _followProvider(LatLng provider) {
-    final zoom = _mapController.camera.zoom.clamp(13.0, 17.0);
-    _mapController.move(provider, zoom);
   }
 
   LatLng get _clientPoint =>
@@ -150,7 +137,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
     });
   }
 
-  void _fitCamera() {
+  List<LatLng> _fitPoints() {
     final provider = _providerPoint;
     final destination = _destinationPoint;
     final points = <LatLng>[_clientPoint];
@@ -160,18 +147,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
     if (_destinationRoutePoints.isNotEmpty) {
       points.addAll(_destinationRoutePoints);
     }
-
-    if (points.length == 1) {
-      _mapController.move(_clientPoint, 15);
-      return;
-    }
-
-    _mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: LatLngBounds.fromPoints(points),
-        padding: EdgeInsets.all(40.r),
-      ),
-    );
+    return points;
   }
 
   @override
@@ -184,78 +160,58 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
             ? [provider, _clientPoint]
             : <LatLng>[];
 
+    final polylines = <TaalaMapPolyline>[
+      if (providerPolyline.length >= 2)
+        TaalaMapPolyline(
+          points: providerPolyline,
+          color: AppColors.primaryColor,
+          width: 5,
+        ),
+      if (_destinationRoutePoints.length >= 2)
+        TaalaMapPolyline(
+          points: _destinationRoutePoints,
+          color: Colors.green.shade700,
+          width: 4,
+          dashed: true,
+        ),
+    ];
+
+    final markers = <TaalaMapMarker>[
+      TaalaMapMarker(
+        point: _clientPoint,
+        color: Colors.orange,
+        icon: Icons.warning_amber_rounded,
+        iconSize: 34,
+      ),
+      if (provider != null)
+        TaalaMapMarker(
+          point: provider,
+          color: AppColors.primaryColor,
+          icon: Icons.local_shipping_rounded,
+          iconSize: 30,
+          livePulse: true,
+        ),
+      if (destination != null)
+        TaalaMapMarker(
+          point: destination,
+          color: Colors.green.shade700,
+          icon: Icons.flag_rounded,
+          iconSize: 34,
+        ),
+    ];
+
     final mapStack = Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: _clientPoint,
-            initialZoom: 14,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all,
-            ),
-          ),
-          children: [
-            HybridMapTileLayer(offlineMapPath: offlineMapPath),
-                if (providerPolyline.length >= 2)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: providerPolyline,
-                        color: AppColors.primaryColor,
-                        strokeWidth: 5,
-                      ),
-                    ],
-                  ),
-                if (_destinationRoutePoints.length >= 2)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: _destinationRoutePoints,
-                        color: Colors.green.shade700,
-                        strokeWidth: 4,
-                        pattern: StrokePattern.dashed(segments: [8, 10]),
-                      ),
-                    ],
-                  ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _clientPoint,
-                      width: 44,
-                      height: 44,
-                      child: const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.orange,
-                        size: 34,
-                      ),
-                    ),
-                    if (provider != null)
-                      Marker(
-                        point: provider,
-                        width: 52,
-                        height: 52,
-                        child: LiveMapMarker(
-                          icon: Icons.local_shipping_rounded,
-                          color: AppColors.primaryColor,
-                          size: 30,
-                        ),
-                      ),
-                    if (destination != null)
-                      Marker(
-                        point: destination,
-                        width: 44,
-                        height: 44,
-                        child: Icon(
-                          Icons.flag_rounded,
-                          color: Colors.green.shade700,
-                          size: 34,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
+        TaalaMapView(
+          initialCenter: _clientPoint,
+          initialZoom: 14,
+          markers: markers,
+          polylines: polylines,
+          fitPoints: _fitPoints(),
+          followPoint: widget.followProvider ? provider : null,
+          offlineMapPath: offlineMapPath,
+          fitPadding: EdgeInsets.all(40.r),
+        ),
         if (_loadingRoute)
           Positioned(
             top: 8.h,

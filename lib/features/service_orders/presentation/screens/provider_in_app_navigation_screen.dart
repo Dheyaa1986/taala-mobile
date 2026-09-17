@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
@@ -11,10 +10,9 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
-import 'package:taal/core/maps/osrm_routing_service.dart';
-import 'package:taal/core/maps/safe_map_controller.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
-import 'package:taal/core/maps/widgets/live_map_marker.dart';
+import 'package:taal/core/maps/taala_routing_service.dart';
+import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 
 class ProviderInAppNavigationArgs {
@@ -41,14 +39,13 @@ class ProviderInAppNavigationScreen extends StatefulWidget {
 
 class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationScreen>
     with TaalaOfflineMapMixin {
-  final _mapController = MapController();
-  late final SafeMapController _safeMap = SafeMapController(_mapController);
-  final _routing = getIt<OsrmRoutingService>();
+  final _routing = getIt<TaalaRoutingService>();
   final _deviceLocation = getIt<DeviceLocationService>();
 
   LatLng? _providerPoint;
   List<LatLng> _routePoints = [];
   bool _loadingRoute = false;
+  int _cameraRevision = 0;
   Timer? _locationTimer;
 
   LatLng get _targetPoint => LatLng(
@@ -75,7 +72,6 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   }
 
   void _onMapReady() {
-    _safeMap.markReady();
     unawaited(_bootstrap());
   }
 
@@ -104,17 +100,10 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       _routePoints = route;
       _loadingRoute = false;
     });
-    _fitCamera(from);
   }
 
-  void _fitCamera(LatLng from) {
-    final points = <LatLng>[from, _targetPoint, ..._routePoints];
-    _safeMap.fitCamera(
-      CameraFit.bounds(
-        bounds: LatLngBounds.fromPoints(points),
-        padding: EdgeInsets.fromLTRB(48.w, 120.h, 48.w, 160.h),
-      ),
-    );
+  List<LatLng> _fitPoints(LatLng from) {
+    return <LatLng>[from, _targetPoint, ..._routePoints];
   }
 
   @override
@@ -134,52 +123,37 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       body: Stack(
         children: [
           Positioned.fill(
-            child: FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _targetPoint,
-                initialZoom: 14,
-                onMapReady: _onMapReady,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all,
-                ),
-              ),
-              children: [
-                HybridMapTileLayer(offlineMapPath: offlineMapPath),
-                if (routePolyline.length >= 2)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
+            child: TaalaMapView(
+              initialCenter: _targetPoint,
+              initialZoom: 14,
+              onMapReady: _onMapReady,
+              offlineMapPath: offlineMapPath,
+              fitPoints: provider != null ? _fitPoints(provider) : null,
+              cameraRevision: _cameraRevision,
+              fitPadding: EdgeInsets.fromLTRB(48.w, 120.h, 48.w, 160.h),
+              polylines: routePolyline.length >= 2
+                  ? [
+                      TaalaMapPolyline(
                         points: routePolyline,
                         color: AppColors.primaryColor,
-                        strokeWidth: 6,
+                        width: 6,
                       ),
-                    ],
+                    ]
+                  : const [],
+              markers: [
+                if (provider != null)
+                  TaalaMapMarker(
+                    point: provider,
+                    color: AppColors.primaryColor,
+                    icon: Icons.local_shipping_rounded,
+                    iconSize: 32,
+                    livePulse: true,
                   ),
-                MarkerLayer(
-                  markers: [
-                    if (provider != null)
-                      Marker(
-                        point: provider,
-                        width: 52,
-                        height: 52,
-                        child: LiveMapMarker(
-                          icon: Icons.local_shipping_rounded,
-                          color: AppColors.primaryColor,
-                          size: 32,
-                        ),
-                      ),
-                    Marker(
-                      point: _targetPoint,
-                      width: 44,
-                      height: 44,
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                        size: 40,
-                      ),
-                    ),
-                  ],
+                TaalaMapMarker(
+                  point: _targetPoint,
+                  color: Colors.red,
+                  icon: Icons.location_on,
+                  iconSize: 40,
                 ),
               ],
             ),
@@ -211,8 +185,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
               backgroundColor: Colors.white,
               foregroundColor: AppColors.primaryColor,
               onPressed: () {
-                final from = _providerPoint;
-                if (from != null) _fitCamera(from);
+                if (_providerPoint != null) {
+                  setState(() => _cameraRevision++);
+                }
               },
               child: const Icon(Icons.my_location),
             ),

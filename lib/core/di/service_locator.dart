@@ -5,7 +5,9 @@ import 'package:taal/core/maps/emergency/emergency_request_queue.dart';
 import 'package:taal/core/maps/emergency/emergency_sync_service.dart';
 import 'package:taal/core/maps/offline/map_offline_manager.dart';
 import 'package:taal/core/maps/offline/map_offline_repository.dart';
+import 'package:taal/core/maps/mapbox/mapbox_directions_service.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
+import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
@@ -86,6 +88,15 @@ Future<void> _initExternals() async {
   );
   getIt.registerLazySingleton<OsrmRoutingService>(
     () => OsrmRoutingService(),
+  );
+  getIt.registerLazySingleton<MapboxDirectionsService>(
+    () => MapboxDirectionsService(),
+  );
+  getIt.registerLazySingleton<TaalaRoutingService>(
+    () => TaalaRoutingService(
+      osrm: getIt(),
+      mapbox: getIt(),
+    ),
   );
   getIt.registerLazySingleton<ProviderLiveLocationService>(
     () => ProviderLiveLocationService(),

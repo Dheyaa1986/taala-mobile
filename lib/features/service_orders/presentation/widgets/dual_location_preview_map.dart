@@ -1,15 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/di/service_locator.dart';
-import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/picked_location.dart';
-import 'package:taal/core/maps/safe_map_controller.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/taala_routing_service.dart';
+import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 
 class DualLocationPreviewMap extends StatefulWidget {
@@ -32,9 +31,7 @@ class DualLocationPreviewMap extends StatefulWidget {
 
 class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
     with TaalaOfflineMapMixin {
-  final _mapController = MapController();
-  late final SafeMapController _safeMap = SafeMapController(_mapController);
-  final _routing = getIt<OsrmRoutingService>();
+  final _routing = getIt<TaalaRoutingService>();
 
   List<LatLng> _routePoints = [];
   bool _loadingRoute = false;
@@ -53,14 +50,11 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.origin != widget.origin ||
         oldWidget.destination != widget.destination) {
-      _fitCamera();
       unawaited(_loadRoute());
     }
   }
 
   void _onMapReady() {
-    _safeMap.markReady();
-    _fitCamera();
     unawaited(_loadRoute());
   }
 
@@ -87,26 +81,14 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
       _routePoints = route;
       _loadingRoute = false;
     });
-    _fitCamera();
   }
 
-  void _fitCamera() {
+  List<LatLng> _fitPoints() {
     final points = <LatLng>[_originPoint];
     final destination = _destinationPoint;
     if (destination != null) points.add(destination);
     if (_routePoints.isNotEmpty) points.addAll(_routePoints);
-
-    if (points.length == 1) {
-      _safeMap.move(points.first, 15);
-      return;
-    }
-
-    _safeMap.fitCamera(
-      CameraFit.bounds(
-        bounds: LatLngBounds.fromPoints(points),
-        padding: EdgeInsets.all(48.r),
-      ),
-    );
+    return points;
   }
 
   @override
@@ -118,53 +100,37 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
             ? [_originPoint, destinationPoint]
             : <LatLng>[];
 
-    final map = FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(
-        initialCenter: _originPoint,
-        initialZoom: 14,
-        onMapReady: _onMapReady,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-        ),
-      ),
-      children: [
-        HybridMapTileLayer(offlineMapPath: offlineMapPath),
-        if (routePolyline.length >= 2)
-          PolylineLayer(
-            polylines: [
-              Polyline(
+    final map = TaalaMapView(
+      initialCenter: _originPoint,
+      initialZoom: 14,
+      onMapReady: _onMapReady,
+      allowRotate: false,
+      offlineMapPath: offlineMapPath,
+      fitPoints: _fitPoints(),
+      fitPadding: EdgeInsets.all(48.r),
+      polylines: routePolyline.length >= 2
+          ? [
+              TaalaMapPolyline(
                 points: routePolyline,
                 color: AppColors.primaryColor.withValues(alpha: 0.85),
-                strokeWidth: 5,
+                width: 5,
               ),
-            ],
-          ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: _originPoint,
-              width: 36,
-              height: 36,
-              child: const Icon(
-                Icons.location_on,
-                color: Colors.red,
-                size: 36,
-              ),
-            ),
-            if (destinationPoint != null)
-              Marker(
-                point: destinationPoint,
-                width: 36,
-                height: 36,
-                child: Icon(
-                  Icons.flag,
-                  color: AppColors.primaryColor,
-                  size: 32,
-                ),
-              ),
-          ],
+            ]
+          : const [],
+      markers: [
+        TaalaMapMarker(
+          point: _originPoint,
+          color: Colors.red,
+          icon: Icons.location_on,
+          iconSize: 36,
         ),
+        if (destinationPoint != null)
+          TaalaMapMarker(
+            point: destinationPoint,
+            color: AppColors.primaryColor,
+            icon: Icons.flag,
+            iconSize: 32,
+          ),
       ],
     );
 
@@ -172,25 +138,7 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
       return Stack(
         children: [
           Positioned.fill(child: map),
-          if (_loadingRoute)
-            Positioned(
-              top: 8.h,
-              right: 8.w,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Padding(
-                  padding: REdgeInsets.all(6),
-                  child: SizedBox(
-                    width: 18.r,
-                    height: 18.r,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              ),
-            ),
+          if (_loadingRoute) _loadingIndicator(),
         ],
       );
     }
@@ -202,26 +150,29 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
         child: Stack(
           children: [
             map,
-            if (_loadingRoute)
-              Positioned(
-                top: 8.h,
-                right: 8.w,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Padding(
-                    padding: REdgeInsets.all(6),
-                    child: SizedBox(
-                      width: 18.r,
-                      height: 18.r,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                ),
-              ),
+            if (_loadingRoute) _loadingIndicator(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _loadingIndicator() {
+    return Positioned(
+      top: 8.h,
+      right: 8.w,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: Padding(
+          padding: REdgeInsets.all(6),
+          child: SizedBox(
+            width: 18.r,
+            height: 18.r,
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          ),
         ),
       ),
     );
