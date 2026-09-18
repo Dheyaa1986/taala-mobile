@@ -13,10 +13,13 @@ class SafeMapController {
     _ready = true;
   }
 
-  void move(LatLng center, double zoom) {
+  void move(LatLng center, double zoom, {double? bearing}) {
     if (!_ready) return;
     try {
       _controller.move(center, zoom);
+      if (bearing != null) {
+        _controller.rotate(-bearing);
+      }
     } catch (error, stackTrace) {
       debugPrint('SafeMapController.move skipped: $error\n$stackTrace');
     }

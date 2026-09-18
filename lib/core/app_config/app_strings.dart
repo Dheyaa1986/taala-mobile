@@ -438,6 +438,17 @@ class AppStrings {
   static const String navigateInApp = 'navigateInApp';
   static const String inAppNavigationHint =
       'inAppNavigationHint';
+  static const String navigationBuildingRoute = 'navigationBuildingRoute';
+  static const String navigationRouteReady = 'navigationRouteReady';
+  static const String navigationRouteFailed = 'navigationRouteFailed';
+  static const String navigationGpsRequired = 'navigationGpsRequired';
+  static const String navigationYourLocation = 'navigationYourLocation';
+  static const String navigationArrived = 'navigationArrived';
+  static const String navigationActive = 'navigationActive';
+  static const String navigationStart = 'navigationStart';
+  static const String navigationDone = 'navigationDone';
+  static const String navigationRecenter = 'navigationRecenter';
+  static const String navigationRemainingMinutes = 'navigationRemainingMinutes';
   static const String orderSubmittedTrackOnMap = 'orderSubmittedTrackOnMap';
   static const String orderTrackingWaitingProvider =
       'orderTrackingWaitingProvider';

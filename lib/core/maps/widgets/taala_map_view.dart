@@ -20,6 +20,8 @@ class TaalaMapView extends StatefulWidget {
     this.polylines = const [],
     this.fitPoints,
     this.followPoint,
+    this.followBearing,
+    this.navigationFollow = false,
     this.allowRotate = false,
     this.offlineMapPath,
     this.onMapReady,
@@ -33,6 +35,8 @@ class TaalaMapView extends StatefulWidget {
   final List<TaalaMapPolyline> polylines;
   final List<LatLng>? fitPoints;
   final LatLng? followPoint;
+  final double? followBearing;
+  final bool navigationFollow;
   final bool allowRotate;
   final String? offlineMapPath;
   final VoidCallback? onMapReady;
@@ -54,6 +58,8 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         polylines: widget.polylines,
         fitPoints: widget.fitPoints,
         followPoint: widget.followPoint,
+        followBearing: widget.followBearing,
+        navigationFollow: widget.navigationFollow,
         onMapReady: widget.onMapReady,
         fitPadding: widget.fitPadding,
         cameraRevision: widget.cameraRevision,
@@ -67,6 +73,8 @@ class _TaalaMapViewState extends State<TaalaMapView> {
       polylines: widget.polylines,
       fitPoints: widget.fitPoints,
       followPoint: widget.followPoint,
+      followBearing: widget.followBearing,
+      navigationFollow: widget.navigationFollow,
       allowRotate: widget.allowRotate,
       offlineMapPath: widget.offlineMapPath,
       onMapReady: widget.onMapReady,
@@ -84,6 +92,8 @@ class _TaalaFlutterMapView extends StatefulWidget {
     required this.polylines,
     this.fitPoints,
     this.followPoint,
+    this.followBearing,
+    this.navigationFollow = false,
     required this.allowRotate,
     this.offlineMapPath,
     this.onMapReady,
@@ -97,6 +107,8 @@ class _TaalaFlutterMapView extends StatefulWidget {
   final List<TaalaMapPolyline> polylines;
   final List<LatLng>? fitPoints;
   final LatLng? followPoint;
+  final double? followBearing;
+  final bool navigationFollow;
   final bool allowRotate;
   final String? offlineMapPath;
   final VoidCallback? onMapReady;
@@ -122,6 +134,8 @@ class _TaalaFlutterMapViewState extends State<_TaalaFlutterMapView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.fitPoints != widget.fitPoints ||
         oldWidget.followPoint != widget.followPoint ||
+        oldWidget.followBearing != widget.followBearing ||
+        oldWidget.navigationFollow != widget.navigationFollow ||
         oldWidget.markers != widget.markers ||
         oldWidget.polylines != widget.polylines ||
         oldWidget.cameraRevision != widget.cameraRevision) {
@@ -137,6 +151,12 @@ class _TaalaFlutterMapViewState extends State<_TaalaFlutterMapView> {
 
   void _applyCamera() {
     final follow = widget.followPoint;
+    if (widget.navigationFollow && follow != null) {
+      final zoom = _mapController.camera.zoom.clamp(15.0, 17.5);
+      _safeMap.move(follow, zoom, bearing: widget.followBearing);
+      return;
+    }
+
     if (follow != null) {
       final zoom = _mapController.camera.zoom.clamp(13.0, 17.0);
       _safeMap.move(follow, zoom);
@@ -226,6 +246,8 @@ class _TaalaMapboxView extends StatefulWidget {
     required this.polylines,
     this.fitPoints,
     this.followPoint,
+    this.followBearing,
+    this.navigationFollow = false,
     this.onMapReady,
     this.fitPadding,
     this.cameraRevision = 0,
@@ -237,6 +259,8 @@ class _TaalaMapboxView extends StatefulWidget {
   final List<TaalaMapPolyline> polylines;
   final List<LatLng>? fitPoints;
   final LatLng? followPoint;
+  final double? followBearing;
+  final bool navigationFollow;
   final VoidCallback? onMapReady;
   final EdgeInsets? fitPadding;
   final int cameraRevision;
@@ -258,6 +282,8 @@ class _TaalaMapboxViewState extends State<_TaalaMapboxView> {
         oldWidget.polylines != widget.polylines ||
         oldWidget.fitPoints != widget.fitPoints ||
         oldWidget.followPoint != widget.followPoint ||
+        oldWidget.followBearing != widget.followBearing ||
+        oldWidget.navigationFollow != widget.navigationFollow ||
         oldWidget.cameraRevision != widget.cameraRevision) {
       unawaited(_syncAnnotations());
       unawaited(_applyCamera());
@@ -339,6 +365,21 @@ class _TaalaMapboxViewState extends State<_TaalaMapboxView> {
     if (map == null || !_styleReady) return;
 
     final follow = widget.followPoint;
+    if (widget.navigationFollow && follow != null) {
+      final state = await map.getCameraState();
+      await map.setCamera(
+        mapbox.CameraOptions(
+          center: mapbox.Point(
+            coordinates: mapbox.Position(follow.longitude, follow.latitude),
+          ),
+          zoom: state.zoom.clamp(15, 17.5),
+          bearing: widget.followBearing,
+          pitch: 0,
+        ),
+      );
+      return;
+    }
+
     if (follow != null) {
       final state = await map.getCameraState();
       await map.setCamera(
