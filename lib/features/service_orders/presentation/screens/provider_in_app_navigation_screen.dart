@@ -15,20 +15,32 @@ import 'package:taal/core/maps/navigation/navigation_tts_service.dart';
 import 'package:taal/core/maps/navigation/route_guidance_controller.dart';
 import 'package:taal/core/maps/navigation/taala_navigation_route.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
-import 'package:taal/core/maps/widgets/taala_map_models.dart';
-import 'package:taal/core/maps/widgets/taala_map_view.dart';
-import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
+import 'package:taal/core/maps/widgets/google_navigation_map.dart';
+import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 
 class ProviderInAppNavigationArgs {
   const ProviderInAppNavigationArgs({
     required this.targetLatitude,
     required this.targetLongitude,
     this.targetTitle,
+    this.orderId,
+    this.isBreakdownLeg = false,
+    this.destinationLatitude,
+    this.destinationLongitude,
+    this.destinationTitle,
   });
 
   final double targetLatitude;
   final double targetLongitude;
   final String? targetTitle;
+  final String? orderId;
+  final bool isBreakdownLeg;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
+  final String? destinationTitle;
+
+  bool get hasDestinationLeg =>
+      destinationLatitude != null && destinationLongitude != null;
 }
 
 class ProviderInAppNavigationScreen extends StatefulWidget {
@@ -41,8 +53,7 @@ class ProviderInAppNavigationScreen extends StatefulWidget {
       _ProviderInAppNavigationScreenState();
 }
 
-class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationScreen>
-    with TaalaOfflineMapMixin {
+class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationScreen> {
   final _routing = getIt<TaalaRoutingService>();
   final _deviceLocation = getIt<DeviceLocationService>();
   final _tts = NavigationTtsService();
@@ -58,20 +69,20 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   int _cameraRevision = 0;
   Timer? _locationTimer;
   DateTime? _lastRerouteAt;
-
-  LatLng get _targetPoint => LatLng(
-        widget.args.targetLatitude,
-        widget.args.targetLongitude,
-      );
+  late LatLng _targetPoint;
+  late String? _targetTitle;
+  bool _breakdownLegComplete = false;
+  bool _transitioningToDestination = false;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_tts.initialize());
-    unawaited(refreshOfflineMapPath(
+    _targetPoint = LatLng(
       widget.args.targetLatitude,
       widget.args.targetLongitude,
-    ));
+    );
+    _targetTitle = widget.args.targetTitle;
+    unawaited(_tts.initialize());
     _locationTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       unawaited(_refreshLocation());
     });
@@ -107,8 +118,23 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       }
     });
 
+    if (!_navigationActive &&
+        _route == null &&
+        !_loadingRoute &&
+        !_routeFailed) {
+      unawaited(_loadRoute(startNavigationAfter: true));
+      return;
+    }
+
     if (_navigationActive) {
       final snapshot = _guidance.updatePosition(point);
+      if (snapshot.arrived &&
+          widget.args.isBreakdownLeg &&
+          widget.args.hasDestinationLeg &&
+          !_breakdownLegComplete) {
+        unawaited(_proceedToDestinationLeg());
+        return;
+      }
       if (snapshot.offRoute && updateRoute && _canReroute()) {
         await _loadRoute(startNavigationAfter: true);
         return;
@@ -117,6 +143,39 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       setState(() => _guidanceSnapshot = snapshot);
       setState(() => _cameraRevision++);
     }
+  }
+
+  Future<void> _proceedToDestinationLeg() async {
+    if (_breakdownLegComplete || _transitioningToDestination) return;
+    _transitioningToDestination = true;
+
+    final orderId = widget.args.orderId;
+    if (orderId != null) {
+      await getIt<ServiceOrderRepository>().updateStatus(
+        orderId: orderId,
+        status: 'arrived',
+      );
+    }
+
+    if (!mounted) return;
+
+    _breakdownLegComplete = true;
+    _guidance.stop();
+    setState(() {
+      _targetPoint = LatLng(
+        widget.args.destinationLatitude!,
+        widget.args.destinationLongitude!,
+      );
+      _targetTitle =
+          widget.args.destinationTitle ?? AppStrings.navigateToDestination.tr();
+      _route = null;
+      _navigationActive = false;
+      _guidanceSnapshot = RouteGuidanceSnapshot.idle;
+      _cameraRevision++;
+    });
+
+    _transitioningToDestination = false;
+    await _loadRoute(startNavigationAfter: true);
   }
 
   bool _canReroute() {
@@ -173,17 +232,15 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     });
   }
 
-  List<LatLng> _fitPoints(LatLng from) {
-    final points = _route?.points ?? const <LatLng>[];
-    return <LatLng>[from, _targetPoint, ...points];
-  }
-
   String _statusText() {
     if (_loadingRoute) return AppStrings.navigationBuildingRoute.tr();
     if (_routeFailed) return AppStrings.navigationRouteFailed.tr();
     if (_guidanceSnapshot.arrived) return AppStrings.navigationArrived.tr();
     if (_navigationActive) return AppStrings.navigationActive.tr();
     if (_route != null) return AppStrings.navigationRouteReady.tr();
+    if (_providerPoint != null) {
+      return AppStrings.navigationBuildingRoute.tr();
+    }
     return AppStrings.navigationGpsRequired.tr();
   }
 
@@ -191,11 +248,8 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   Widget build(BuildContext context) {
     final provider = _providerPoint;
     final routePoints = _route?.points ?? const <LatLng>[];
-    final routePolyline = routePoints.length >= 2
-        ? routePoints
-        : provider != null
-            ? [provider, _targetPoint]
-            : <LatLng>[];
+    final routePolyline =
+        routePoints.length >= 2 ? routePoints : const <LatLng>[];
 
     final remainingDistance = _guidanceSnapshot.remainingDistanceMeters;
     final remainingMinutes =
@@ -204,51 +258,20 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppStrings.navigateInApp.tr()),
+        title: Text(AppStrings.departInApp.tr()),
         centerTitle: true,
       ),
       body: Stack(
         children: [
           Positioned.fill(
-            child: TaalaMapView(
-              initialCenter: _targetPoint,
-              initialZoom: 14,
-              onMapReady: _onMapReady,
-              offlineMapPath: offlineMapPath,
-              fitPoints: _navigationActive || provider == null
-                  ? null
-                  : _fitPoints(provider),
-              followPoint: _navigationActive ? provider : null,
-              followBearing: _navigationActive ? _heading : null,
-              navigationFollow: _navigationActive,
-              allowRotate: _navigationActive,
+            child: GoogleNavigationMap(
+              target: _targetPoint,
+              provider: provider,
+              routePoints: routePolyline,
+              followNavigation: _navigationActive,
+              bearing: _heading,
               cameraRevision: _cameraRevision,
-              fitPadding: EdgeInsets.fromLTRB(48.w, 120.h, 48.w, 200.h),
-              polylines: routePolyline.length >= 2
-                  ? [
-                      TaalaMapPolyline(
-                        points: routePolyline,
-                        color: AppColors.primaryColor,
-                        width: 6,
-                      ),
-                    ]
-                  : const [],
-              markers: [
-                if (provider != null)
-                  TaalaMapMarker(
-                    point: provider,
-                    color: AppColors.primaryColor,
-                    icon: Icons.local_shipping_rounded,
-                    iconSize: 32,
-                    livePulse: true,
-                  ),
-                TaalaMapMarker(
-                  point: _targetPoint,
-                  color: Colors.red,
-                  icon: Icons.location_on,
-                  iconSize: 40,
-                ),
-              ],
+              onMapReady: _onMapReady,
             ),
           ),
           if (_loadingRoute)
@@ -312,7 +335,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    widget.args.targetTitle ?? AppStrings.navigateToClient.tr(),
+                    _targetTitle ?? AppStrings.navigateToClient.tr(),
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w700,

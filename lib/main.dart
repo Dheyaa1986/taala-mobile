@@ -8,8 +8,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:taal/core/maps/mapbox/mapbox_config.dart';
 import 'package:taal/taala_app.dart';
 
 import 'config/locale/locales.dart';
@@ -43,11 +41,6 @@ void main() async {
     debugPrint('Firebase init failed: $error');
   }
   await PackageInfoHelper.initialize();
-
-  final mapboxToken = MapboxConfig.accessToken;
-  if (mapboxToken != null) {
-    MapboxOptions.setAccessToken(mapboxToken);
-  }
 
   await setupServiceLocator();
   unawaited(getIt<MapOfflineManager>().syncWhenOnline());

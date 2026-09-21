@@ -82,9 +82,6 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
         ? LatLng(widget.initial!.latitude, widget.initial!.longitude)
         : MapsHelper.defaultCenter;
     _address = widget.initial?.address;
-    if (widget.initial != null) {
-      _searchController.text = widget.initial!.address ?? '';
-    }
     _searchController.addListener(_onSearchChanged);
     unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
     if (widget.followLiveLocation || widget.autoGpsOnStart) {
@@ -190,9 +187,6 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     setState(() {
       _address = address;
       _loadingAddress = false;
-      if (address != null && address.isNotEmpty) {
-        _searchController.text = address;
-      }
     });
   }
 
@@ -240,7 +234,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     _safeMap.move(_center, 16);
     setState(() {
       _address = item.displayName;
-      _searchController.text = item.displayName;
+      _searchController.clear();
       _suggestions = [];
     });
     _searchFocus.unfocus();

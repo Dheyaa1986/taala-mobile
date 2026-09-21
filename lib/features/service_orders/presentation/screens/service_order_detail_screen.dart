@@ -11,6 +11,7 @@ import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/maps/device_location_service.dart';
+import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/conversation_history_helper.dart';
@@ -61,8 +62,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   Timer? _deviceLocationTimer;
   double? _providerDeviceLat;
   double? _providerDeviceLng;
-  bool _providerTripLaunched = false;
-
   @override
   void initState() {
     super.initState();
@@ -142,7 +141,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
           _loading = false;
         });
         _syncTripTracking(order);
-        _maybeAutoLaunchProviderTrip(order);
         _persistHistory(order);
         if (!silent) {
           _loadTracking();
@@ -274,14 +272,61 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     return _tracking?.providerLongitude;
   }
 
+  ({double lat, double lng, String? title})? _providerNavigationTarget(
+    ServiceOrderModel order,
+  ) {
+    final toDestination = order.status == 'arrived' &&
+        order.destinationLatitude != null &&
+        order.destinationLongitude != null;
+    if (toDestination) {
+      return (
+        lat: order.destinationLatitude!,
+        lng: order.destinationLongitude!,
+        title: order.destinationAddress ?? AppStrings.navigateToDestination.tr(),
+      );
+    }
+    if (order.clientLatitude == null || order.clientLongitude == null) {
+      return null;
+    }
+    return (
+      lat: order.clientLatitude!,
+      lng: order.clientLongitude!,
+      title: order.clientName,
+    );
+  }
+
+  Future<void> _openWazeNavigation(ServiceOrderModel order) async {
+    final target = _providerNavigationTarget(order);
+    if (target == null) return;
+
+    await getIt<CustomLauncher>().openWazeDirections(
+      destinationLat: target.lat,
+      destinationLng: target.lng,
+      destinationTitle: target.title,
+      originLat: order.status == 'en_route' || order.status == 'arrived'
+          ? _mapProviderLat
+          : null,
+      originLng: order.status == 'en_route' || order.status == 'arrived'
+          ? _mapProviderLng
+          : null,
+    );
+  }
+
   Future<void> _openExternalMaps(ServiceOrderModel order) async {
     if (_isProvider) {
+      final target = _providerNavigationTarget(order);
+      if (target == null) return;
+
       await getIt<CustomLauncher>().openDirections(
-        destinationLat: order.clientLatitude!,
-        destinationLng: order.clientLongitude!,
-        destinationTitle: order.clientName,
-        originLat: order.status == 'en_route' ? _mapProviderLat : null,
-        originLng: order.status == 'en_route' ? _mapProviderLng : null,
+        destinationLat: target.lat,
+        destinationLng: target.lng,
+        destinationTitle: target.title,
+        originLat: order.status == 'en_route' || order.status == 'arrived'
+            ? _mapProviderLat
+            : null,
+        originLng: order.status == 'en_route' || order.status == 'arrived'
+            ? _mapProviderLng
+            : null,
       );
       return;
     }
@@ -298,6 +343,13 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   }
 
   void _openInAppNavigation(ServiceOrderModel order) {
+    if (!GoogleMapsConfig.isEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.googleMapsRequired.tr())),
+      );
+      return;
+    }
+
     final navigateToDestination = order.status == 'arrived' &&
         order.destinationLatitude != null &&
         order.destinationLongitude != null;
@@ -311,6 +363,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
 
     if (targetLat == null || targetLng == null) return;
 
+    final hasDestination = order.destinationLatitude != null &&
+        order.destinationLongitude != null;
+
     context.pushNamed(
       Routes.providerInAppNavigation,
       pathParameters: {'id': widget.orderId},
@@ -320,6 +375,11 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         targetTitle: navigateToDestination
             ? AppStrings.navigateToDestination.tr()
             : AppStrings.navigateToClient.tr(),
+        orderId: widget.orderId,
+        isBreakdownLeg: !navigateToDestination && hasDestination,
+        destinationLatitude: order.destinationLatitude,
+        destinationLongitude: order.destinationLongitude,
+        destinationTitle: order.destinationAddress,
       ),
     );
   }
@@ -509,15 +569,26 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     priceController.dispose();
   }
 
-  void _maybeAutoLaunchProviderTrip(ServiceOrderModel order) {
-    if (!_isProvider || _providerTripLaunched || order.status != 'en_route') {
+  Future<void> _markArrivedAtBreakdown(ServiceOrderModel order) async {
+    await _updateStatus('arrived');
+    if (!mounted) return;
+    await _openDestinationNavigationAfterArrival();
+  }
+
+  Future<void> _openDestinationNavigationAfterArrival() async {
+    final updated = _order;
+    if (updated == null || !mounted) return;
+
+    final hasDestination = updated.destinationLatitude != null &&
+        updated.destinationLongitude != null;
+    if (!hasDestination) return;
+
+    if (GoogleMapsConfig.isEnabled && _canOpenInAppNavigation(updated)) {
+      _openInAppNavigation(updated);
       return;
     }
-    _providerTripLaunched = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _openInAppNavigation(order);
-    });
+
+    await _openWazeNavigation(updated);
   }
 
   Future<void> _approveOrder() async {
@@ -702,20 +773,42 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           destinationLatitude: order.destinationLatitude,
                           destinationLongitude: order.destinationLongitude,
                         ),
-                        if (order.status != 'pending' &&
-                            _canOpenInAppNavigation(order)) ...[
+                      ],
+                    ),
+                  ),
+                if (_isProvider &&
+                    order != null &&
+                    _canOpenInAppNavigation(order) &&
+                    (order.status == 'accepted' ||
+                        order.status == 'en_route' ||
+                        order.status == 'arrived'))
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CustomButton.filled(
+                          text: AppStrings.departInApp.tr(),
+                          onTap: () async {
+                            if (order.status == 'accepted') {
+                              await _updateStatus('en_route');
+                              if (!mounted) return;
+                            }
+                            final current = _order;
+                            if (current != null) _openInAppNavigation(current);
+                          },
+                        ),
+                        8.height,
+                        CustomButton.outlined(
+                          text: AppStrings.openInWaze.tr(),
+                          onTap: () => _openWazeNavigation(order),
+                        ),
+                        if (order.status == 'en_route') ...[
                           8.height,
                           CustomButton.filled(
-                            text: AppStrings.navigateInApp.tr(),
-                            onTap: () => _openInAppNavigation(order),
-                          ),
-                        ],
-                        if (order.status != 'pending' &&
-                            _canOpenExternalMaps(order)) ...[
-                          8.height,
-                          CustomButton.outlined(
-                            text: AppStrings.openInMapApp.tr(),
-                            onTap: () => _openExternalMaps(order),
+                            text: AppStrings.arrived.tr(),
+                            onTap: () =>
+                                unawaited(_markArrivedAtBreakdown(order)),
                           ),
                         ],
                       ],
@@ -747,39 +840,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ],
-                if (_isProvider && order?.status == 'accepted')
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.filled(
-                      text: AppStrings.startTrip.tr(),
-                      onTap: () async {
-                        await _updateStatus('en_route');
-                        if (!mounted) return;
-                        final current = _order;
-                        if (current != null) {
-                          _openInAppNavigation(current);
-                        }
-                      },
-                    ),
-                  ),
-                if (_isProvider &&
-                    (order?.status == 'en_route' || order?.status == 'arrived'))
+                if (!_isProvider &&
+                    order != null &&
+                    order.status != 'pending' &&
+                    _canOpenExternalMaps(order))
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: CustomButton.outlined(
-                      text: AppStrings.navigateInApp.tr(),
-                      onTap: () {
-                        final current = _order;
-                        if (current != null) _openInAppNavigation(current);
-                      },
-                    ),
-                  ),
-                if (_isProvider && order?.status == 'en_route')
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.filled(
-                      text: AppStrings.arrived.tr(),
-                      onTap: () => _updateStatus('arrived'),
+                      text: AppStrings.openInMapApp.tr(),
+                      onTap: () => _openExternalMaps(order),
                     ),
                   ),
                 if (!_isProvider && order?.status == 'pending') ...[

@@ -1,4 +1,4 @@
-/// Builds Arabic turn-by-turn instructions from OSRM/Mapbox maneuver metadata.
+/// Builds Arabic turn-by-turn instructions from OSRM/Google maneuver metadata.
 String buildManeuverInstruction({
   required String? apiInstruction,
   required String? type,

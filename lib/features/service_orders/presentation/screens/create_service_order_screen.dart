@@ -76,7 +76,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     super.initState();
     _selectedServiceTypeId = widget.args?.serviceTypeId;
     _loadCatalog();
-    _loadSavedLocations();
   }
 
   @override
@@ -84,17 +83,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     _trackingTimer?.cancel();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadSavedLocations() async {
-    final prefs = getIt<SharedPref>();
-    final client = await OrderLocationPrefs.readClient(prefs);
-    final destination = await OrderLocationPrefs.readDestination(prefs);
-    if (!mounted) return;
-    setState(() {
-      _clientLocation = client;
-      _destinationLocation = destination;
-    });
   }
 
   Future<void> _loadCatalog() async {

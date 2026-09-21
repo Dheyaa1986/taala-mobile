@@ -333,6 +333,22 @@ class AppStrings {
   static const String distanceKm = 'distanceKm';
   static const String selectServiceType = 'selectServiceType';
   static const String providerRegisterStepServices = 'providerRegisterStepServices';
+  static const String providerRegisterStepDocuments = 'providerRegisterStepDocuments';
+  static const String providerDocumentsHint = 'providerDocumentsHint';
+  static const String providerDocumentsTowingSummary =
+      'providerDocumentsTowingSummary';
+  static const String providerDocumentsNonTowingSummary =
+      'providerDocumentsNonTowingSummary';
+  static const String providerDocumentsMixedSummary =
+      'providerDocumentsMixedSummary';
+  static const String providerDocumentsIncomplete = 'providerDocumentsIncomplete';
+  static const String nationalIdDocument = 'nationalIdDocument';
+  static const String vehicleRegistrationDocument = 'vehicleRegistrationDocument';
+  static const String residenceCardDocument = 'residenceCardDocument';
+  static const String documentFront = 'documentFront';
+  static const String documentBack = 'documentBack';
+  static const String addDocumentPhoto = 'addDocumentPhoto';
+  static const String cropDocument = 'cropDocument';
   static const String serviceOrder = 'serviceOrder';
   static const String myServiceOrders = 'myServiceOrders';
   static const String noServiceOrders = 'noServiceOrders';
@@ -436,6 +452,13 @@ class AppStrings {
   static const String navigateToClient = 'navigateToClient';
   static const String navigateToDestination = 'navigateToDestination';
   static const String navigateInApp = 'navigateInApp';
+  static const String departInApp = 'departInApp';
+  static const String googleMapsRequired = 'googleMapsRequired';
+  static const String openInWaze = 'openInWaze';
+  static const String wazeNotInstalled = 'wazeNotInstalled';
+  static const String arrivedAtBreakdownTitle = 'arrivedAtBreakdownTitle';
+  static const String arrivedAtBreakdownMessage = 'arrivedAtBreakdownMessage';
+  static const String proceedToDestinationPhase = 'proceedToDestinationPhase';
   static const String inAppNavigationHint =
       'inAppNavigationHint';
   static const String navigationBuildingRoute = 'navigationBuildingRoute';

@@ -69,6 +69,57 @@ class CustomLauncher {
     }
   }
 
+  static const _wazePlayStore =
+      'https://play.google.com/store/apps/details?id=com.waze';
+  static const _wazeAppStore =
+      'https://apps.apple.com/app/waze-navigation-live-traffic/id323229106';
+
+  Future<void> openWazeStore() async {
+    final url = Platform.isIOS ? _wazeAppStore : _wazePlayStore;
+    await openUrl(url);
+  }
+
+  /// Opens Waze for driving directions. If Waze is not installed, opens the store.
+  Future<bool> openWazeDirections({
+    required double destinationLat,
+    required double destinationLng,
+    String? destinationTitle,
+    double? originLat,
+    double? originLng,
+    String? originTitle,
+  }) async {
+    try {
+      final maps = await MapLauncher.installedMaps;
+      AvailableMap? waze;
+      for (final map in maps) {
+        if (map.mapType == MapType.waze) {
+          waze = map;
+          break;
+        }
+      }
+
+      if (waze == null) {
+        _showErrorToast(AppStrings.wazeNotInstalled.tr());
+        await openWazeStore();
+        return false;
+      }
+
+      await waze.showDirections(
+        destination: Coords(destinationLat, destinationLng),
+        destinationTitle: destinationTitle,
+        origin: originLat != null && originLng != null
+            ? Coords(originLat, originLng)
+            : null,
+        originTitle: originTitle,
+        directionsMode: DirectionsMode.driving,
+      );
+      return true;
+    } catch (_) {
+      _showErrorToast(AppStrings.cantOpenMaps.tr());
+      return false;
+    }
+  }
+
   Future<void> openDirections({
     required double destinationLat,
     required double destinationLng,

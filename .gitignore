@@ -47,5 +47,12 @@ upload-certificate.pem
 *.pem
 android/key.properties
 
-# Legacy local Mapbox token file (use mapbox_local_token.sample.dart instead)
-lib/core/maps/mapbox/mapbox_local_token.dart
+lib/core/maps/google/google_maps_local_token.dart
+android/app/src/main/res/values/google_maps_api.xml
+
+# HERE SDK Navigate plugin binaries (keep plugins/here_sdk/README.md)
+plugins/here_sdk/*
+!plugins/here_sdk/README.md
+
+# Local HERE credentials (use here_credentials.sample.dart or dart-define)
+lib/core/maps/here/here_credentials.local.dart

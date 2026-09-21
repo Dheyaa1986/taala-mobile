@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:taal/core/network/extensions.dart';
+import 'package:taal/features/auth/register/utils/provider_registration_documents.dart';
 
 class RegisterOptions {
   final String username;
@@ -17,6 +18,7 @@ class RegisterOptions {
   final String? type;
   final List<String>? serviceTypesIds;
   final String? otp;
+  final ProviderRegistrationDocumentFiles? providerDocuments;
 
   RegisterOptions({
     required this.username,
@@ -31,6 +33,7 @@ class RegisterOptions {
     this.type,
     this.serviceTypesIds,
     this.otp,
+    this.providerDocuments,
   });
 
   Future<FormData> toFormData() async {
@@ -65,6 +68,25 @@ class RegisterOptions {
       map['otp'] = otpCode;
     }
 
+    final docs = providerDocuments;
+    if (docs != null) {
+      await _appendDocument(map, 'nationalIdFront', docs.nationalIdFront);
+      await _appendDocument(map, 'nationalIdBack', docs.nationalIdBack);
+      await _appendDocument(map, 'vehicleRegFront', docs.vehicleRegFront);
+      await _appendDocument(map, 'vehicleRegBack', docs.vehicleRegBack);
+      await _appendDocument(map, 'residenceCardFront', docs.residenceCardFront);
+      await _appendDocument(map, 'residenceCardBack', docs.residenceCardBack);
+    }
+
     return FormData.fromMap(map);
+  }
+
+  Future<void> _appendDocument(
+    Map<String, dynamic> map,
+    String field,
+    File? file,
+  ) async {
+    if (file == null) return;
+    map[field] = await fileToMultipartFile(file);
   }
 }

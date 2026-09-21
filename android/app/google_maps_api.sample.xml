@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Template only — do NOT put this file under res/values (duplicate resource).
+     Copy to: android/app/src/main/res/values/google_maps_api.xml
+     Paste your Google Maps API key between the string tags. -->
+<resources>
+    <string name="google_maps_key" translatable="false"></string>
+</resources>

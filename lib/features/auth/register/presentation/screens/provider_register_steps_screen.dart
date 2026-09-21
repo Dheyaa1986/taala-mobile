@@ -25,6 +25,8 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
+import 'package:taal/features/auth/register/presentation/widgets/provider_document_upload_section.dart';
+import 'package:taal/features/auth/register/utils/provider_registration_documents.dart';
 import 'package:taal/features/auth/widgets/auth_header_widget.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
 
@@ -50,6 +52,8 @@ class _ProviderRegisterStepsScreenState
   List<ServiceCategoryCatalogModel> _serviceCatalog = [];
   bool _loadingServiceTypes = true;
   bool _submitting = false;
+  ProviderRegistrationDocumentFiles _documentFiles =
+      const ProviderRegistrationDocumentFiles();
 
   @override
   void initState() {
@@ -90,6 +94,12 @@ class _ProviderRegisterStepsScreenState
   bool get _hasAnyServiceTypes =>
       _serviceCatalog.any((c) => c.serviceTypes.isNotEmpty);
 
+  ProviderDocumentRequirements get _documentRequirements =>
+      ProviderRegistrationDocuments.resolveRequirements(
+        _selectedServiceTypeIds,
+        _serviceCatalog,
+      );
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -102,6 +112,8 @@ class _ProviderRegisterStepsScreenState
       case 0:
         return AppStrings.providerRegisterStepServices.tr();
       case 1:
+        return AppStrings.providerRegisterStepDocuments.tr();
+      case 2:
         return AppStrings.providerRegisterStep1.tr();
       default:
         return AppStrings.providerRegisterStep2.tr();
@@ -136,13 +148,22 @@ class _ProviderRegisterStepsScreenState
       }
     }
     if (_step == 1) {
+      if (!_documentFiles.satisfies(_documentRequirements)) {
+        AppMessages.showError(
+          context,
+          AppStrings.providerDocumentsIncomplete.tr(),
+        );
+        return;
+      }
+    }
+    if (_step == 2) {
       final description = _descriptionController.text.trim();
       if (description.isEmpty) {
         AppMessages.showError(context, AppStrings.requiredField.tr());
         return;
       }
     }
-    if (_step == 2) {
+    if (_step == 3) {
       final locationError =
           CustomValidators.validatePickedLocation(_pickedLocation);
       if (locationError != null) {
@@ -183,6 +204,7 @@ class _ProviderRegisterStepsScreenState
       type: 'provider',
       serviceTypesIds: _selectedServiceTypeIds.toList(),
       otp: widget.options.otp,
+      providerDocuments: _documentFiles,
     );
 
     _registerCubit.registerClient(options: options);
@@ -310,7 +332,7 @@ class _ProviderRegisterStepsScreenState
                   ),
                   12.height,
                   Row(
-                    children: List.generate(3, (index) {
+                    children: List.generate(4, (index) {
                       final active = index <= _step;
                       return Expanded(
                         child: Container(
@@ -338,6 +360,17 @@ class _ProviderRegisterStepsScreenState
                         SingleChildScrollView(
                           child: Padding(
                             padding: REdgeInsets.only(bottom: 16),
+                            child: ProviderDocumentUploadSection(
+                              requirements: _documentRequirements,
+                              files: _documentFiles,
+                              onChanged: (files) =>
+                                  setState(() => _documentFiles = files),
+                            ),
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: Padding(
+                            padding: REdgeInsets.only(bottom: 16),
                             child: CustomTextField(
                               controller: _descriptionController,
                               label: AppStrings.providerServiceDescription.tr(),
@@ -359,7 +392,7 @@ class _ProviderRegisterStepsScreenState
                   ),
                   BottomSafeArea(
                     child: CustomButton.filled(
-                      text: _step == 2
+                      text: _step == 3
                           ? AppStrings.signUp.tr()
                           : AppStrings.continueKey.tr(),
                       onTap: _submitting ||
