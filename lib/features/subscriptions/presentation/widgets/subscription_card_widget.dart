@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/design_system/tokens/taala_palette.dart';
 
 class SubscriptionCardWidget extends StatelessWidget {
   const SubscriptionCardWidget({
@@ -30,19 +31,21 @@ class SubscriptionCardWidget extends StatelessWidget {
 
   bool get _isFill => cardStyle == 'fill';
 
-  Color get _primaryTextColor =>
-      _isFill ? _contrastOn(cardColor) : AppColors.lightMainText;
+  Color _primaryTextColor(BuildContext context) =>
+      _isFill ? _contrastOn(cardColor) : TaalaTokens.of(context).textPrimary;
 
-  Color get _secondaryTextColor => _isFill
+  Color _secondaryTextColor(BuildContext context) => _isFill
       ? _contrastOn(cardColor).withValues(alpha: 0.85)
-      : Colors.grey.shade700;
+      : TaalaTokens.of(context).textSecondary;
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Container(
       margin: REdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: _isFill ? cardColor : Colors.white,
+        color: _isFill ? cardColor : tokens.surface,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: cardColor,
@@ -72,7 +75,7 @@ class SubscriptionCardWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w800,
-                      color: _primaryTextColor,
+                      color: _primaryTextColor(context),
                       height: 1.25,
                     ),
                   ),
@@ -92,7 +95,7 @@ class SubscriptionCardWidget extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: _secondaryTextColor,
+                color: _secondaryTextColor(context),
                 height: 1.35,
               ),
             ),
@@ -115,7 +118,7 @@ class SubscriptionCardWidget extends StatelessWidget {
                     backgroundColor: cardColor,
                     foregroundColor: _isFill
                         ? _contrastOn(cardColor)
-                        : AppColors.lightMainText,
+                        : tokens.textPrimary,
                     padding: REdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -129,7 +132,7 @@ class SubscriptionCardWidget extends StatelessWidget {
                             strokeWidth: 2,
                             color: _isFill
                                 ? _contrastOn(cardColor)
-                                : AppColors.lightMainText,
+                                : tokens.textPrimary,
                           ),
                         )
                       : Text(
@@ -148,7 +151,7 @@ class SubscriptionCardWidget extends StatelessWidget {
     );
   }
 
-  static Color parseHexColor(String? hex, {Color fallback = AppColors.primaryColor}) {
+  static Color parseHexColor(String? hex, {Color fallback = TaalaPalette.primary}) {
     if (hex == null || hex.isEmpty) return fallback;
     final normalized = hex.replaceFirst('#', '').trim();
     if (normalized.length != 6) return fallback;
@@ -159,7 +162,7 @@ class SubscriptionCardWidget extends StatelessWidget {
 
   static Color _contrastOn(Color background) {
     final luminance = background.computeLuminance();
-    return luminance > 0.55 ? AppColors.lightMainText : Colors.white;
+    return luminance > 0.55 ? TaalaPalette.lightTextPrimary : Colors.white;
   }
 }
 

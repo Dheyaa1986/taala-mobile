@@ -19,7 +19,9 @@ import '../../../../../core/helpers/messages.dart';
 import '../../../../../core/helpers/phone_helper.dart';
 import '../../../../../core/validations/validators.dart';
 import '../../../../../core/widgets/bottom_sheets/image_sheet.dart';
-import '../../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../../design_system/components/taala_button.dart';
+import '../../../../../design_system/theme/taala_tokens.dart';
+import '../../../../../design_system/theme/taala_tokens.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../../../core/widgets/fields/password_field.dart';
 import '../../../../../core/widgets/texts/clickable_text_widget.dart';
@@ -160,7 +162,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     child: Text(
                       AppStrings.chooseAccountType.tr(),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: AppColors.lightTText,
+                            color: TaalaTokens.of(context).textSecondary,
                           ),
                     ),
                   ),
@@ -259,10 +261,9 @@ class _RegisterFormState extends State<RegisterForm> {
                         setState(() => _legalConsentAccepted = value),
                   ),
                   24.height,
-                  CustomButton.filled(
-                    text: AppStrings.next.tr(),
-                    isBackgroundGradient: false,
-                    onTap: _register,
+                  TaalaButton(
+                    label: AppStrings.next.tr(),
+                    onPressed: _register,
                   ),
                   16.height,
                   Center(
@@ -272,10 +273,10 @@ class _RegisterFormState extends State<RegisterForm> {
                           .textTheme
                           .labelSmall!
                           .copyWith(
-                              color: AppColors.primaryColor,
+                              color: TaalaTokens.of(context).primary,
                               decoration: TextDecoration.underline,
                               decorationThickness: 1,
-                              decorationColor: AppColors.primaryColor),
+                              decorationColor: TaalaTokens.of(context).primary),
                       text: "  ${AppStrings.alreadyHaveAccount.tr()}  ",
                       clickableText: AppStrings.login.tr(),
                       onTap: () {

@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
@@ -17,7 +19,6 @@ import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({super.key, this.initial});
@@ -108,6 +109,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.pickLocationOnMap.tr()),
@@ -143,7 +147,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 child: Icon(
                   Icons.location_on,
                   size: 48.r,
-                  color: AppColors.primaryColor,
+                  color: tokens.primary,
                   shadows: const [
                     Shadow(
                       blurRadius: 8,
@@ -161,23 +165,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             child: Container(
               padding: REdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: tokens.surface,
                 borderRadius: BorderRadius.circular(12.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                  ),
-                ],
+                boxShadow: TaalaShadows.soft(brightness),
               ),
               child: Text(
                 AppStrings.mapLocationHint.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  color: AppColors.commentColor,
-                  height: 1.4,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: tokens.textSecondary,
+                      height: 1.4,
+                    ),
               ),
             ),
           ),
@@ -186,8 +184,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             bottom: 190.h,
             child: FloatingActionButton.extended(
               heroTag: 'gps',
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primaryColor,
+              backgroundColor: tokens.surface,
+              foregroundColor: tokens.primary,
               onPressed: _loadingGps ? null : _goToCurrentLocation,
               icon: _loadingGps
                   ? SizedBox(
@@ -210,15 +208,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 24 + context.safeBottomInset,
               ),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: tokens.surface,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+                boxShadow: TaalaShadows.soft(brightness),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -229,26 +221,24 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   else if (_address != null && _address!.isNotEmpty) ...[
                     Text(
                       _address!,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightMainText,
-                      ),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
                     ),
                     8.height,
                   ],
                   Text(
                     '${_center.latitude.toStringAsFixed(5)}, ${_center.longitude.toStringAsFixed(5)}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppColors.greyText,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.textSecondary,
+                        ),
                   ),
                   16.height,
-                  CustomButton.filled(
-                    text: AppStrings.confirmLocation.tr(),
-                    onTap: _confirm,
-                    height: 48.h,
+                  TaalaButton(
+                    label: AppStrings.confirmLocation.tr(),
+                    onPressed: _confirm,
+                    height: 48,
                   ),
                 ],
               ),

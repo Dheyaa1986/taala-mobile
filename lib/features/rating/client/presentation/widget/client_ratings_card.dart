@@ -9,6 +9,7 @@ import 'package:taal/features/rating/client/presentation/widget/rate_provider_sh
 import 'package:taal/features/rating/client/presentation/widget/view_profile.dart';
 
 import '../../../../../core/app_config/app_colors.dart';
+import '../../../../../design_system/theme/taala_tokens.dart';
 import '../../../../../core/app_config/app_icons.dart';
 import '../../../../../core/app_config/app_strings.dart';
 import '../../../../../core/custom_launcher/custom_launcher.dart';
@@ -68,7 +69,7 @@ class ClientRatingsCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.displayMedium!.copyWith(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.commentColor,
+                      color: TaalaTokens.of(context).textSecondary,
                     )),
             _divider(),
             8.height,

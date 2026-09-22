@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../config/themes/theme.dart';
 import '../../core/app_config/app_colors.dart';
+import '../../design_system/tokens/taala_palette.dart';
 import '../../core/app_config/app_urls.dart';
 import '../../core/app_config/font_styles.dart';
 import '../../core/models/theme_model.dart';
@@ -59,7 +60,7 @@ class OccasionBannerShell extends StatelessWidget {
       _parseColor(theme.bannerColor, AppColors.lightBGColor);
 
   static Color _textColor(ThemeModel theme) =>
-      _parseColor(theme.bannerTextColor, AppColors.lightMainText);
+      _parseColor(theme.bannerTextColor, TaalaPalette.lightTextPrimary);
 
   static String _resolveImageUrl(String url) {
     if (url.startsWith('http')) return url;

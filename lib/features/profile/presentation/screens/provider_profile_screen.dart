@@ -4,17 +4,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:taal/features/profile/presentation/cubit/provider_profile_cubit.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/profile_avatar.dart';
 import 'package:taal/features/profile/presentation/widgets/provider_profile_client_widgets.dart';
 import 'package:taal/features/profile/presentation/widgets/service_chip.dart';
@@ -99,9 +100,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                   children: [
                     Text(state.message),
                     16.height,
-                    CustomButton.filled(
-                      onTap: _loadProfile,
-                      text: AppStrings.retry.tr(),
+                    TaalaButton(
+                      onPressed: _loadProfile,
+                      label: AppStrings.retry.tr(),
                     ),
                   ],
                 ),
@@ -121,6 +122,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                 : (state as ProviderProfileRefreshing).showProviderTools;
             final showClientView = !showProviderTools;
             final services = provider.services;
+            final tokens = TaalaTokens.of(context);
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0).r,
@@ -139,10 +141,10 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                       Text(
                         provider.name ?? '',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.w400,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: tokens.textPrimary,
+                            ),
                       ),
                       8.height,
                       if (showClientView)
@@ -164,40 +166,19 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                         ],
                         24.height,
                         Align(
-                          child: CustomButton.filled(
-                            onTap: () => context.pushNamed(Routes.editProfile),
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                            radius: const Radius.circular(12).r,
+                          child: SizedBox(
                             width: 161.w,
-                            text: AppStrings.editProfile.tr(),
+                            child: TaalaButton(
+                              onPressed: () => context.pushNamed(Routes.editProfile),
+                              label: AppStrings.editProfile.tr(),
+                              height: 44,
+                            ),
                           ),
                         ),
                         32.height,
-                        GestureDetector(
+                        SettingsLogoutTile(
                           onTap: () => getIt<DioService>().logout(),
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(vertical: 16.h),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: Colors.red.shade200),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.logout, color: Colors.red),
-                                8.width,
-                                Text(
-                                  AppStrings.logout.tr(),
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          icon: const Icon(Icons.logout, color: Colors.red),
                         ),
                         16.height,
                       ],

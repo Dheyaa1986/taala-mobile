@@ -30,7 +30,7 @@ class AuthHeaderWidget extends StatelessWidget {
              SizedBox(width: 50.w),
             Text(
               title,
-              style: Theme.of(context).textTheme.labelLarge,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
 
             if (showLanguage) const LangPopup() else SizedBox(width: 50.w),

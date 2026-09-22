@@ -2,10 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/extensions/space_extension.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/app_urls.dart';
+import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 
 class ServiceTypeSelectorGrid extends StatelessWidget {
@@ -39,6 +39,7 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
+        final tokens = TaalaTokens.of(context);
         final item = items[index];
         final id = item.id ?? '';
         final enabled = item.isEnabled;
@@ -71,15 +72,11 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
             opacity: enabled ? 1 : 0.55,
             child: Container(
               decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.primaryColor.withValues(alpha: 0.12)
-                    : AppColors.textFieldFillColor,
+                color: selected ? tokens.primarySoft : tokens.surfaceMuted,
                 borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(
-                  color: selected
-                      ? AppColors.primaryColor
-                      : AppColors.brandBorder,
-                  width: selected ? 2 : 1,
+                  color: selected ? tokens.primary : tokens.borderSubtle,
+                  width: selected ? 1.5 : 1,
                 ),
               ),
               padding: REdgeInsets.all(8),
@@ -98,11 +95,11 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
                               errorWidget: (_, __, ___) => Icon(
                                 Icons.home_repair_service_outlined,
                                 size: 36.sp,
-                                color: AppColors.primaryColor,
+                                color: tokens.primary,
                               ),
                             )
                           : ColorFiltered(
-                              colorFilter: ColorFilter.matrix(<double>[
+                              colorFilter: const ColorFilter.matrix(<double>[
                                 0.2126, 0.7152, 0.0722, 0, 0,
                                 0.2126, 0.7152, 0.0722, 0, 0,
                                 0.2126, 0.7152, 0.0722, 0, 0,
@@ -116,7 +113,7 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
                                 errorWidget: (_, __, ___) => Icon(
                                   Icons.home_repair_service_outlined,
                                   size: 36.sp,
-                                  color: AppColors.commentColor,
+                                  color: tokens.textSecondary,
                                 ),
                               ),
                             ),
@@ -125,9 +122,7 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
                     Icon(
                       Icons.home_repair_service_outlined,
                       size: 36.sp,
-                      color: enabled
-                          ? AppColors.primaryColor
-                          : AppColors.commentColor,
+                      color: enabled ? tokens.primary : tokens.textSecondary,
                     ),
                   4.height,
                   Text(
@@ -135,13 +130,12 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                      color: enabled
-                          ? AppColors.lightMainText
-                          : AppColors.commentColor,
-                    ),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: enabled
+                              ? tokens.textPrimary
+                              : tokens.textSecondary,
+                        ),
                   ),
                   2.height,
                   Text(
@@ -149,13 +143,12 @@ class ServiceTypeSelectorGrid extends StatelessWidget {
                         ? AppStrings.serviceAvailable.tr()
                         : AppStrings.serviceComingSoon.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w700,
-                      color: enabled
-                          ? AppColors.primaryColor
-                          : AppColors.commentColor,
-                    ),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: enabled
+                              ? tokens.primary
+                              : tokens.textSecondary,
+                        ),
                   ),
                 ],
               ),

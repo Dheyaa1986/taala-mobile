@@ -1,144 +1,48 @@
 import 'package:flutter/material.dart';
 
-import '../../core/app_config/app_colors.dart';
-import '../../core/app_config/font_styles.dart';
 import '../../core/models/theme_model.dart';
+import '../../design_system/theme/taala_theme.dart';
 
 class TariqyAppTheme {
   static ThemeModel? activeTheme;
 
   static ThemeData getLightTheme({ThemeModel? customTheme}) {
     final theme = customTheme ?? activeTheme;
+    return TaalaTheme.light(occasionTheme: theme);
+  }
 
-    if (theme != null && theme.colors != null) {
-      return _buildDynamicTheme(theme);
+  static ThemeData getDarkTheme({ThemeModel? customTheme}) {
+    final theme = customTheme ?? activeTheme;
+    return TaalaTheme.dark(occasionTheme: theme);
+  }
+
+  static Color splashBackgroundColor() {
+    return TaalaTheme.splashBackground(occasionTheme: activeTheme);
+  }
+
+  static Color resolvePrimary([BuildContext? context]) {
+    if (context != null) {
+      return Theme.of(context).colorScheme.primary;
     }
-
-    return _getDefaultLightTheme();
+    final primary = activeTheme?.colors?.primary;
+    return _parseColor(primary) ?? const Color(0xFFFFC20F);
   }
 
-  static ThemeData _getDefaultLightTheme() {
-    return ThemeData(fontFamily: 'Cairo').copyWith(
-      appBarTheme: const AppBarTheme(
-        surfaceTintColor: Colors.transparent,
-      ),
-      hintColor: AppColors.borderColor,
-      primaryColor: AppColors.primaryColor,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.primaryColor,
-        secondary: AppColors.primaryColor,
-      ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.dividerColor,
-        thickness: 1,
-      ),
-      scaffoldBackgroundColor: AppColors.lightBGColor,
-      dialogBackgroundColor: AppColors.lightBGColor,
-      textTheme: TextTheme(
-        labelLarge: FontStyles.label24.copyWith(
-          color: AppColors.lightMainText,
-        ),
-        labelMedium: FontStyles.label16.copyWith(
-          color: AppColors.lightMainText,
-        ),
-        labelSmall: FontStyles.label16.copyWith(
-          color: AppColors.lightGreyText,
-        ),
-        headlineLarge: FontStyles.headline14.copyWith(
-          color: AppColors.primaryColor,
-        ),
-        headlineMedium: FontStyles.headline16.copyWith(
-          color: AppColors.whiteColor,
-        ),
-        headlineSmall: FontStyles.headline16.copyWith(
-          color: AppColors.lightMainText,
-        ),
-        bodyLarge: FontStyles.body14W700.copyWith(
-          color: AppColors.bodyText,
-        ),
-        bodyMedium: FontStyles.body14W500.copyWith(
-          color: AppColors.lightMainText,
-        ),
-        bodySmall: FontStyles.body12W400.copyWith(
-          color: AppColors.lightSubTitleText,
-        ),
-        titleLarge: FontStyles.body14W500.copyWith(
-          color: AppColors.lightTText,
-        ),
-        displayLarge: FontStyles.body14W700.copyWith(
-          color: AppColors.textFieldFillColor,
-        ),
-        titleSmall: FontStyles.body14W700.copyWith(
-          color: AppColors.dateColor,
-        ),
-        titleMedium: FontStyles.body14W500.copyWith(
-          color: AppColors.greyText,
-        ),
-        displayMedium: FontStyles.body14W500.copyWith(
-          color: AppColors.blackText,
-        ),
-        displaySmall: FontStyles.body14W500.copyWith(
-          color: AppColors.greyTitle,
-        ),
-      ),
-    );
+  static Color resolveSecondary([BuildContext? context]) {
+    if (context != null) {
+      return Theme.of(context).colorScheme.secondary;
+    }
+    final secondary = activeTheme?.colors?.secondary;
+    return _parseColor(secondary) ?? const Color(0xFFFFD633);
   }
 
-  static ThemeData _buildDynamicTheme(ThemeModel theme) {
-    final colors = theme.colors!;
-    final primaryColor = _parseColor(colors.primary) ?? AppColors.primaryColor;
-    final secondaryColor =
-        _parseColor(colors.secondary) ?? AppColors.secondaryColor;
-    final accentColor = _parseColor(colors.accent) ?? AppColors.primaryColor;
-    final backgroundColor =
-        _parseColor(colors.background) ?? AppColors.lightBGColor;
-    final textColor = _parseColor(colors.text) ?? AppColors.lightMainText;
-
-    return ThemeData(fontFamily: 'Cairo').copyWith(
-      appBarTheme: const AppBarTheme(
-        surfaceTintColor: Colors.transparent,
-      ),
-      hintColor: AppColors.borderColor,
-      primaryColor: primaryColor,
-      colorScheme: ColorScheme.light(
-        primary: primaryColor,
-        secondary: secondaryColor,
-      ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.dividerColor,
-        thickness: 1,
-      ),
-      scaffoldBackgroundColor: backgroundColor,
-      dialogBackgroundColor: backgroundColor,
-      textTheme: TextTheme(
-        labelLarge: FontStyles.label24.copyWith(color: textColor),
-        labelMedium: FontStyles.label16.copyWith(color: textColor),
-        labelSmall: FontStyles.label16.copyWith(
-          color: AppColors.lightGreyText,
-        ),
-        headlineLarge: FontStyles.headline14.copyWith(color: primaryColor),
-        headlineMedium: FontStyles.headline16.copyWith(
-          color: AppColors.whiteColor,
-        ),
-        headlineSmall: FontStyles.headline16.copyWith(color: textColor),
-        bodyLarge: FontStyles.body14W700.copyWith(color: textColor),
-        bodyMedium: FontStyles.body14W500.copyWith(color: textColor),
-        bodySmall: FontStyles.body12W400.copyWith(
-          color: AppColors.lightSubTitleText,
-        ),
-        titleLarge: FontStyles.body14W500.copyWith(color: textColor),
-        displayLarge: FontStyles.body14W700.copyWith(
-          color: AppColors.textFieldFillColor,
-        ),
-        titleSmall: FontStyles.body14W700.copyWith(color: accentColor),
-        titleMedium: FontStyles.body14W500.copyWith(
-          color: AppColors.greyText,
-        ),
-        displayMedium: FontStyles.body14W500.copyWith(color: textColor),
-        displaySmall: FontStyles.body14W500.copyWith(
-          color: AppColors.greyTitle,
-        ),
-      ),
+  static LinearGradient primaryGradient([BuildContext? context]) {
+    final primary = resolvePrimary(context);
+    final secondary = resolveSecondary(context);
+    return LinearGradient(
+      colors: [primary, secondary],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
     );
   }
 
@@ -154,42 +58,11 @@ class TariqyAppTheme {
     }
   }
 
-  static Color splashBackgroundColor() {
-    final primary = activeTheme?.colors?.primary;
-    return _parseColor(primary) ?? AppColors.primaryColor;
-  }
+  static ThemeData get lightTheme => getLightTheme();
 
-  static Color resolvePrimary([BuildContext? context]) {
-    if (context != null) {
-      return Theme.of(context).colorScheme.primary;
-    }
-    final primary = activeTheme?.colors?.primary;
-    return _parseColor(primary) ?? AppColors.primaryColor;
-  }
-
-  static Color resolveSecondary([BuildContext? context]) {
-    if (context != null) {
-      return Theme.of(context).colorScheme.secondary;
-    }
-    final secondary = activeTheme?.colors?.secondary;
-    return _parseColor(secondary) ?? AppColors.secondaryColor;
-  }
-
-  static LinearGradient primaryGradient([BuildContext? context]) {
-    final primary = resolvePrimary(context);
-    final secondary = resolveSecondary(context);
-    return LinearGradient(
-      colors: [primary, secondary],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
-  }
-
-  static final ThemeData lightTheme = _getDefaultLightTheme();
-
-  static final ThemeData darkTheme = ThemeData(fontFamily: 'Tajawal').copyWith();
+  static ThemeData get darkTheme => getDarkTheme();
 
   ThemeData get lightMode => getLightTheme();
 
-  ThemeData get darkMode => darkTheme;
+  ThemeData get darkMode => getDarkTheme();
 }

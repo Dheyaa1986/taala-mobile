@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/alerts/app_alert_sound_service.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/conversation_history_helper.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/grouped_conversation_box.dart';
 import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
@@ -198,9 +198,9 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                           maxLines: 3,
                         ),
                         12.height,
-                        CustomButton.filled(
-                          text: AppStrings.sendReply.tr(),
-                          onTap: _sendReply,
+                        TaalaButton(
+                          label: AppStrings.sendReply.tr(),
+                          onPressed: _sendReply,
                         ),
                       ],
                     ),
@@ -212,7 +212,9 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                       padding: REdgeInsets.all(16),
                       child: Text(
                       AppStrings.ticketClosed.tr(),
-                      style: TextStyle(color: AppColors.greyText),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: TaalaTokens.of(context).textSecondary,
+                          ),
                     ),
                     ),
                   ),

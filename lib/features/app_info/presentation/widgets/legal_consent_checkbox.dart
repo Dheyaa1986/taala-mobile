@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
 
 class LegalConsentCheckbox extends StatelessWidget {
@@ -20,14 +20,15 @@ class LegalConsentCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final linkStyle = TextStyle(
-      color: AppColors.primaryColor,
+      color: tokens.primary,
       fontWeight: FontWeight.w600,
       decoration: TextDecoration.underline,
       fontSize: 12.sp,
     );
     final baseStyle = TextStyle(
-      color: AppColors.lightMainText,
+      color: tokens.textPrimary,
       fontSize: 12.sp,
       height: 1.4,
     );
@@ -38,7 +39,7 @@ class LegalConsentCheckbox extends StatelessWidget {
         Checkbox(
           value: value,
           onChanged: (checked) => onChanged(checked ?? false),
-          activeColor: AppColors.primaryColor,
+          activeColor: tokens.primary,
         ),
         Expanded(
           child: Padding(

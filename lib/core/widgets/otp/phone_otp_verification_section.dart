@@ -6,7 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/api_error_message.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/otp/otp_field.dart';
 
 typedef PhoneOtpSender = Future<({String? debugOtp, String? error})> Function(
@@ -106,12 +107,16 @@ class _PhoneOtpVerificationSectionState
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           AppStrings.guestHelpVerifyStepHint.tr(),
-          style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: tokens.textSecondary,
+              ),
         ),
         12.height,
         if (_inlineOtp != null && _inlineOtp!.isNotEmpty) ...[
@@ -139,14 +144,17 @@ class _PhoneOtpVerificationSectionState
         8.height,
         Text(
           AppStrings.guestOtpResendHint.tr(),
-          style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: tokens.textSecondary,
+              ),
         ),
         12.height,
-        CustomButton.outlined(
-          text: _cooldown > 0
+        TaalaButton(
+          label: _cooldown > 0
               ? '${AppStrings.resendOtp.tr()} (${_cooldown}s)'
               : (_sent ? AppStrings.resendOtp.tr() : AppStrings.sendOtp.tr()),
-          onTap: (_sending || _cooldown > 0) ? null : _sendOtp,
+          variant: TaalaButtonVariant.secondary,
+          onPressed: (_sending || _cooldown > 0) ? null : _sendOtp,
         ),
         if (_sending)
           const Padding(

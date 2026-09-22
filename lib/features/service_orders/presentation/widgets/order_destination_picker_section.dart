@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/location_picker_screen.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/place_search_service.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/presentation/widgets/dual_location_preview_map.dart';
 
@@ -118,6 +118,7 @@ class _OrderDestinationPickerSectionState
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final showMap = widget.showMapPreview &&
         widget.clientLocation != null &&
         OrderLocationPrefsValidators.isValidDestination(widget.destination);
@@ -134,7 +135,7 @@ class _OrderDestinationPickerSectionState
           AppStrings.searchDestinationHint.tr(),
           style: TextStyle(
             fontSize: 12.sp,
-            color: AppColors.commentColor,
+            color: tokens.textSecondary,
             height: 1.4,
           ),
         ),
@@ -156,7 +157,7 @@ class _OrderDestinationPickerSectionState
                   )
                 : null,
             filled: true,
-            fillColor: AppColors.textFieldFillColor,
+            fillColor: tokens.surfaceMuted,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide.none,
@@ -193,13 +194,14 @@ class _OrderDestinationPickerSectionState
           8.height,
           Text(
             AppStrings.noPlaceResults.tr(),
-            style: TextStyle(fontSize: 12.sp, color: AppColors.commentColor),
+            style: TextStyle(fontSize: 12.sp, color: tokens.textSecondary),
           ),
         ],
         12.height,
-        CustomButton.outlined(
-          text: AppStrings.pickLocationOnMap.tr(),
-          onTap: _pickOnMap,
+        TaalaButton(
+          label: AppStrings.pickLocationOnMap.tr(),
+          variant: TaalaButtonVariant.secondary,
+          onPressed: _pickOnMap,
         ),
         if (showMap) ...[
           24.height,

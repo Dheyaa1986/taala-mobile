@@ -17,9 +17,9 @@ import '../../../../core/helpers/messages.dart';
 import '../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../../../../core/widgets/buttons/back_button.dart';
-import '../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../design_system/components/taala_button.dart';
+import '../../../../design_system/theme/taala_tokens.dart';
 import '../../../../core/widgets/texts/clickable_text_widget.dart';
-import '../../../../core/app_config/app_colors.dart';
 import '../../widgets/auth_header_widget.dart';
 import '../widgets/role_list_tile.dart';
 
@@ -176,10 +176,9 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                     flex: 4,
                   ),
                   if (_role != null)
-                    CustomButton.filled(
-                      isBackgroundGradient: false,
-                      text: AppStrings.continueKey.tr(),
-                      onTap: () => _submit(context),
+                    TaalaButton(
+                      label: AppStrings.continueKey.tr(),
+                      onPressed: () => _submit(context),
                     ),
                   16.height,
                   Center(
@@ -189,9 +188,9 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                           .textTheme
                           .labelSmall!
                           .copyWith(
-                            color: AppColors.primaryColor,
+                            color: TaalaTokens.of(context).primary,
                             decoration: TextDecoration.underline,
-                            decorationColor: AppColors.primaryColor,
+                            decorationColor: TaalaTokens.of(context).primary,
                           ),
                       text: '  ${AppStrings.alreadyHaveAccount.tr()}  ',
                       clickableText: AppStrings.login.tr(),

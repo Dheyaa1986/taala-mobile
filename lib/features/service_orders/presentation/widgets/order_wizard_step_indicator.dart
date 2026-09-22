@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class OrderWizardStepIndicator extends StatelessWidget {
   const OrderWizardStepIndicator({
@@ -21,6 +21,8 @@ class OrderWizardStepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Padding(
       padding: REdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
@@ -33,11 +35,10 @@ class OrderWizardStepIndicator extends StatelessWidget {
                 'total': '${_stepLabels.length}',
               },
             ),
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.commentColor,
-            ),
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: tokens.textSecondary,
+                ),
             textAlign: TextAlign.center,
           ),
           10.height,
@@ -52,8 +53,8 @@ class OrderWizardStepIndicator extends StatelessWidget {
                       margin: REdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         color: i <= currentStep
-                            ? AppColors.primaryColor
-                            : AppColors.borderColor,
+                            ? tokens.primary
+                            : tokens.borderSubtle,
                         borderRadius: BorderRadius.circular(2.r),
                       ),
                     ),
@@ -63,6 +64,7 @@ class OrderWizardStepIndicator extends StatelessWidget {
                   label: _stepLabels[i].tr(),
                   isActive: i == currentStep,
                   isCompleted: i < currentStep,
+                  tokens: tokens,
                 ),
               ],
             ],
@@ -79,23 +81,22 @@ class _StepDot extends StatelessWidget {
     required this.label,
     required this.isActive,
     required this.isCompleted,
+    required this.tokens,
   });
 
   final int index;
   final String label;
   final bool isActive;
   final bool isCompleted;
+  final TaalaTokens tokens;
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive || isCompleted
-        ? AppColors.primaryColor
-        : AppColors.borderColor;
     final textColor = isActive
-        ? AppColors.lightMainText
+        ? tokens.textPrimary
         : isCompleted
-            ? AppColors.primaryColor
-            : AppColors.commentColor;
+            ? tokens.primary
+            : tokens.textSecondary;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -106,22 +107,27 @@ class _StepDot extends StatelessWidget {
           height: 32.r,
           decoration: BoxDecoration(
             color: isActive
-                ? AppColors.primaryColor
+                ? tokens.primary
                 : isCompleted
-                    ? AppColors.primaryColor.withValues(alpha: 0.15)
-                    : AppColors.textFieldFillColor,
+                    ? tokens.primarySoft
+                    : tokens.surfaceMuted,
             shape: BoxShape.circle,
-            border: Border.all(color: color, width: isActive ? 0 : 1.5),
+            border: Border.all(
+              color: isActive || isCompleted
+                  ? tokens.primary
+                  : tokens.borderSubtle,
+              width: isActive ? 0 : 1.5,
+            ),
           ),
           child: Center(
             child: isCompleted && !isActive
-                ? Icon(Icons.check, size: 18.r, color: AppColors.primaryColor)
+                ? Icon(Icons.check, size: 18.r, color: tokens.primary)
                 : Text(
                     '${index + 1}',
                     style: TextStyle(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w700,
-                      color: isActive ? Colors.black : textColor,
+                      color: isActive ? tokens.onPrimary : textColor,
                     ),
                   ),
           ),

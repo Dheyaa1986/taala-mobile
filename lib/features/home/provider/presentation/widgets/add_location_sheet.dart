@@ -9,7 +9,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/fields/custom_drop_down_field.dart';
 import 'package:taal/core/widgets/fields/map_location_picker_field.dart';
 import 'package:taal/features/home/provider/data/model/governate.dart';
@@ -150,10 +150,9 @@ class _AddLocationSheetState extends State<AddLocationSheet> {
               validator: CustomValidators.validatePickedLocation,
             ),
             24.height,
-            CustomButton.filled(
-              width: 168.w,
-              onTap: _isSubmitting ? null : _submit,
-              text: widget.model == null
+            TaalaButton(
+              onPressed: _isSubmitting ? null : _submit,
+              label: widget.model == null
                   ? AppStrings.addLocation.tr()
                   : AppStrings.editLocation.tr(),
             ),

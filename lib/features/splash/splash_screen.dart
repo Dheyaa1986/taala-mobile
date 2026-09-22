@@ -8,17 +8,44 @@ import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 
 import '../../core/app_config/prefs_keys.dart';
-import '../../core/di/service_locator.dart';
 import '../../core/helpers/auth_session_helper.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../../core/helpers/secure_local_storage.dart';
-import '../../core/helpers/shared_pref_local_storage.dart';
 import '../../core/updates/app_update_prompt.dart';
 import '../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, this.isProvider});
   final bool? isProvider;
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
 
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
     final canContinue = await handleAppUpdateCheck();
@@ -63,23 +90,26 @@ class SplashScreen extends StatelessWidget {
             : null;
 
         return Scaffold(
-          backgroundColor: TariqyAppTheme.splashBackgroundColor(),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Stack(
             children: [
               Center(
-                child: splashLogo != null
-                    ? Image.network(
-                        splashLogo,
-                        width: 250,
-                        errorBuilder: (_, __, ___) => Image.asset(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: splashLogo != null
+                      ? Image.network(
+                          splashLogo,
+                          width: 220,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            'assets/taal.png',
+                            width: 220,
+                          ),
+                        )
+                      : Image.asset(
                           'assets/taal.png',
-                          width: 250,
+                          width: 220,
                         ),
-                      )
-                    : Image.asset(
-                        'assets/taal.png',
-                        width: 250,
-                      ),
+                ),
               ),
               const SafeArea(
                 child: Align(

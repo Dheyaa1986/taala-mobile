@@ -17,7 +17,8 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/conversation_history_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/widgets/grouped_conversation_box.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
@@ -671,7 +672,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           order.serviceType?.name ?? order.description ?? '',
                           style: TextStyle(
                             fontSize: 12.sp,
-                            color: AppColors.commentColor,
+                            color: TaalaTokens.of(context).textSecondary,
                           ),
                         ),
                         6.height,
@@ -787,9 +788,9 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        CustomButton.filled(
-                          text: AppStrings.departInApp.tr(),
-                          onTap: () async {
+                        TaalaButton(
+                          label: AppStrings.departInApp.tr(),
+                          onPressed: () async {
                             if (order.status == 'accepted') {
                               await _updateStatus('en_route');
                               if (!mounted) return;
@@ -799,15 +800,16 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           },
                         ),
                         8.height,
-                        CustomButton.outlined(
-                          text: AppStrings.openInWaze.tr(),
-                          onTap: () => _openWazeNavigation(order),
+                        TaalaButton(
+                          label: AppStrings.openInWaze.tr(),
+                          variant: TaalaButtonVariant.secondary,
+                          onPressed: () => _openWazeNavigation(order),
                         ),
                         if (order.status == 'en_route') ...[
                           8.height,
-                          CustomButton.filled(
-                            text: AppStrings.arrived.tr(),
-                            onTap: () =>
+                          TaalaButton(
+                            label: AppStrings.arrived.tr(),
+                            onPressed: () =>
                                 unawaited(_markArrivedAtBreakdown(order)),
                           ),
                         ],
@@ -818,25 +820,27 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 if (_isProvider && order?.status == 'pending') ...[
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.filled(
-                      text: AppStrings.proposePrice.tr(),
-                      onTap: _proposePrice,
+                    child: TaalaButton(
+                      label: AppStrings.proposePrice.tr(),
+                      onPressed: _proposePrice,
                     ),
                   ),
                   8.height,
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.outlined(
-                      text: AppStrings.acceptAndChat.tr(),
-                      onTap: _acceptOrder,
+                    child: TaalaButton(
+                      label: AppStrings.acceptAndChat.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: _acceptOrder,
                     ),
                   ),
                   8.height,
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.outlined(
-                      text: AppStrings.rejectOrder.tr(),
-                      onTap: () => _updateStatus('cancelled'),
+                    child: TaalaButton(
+                      label: AppStrings.rejectOrder.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () => _updateStatus('cancelled'),
                     ),
                   ),
                 ],
@@ -846,9 +850,10 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     _canOpenExternalMaps(order))
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.outlined(
-                      text: AppStrings.openInMapApp.tr(),
-                      onTap: () => _openExternalMaps(order),
+                    child: TaalaButton(
+                      label: AppStrings.openInMapApp.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () => _openExternalMaps(order),
                     ),
                   ),
                 if (!_isProvider && order?.status == 'pending') ...[
@@ -860,16 +865,17 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13.sp,
-                          color: AppColors.commentColor,
+                          color: TaalaTokens.of(context).textSecondary,
                         ),
                       ),
                     ),
                     12.height,
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 12),
-                      child: CustomButton.outlined(
-                        text: AppStrings.cancelOrder.tr(),
-                        onTap: _confirmCancelOrder,
+                      child: TaalaButton(
+                        label: AppStrings.cancelOrder.tr(),
+                        variant: TaalaButtonVariant.secondary,
+                        onPressed: _confirmCancelOrder,
                       ),
                     ),
                   ],
@@ -892,16 +898,17 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: CustomButton.outlined(
-                              text: AppStrings.cancelOrder.tr(),
-                              onTap: _confirmCancelOrder,
+                            child: TaalaButton(
+                              label: AppStrings.cancelOrder.tr(),
+                              variant: TaalaButtonVariant.secondary,
+                              onPressed: _confirmCancelOrder,
                             ),
                           ),
                           12.width,
                           Expanded(
-                            child: CustomButton.filled(
-                              text: AppStrings.approveOrder.tr(),
-                              onTap: _approveOrder,
+                            child: TaalaButton(
+                              label: AppStrings.approveOrder.tr(),
+                              onPressed: _approveOrder,
                             ),
                           ),
                         ],
@@ -919,7 +926,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13.sp,
-                        color: AppColors.commentColor,
+                        color: TaalaTokens.of(context).textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -927,9 +934,10 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   12.height,
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: CustomButton.outlined(
-                      text: AppStrings.cancelOrder.tr(),
-                      onTap: _confirmCancelOrder,
+                    child: TaalaButton(
+                      label: AppStrings.cancelOrder.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: _confirmCancelOrder,
                     ),
                   ),
                 ],
@@ -939,16 +947,17 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: CustomButton.outlined(
-                            text: AppStrings.cancelOrder.tr(),
-                            onTap: _confirmCancelOrder,
+                          child: TaalaButton(
+                            label: AppStrings.cancelOrder.tr(),
+                            variant: TaalaButtonVariant.secondary,
+                            onPressed: _confirmCancelOrder,
                           ),
                         ),
                         12.width,
                         Expanded(
-                          child: CustomButton.filled(
-                            text: AppStrings.completeOrder.tr(),
-                            onTap: () => _updateStatus('completed'),
+                          child: TaalaButton(
+                            label: AppStrings.completeOrder.tr(),
+                            onPressed: () => _updateStatus('completed'),
                           ),
                         ),
                       ],

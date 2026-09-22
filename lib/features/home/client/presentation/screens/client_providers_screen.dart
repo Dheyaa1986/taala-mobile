@@ -2,8 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
@@ -32,7 +32,7 @@ class ClientProvidersScreen extends StatelessWidget {
                 AppStrings.serviceProvidersSubtitle.tr(),
                 style: TextStyle(
                   fontSize: 13.sp,
-                  color: AppColors.commentColor,
+                  color: TaalaTokens.of(context).textSecondary,
                   height: 1.5,
                 ),
               ),

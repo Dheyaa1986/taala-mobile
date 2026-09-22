@@ -16,8 +16,6 @@ import 'package:taal/core/validations/validators.dart';
 import '../../../../../config/routes/routes.dart';
 import '../../../../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 
-import '../../../../../core/app_config/app_colors.dart';
-
 import '../../../../../core/app_config/app_icons.dart';
 
 import '../../../../../core/app_config/app_strings.dart';
@@ -34,7 +32,8 @@ import '../../../../../core/helpers/shared_pref_local_storage.dart';
 
 import '../../../../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 
-import '../../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../../design_system/components/taala_button.dart';
+import '../../../../../design_system/theme/taala_tokens.dart';
 
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 
@@ -192,12 +191,7 @@ class _LoginFormState extends State<LoginForm> {
                           alignment: AlignmentDirectional.centerStart,
                           child: Text(
                             AppStrings.chooseAccountType.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(
-                                  color: AppColors.lightTText,
-                                ),
+                            style: Theme.of(context).textTheme.labelMedium,
                           ),
                         ),
                         12.height,
@@ -225,7 +219,7 @@ class _LoginFormState extends State<LoginForm> {
                           children: [
                             Checkbox(
                               value: _rememberMe,
-                              activeColor: AppColors.primaryColor,
+                              activeColor: TaalaTokens.of(context).primary,
                               onChanged: (value) {
                                 setState(() => _rememberMe = value ?? true);
                                 context
@@ -236,10 +230,7 @@ class _LoginFormState extends State<LoginForm> {
                             Expanded(
                               child: Text(
                                 AppStrings.rememberMe.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(color: AppColors.lightTText),
+                                style: Theme.of(context).textTheme.labelMedium,
                               ),
                             ),
                           ],
@@ -250,10 +241,9 @@ class _LoginFormState extends State<LoginForm> {
                   ),
                 ),
               ),
-              CustomButton.filled(
-                text: AppStrings.login.tr(),
-                isBackgroundGradient: false,
-                onTap: _login,
+              TaalaButton(
+                label: AppStrings.login.tr(),
+                onPressed: _login,
               ),
               16.height,
               if (_role == UserRole.provider)
@@ -264,10 +254,11 @@ class _LoginFormState extends State<LoginForm> {
                         .textTheme
                         .labelSmall!
                         .copyWith(
-                            color: AppColors.primaryColor,
+                            color: TaalaTokens.of(context).primary,
                             decoration: TextDecoration.underline,
                             decorationThickness: 1,
-                            decorationColor: AppColors.primaryColor),
+                            decorationColor:
+                                TaalaTokens.of(context).primary),
                     text: "  ${AppStrings.dontHaveAccount.tr()}  ",
                     clickableText: AppStrings.register.tr(),
                     onTap: () {
@@ -286,10 +277,11 @@ class _LoginFormState extends State<LoginForm> {
                         .textTheme
                         .labelSmall!
                         .copyWith(
-                            color: AppColors.primaryColor,
+                            color: TaalaTokens.of(context).primary,
                             decoration: TextDecoration.underline,
                             decorationThickness: 1,
-                            decorationColor: AppColors.primaryColor),
+                            decorationColor:
+                                TaalaTokens.of(context).primary),
                     text: "  ${AppStrings.dontHaveAccount.tr()}  ",
                     clickableText: AppStrings.register.tr(),
                     onTap: () {

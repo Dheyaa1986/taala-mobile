@@ -7,7 +7,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -19,7 +18,9 @@ import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
 import 'package:taal/core/maps/widgets/provider_call_button.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 import 'package:taal/features/guest/presentation/widgets/guest_help_request_sheet.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_map_point.dart';
@@ -167,7 +168,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     });
   }
 
-  List<Marker> _providerMarkers() {
+  List<Marker> _providerMarkers(TaalaTokens tokens) {
     return _providers.map((provider) {
       final point = provider.mapPoint;
       if (point == null) return null;
@@ -182,7 +183,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
           child: Icon(
             Icons.handyman_rounded,
             size: isSelected ? 40 : 34,
-            color: isSelected ? AppColors.primaryColor : AppColors.lightMainText,
+            color: isSelected ? tokens.primary : tokens.textPrimary,
             shadows: const [
               Shadow(blurRadius: 8, color: Colors.black26),
             ],
@@ -194,6 +195,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
       floatingActionButton: const SupportWhatsAppFab(),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
@@ -212,7 +216,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             ),
             children: [
               HybridMapTileLayer(offlineMapPath: _offlineMapPath),
-              MarkerLayer(markers: _providerMarkers()),
+              MarkerLayer(markers: _providerMarkers(tokens)),
             ],
           ),
           IgnorePointer(
@@ -222,7 +226,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                 child: Icon(
                   Icons.location_on,
                   size: 52.r,
-                  color: AppColors.primaryColor,
+                  color: tokens.primary,
                   shadows: const [
                     Shadow(blurRadius: 10, color: Colors.black26),
                   ],
@@ -242,45 +246,43 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   child: Container(
                     padding: REdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: tokens.surface,
                       borderRadius: BorderRadius.circular(14.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                        ),
-                      ],
+                      boxShadow: TaalaShadows.soft(brightness),
                     ),
                     child: Text(
                       AppStrings.guestMapHint.tr(),
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: AppColors.commentColor,
-                        height: 1.4,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: tokens.textSecondary,
+                            height: 1.4,
+                          ),
                     ),
                   ),
                 ),
                 8.width,
                 Material(
-                  color: Colors.white,
+                  color: tokens.surface,
                   borderRadius: BorderRadius.circular(14.r),
-                  elevation: 2,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
                   child: InkWell(
                     onTap: () => _openLogin(),
                     borderRadius: BorderRadius.circular(14.r),
-                    child: Padding(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14.r),
+                        boxShadow: TaalaShadows.soft(brightness),
+                      ),
                       padding: REdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 12,
                       ),
                       child: Text(
                         AppStrings.login.tr(),
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: tokens.primary,
+                            ),
                       ),
                     ),
                   ),
@@ -299,8 +301,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             bottom: MediaQuery.sizeOf(context).height * 0.42,
             child: FloatingActionButton(
               heroTag: 'guest_gps',
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primaryColor,
+              backgroundColor: tokens.surface,
+              foregroundColor: tokens.primary,
               onPressed: _loadingGps ? null : _goToCurrentLocation,
               child: _loadingGps
                   ? SizedBox(
@@ -318,15 +320,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: TaalaTokens.of(context).surface,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 16,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
+                  boxShadow: TaalaShadows.soft(Theme.of(context).brightness),
                 ),
                 child: ListView(
                   controller: scrollController,
@@ -342,7 +338,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                         width: 40.w,
                         height: 4.h,
                         decoration: BoxDecoration(
-                          color: AppColors.lightGreyDividerColor,
+                          color: tokens.borderSubtle,
                           borderRadius: BorderRadius.circular(4.r),
                         ),
                       ),
@@ -350,11 +346,10 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     16.height,
                     Text(
                       AppStrings.guestMapTitle.tr(),
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.lightMainText,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: tokens.textPrimary,
+                          ),
                     ),
                     8.height,
                     if (_loadingAddress)
@@ -362,33 +357,33 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     else if (_address != null && _address!.isNotEmpty)
                       Text(
                         _address!,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: AppColors.commentColor,
-                          height: 1.4,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: tokens.textSecondary,
+                              height: 1.4,
+                            ),
                       ),
                     16.height,
-                    CustomButton.filled(
-                      text: AppStrings.requestHelp.tr(),
-                      onTap: _requestHelp,
-                      height: 48.h,
+                    TaalaButton(
+                      label: AppStrings.requestHelp.tr(),
+                      onPressed: _requestHelp,
+                      height: 48,
                     ),
                     12.height,
-                    CustomButton.outlined(
-                      text: AppStrings.iAmProvider.tr(),
-                      onTap: () => _openLogin(asProvider: true),
-                      height: 48.h,
+                    TaalaButton(
+                      label: AppStrings.iAmProvider.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () => _openLogin(asProvider: true),
+                      height: 48,
                     ),
                     20.height,
                     Row(
                       children: [
                         Text(
                           AppStrings.nearestProviders.tr(),
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: tokens.textPrimary,
+                              ),
                         ),
                         const Spacer(),
                         if (_loadingProviders)
@@ -405,18 +400,16 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     if (_error != null)
                       Text(
                         _error!,
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: AppColors.redColor,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: tokens.error,
+                            ),
                       )
                     else if (!_loadingProviders && _providers.isEmpty)
                       Text(
                         AppStrings.noProvidersNearby.tr(),
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: AppColors.commentColor,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: tokens.textSecondary,
+                            ),
                       )
                     else
                       ..._providers.map(
@@ -462,29 +455,32 @@ class _GuestProviderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
+
     return Padding(
       padding: EdgeInsets.only(bottom: 10.h),
       child: Material(
-        color: isSelected ? AppColors.toggleBg : Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
+        color: isSelected ? tokens.primarySoft : tokens.surface,
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(tokens.cardRadius),
           child: Container(
             padding: REdgeInsets.all(12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(tokens.cardRadius),
               border: Border.all(
-                color: isSelected
-                    ? AppColors.primaryColor
-                    : AppColors.lightGreyDividerColor,
+                color: isSelected ? tokens.primary : tokens.borderSubtle,
+                width: isSelected ? 1.5 : 1,
               ),
+              boxShadow: TaalaShadows.soft(brightness),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.handyman_rounded,
-                  color: AppColors.primaryColor,
+                  color: tokens.primary,
                   size: 28.r,
                 ),
                 12.width,
@@ -494,10 +490,10 @@ class _GuestProviderTile extends StatelessWidget {
                     children: [
                       Text(
                         provider.name ?? '',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: tokens.textPrimary,
+                            ),
                       ),
                       if (provider.services.isNotEmpty) ...[
                         4.height,
@@ -505,10 +501,9 @@ class _GuestProviderTile extends StatelessWidget {
                           provider.services.join(', '),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: AppColors.commentColor,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: tokens.textSecondary,
+                              ),
                         ),
                       ],
                       6.height,
@@ -521,11 +516,10 @@ class _GuestProviderTile extends StatelessWidget {
                         Text(
                           '${provider.distanceKm!.toStringAsFixed(1)} كم'
                           '${provider.etaMinutes != null ? ' • ${provider.etaMinutes} ${AppStrings.minutes.tr()}' : ''}',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryColor,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: tokens.primary,
+                              ),
                         ),
                       ],
                       if (provider.callAvailable && provider.id != null) ...[

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:taal/core/extensions/space_extension.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/widgets/cached_network_image/custom_cached_network_image.dart';
 import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 
@@ -130,20 +132,19 @@ class ServiceProviderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin:  EdgeInsets.zero,
-      shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-      elevation: 3,
-      shadowColor: const Color(0x269A9A9A),
-      child: Container(
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
 
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.r),
-          border: Border.all(color: const Color(0xFFE5E5EA), width: 1),
-
-        ),
-        child: Column(children: [
+    return Container(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
+        border: Border.all(color: tokens.borderSubtle),
+        boxShadow: TaalaShadows.soft(brightness),
+      ),
+      child: Column(children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             CustomCachedNetworkImage(
               url: model.image,
@@ -177,7 +178,7 @@ class ServiceProviderCard extends StatelessWidget {
                       Icon(
                         Icons.photo_library_outlined,
                         size: 14.r,
-                        color: AppColors.primaryColor,
+                        color: tokens.primary,
                       ),
                       4.width,
                       Text(
@@ -189,7 +190,7 @@ class ServiceProviderCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
+                          color: tokens.primary,
                         ),
                       ),
                     ],
@@ -202,20 +203,20 @@ class ServiceProviderCard extends StatelessWidget {
                       Icon(
                         Icons.near_me_outlined,
                         size: 14.r,
-                        color: AppColors.primaryColor,
+                        color: tokens.primary,
                       ),
                       4.width,
                       Text(
                         [
                           if (model.distanceKm != null)
-                            '${model.distanceKm!.toStringAsFixed(1)} كم',
+                            '${model.distanceKm!.toStringAsFixed(1)} ${AppStrings.distanceKm.tr()}',
                           if (model.etaMinutes != null)
-                            '• ${model.etaMinutes} دقيقة',
+                            '• ${model.etaMinutes} ${AppStrings.minutes.tr()}',
                         ].join(' '),
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
+                          color: tokens.primary,
                         ),
                       ),
                     ],
@@ -224,9 +225,9 @@ class ServiceProviderCard extends StatelessWidget {
                 8.height,
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_on_outlined,
-                      color: AppColors.dropDownIconColor,
+                      color: tokens.textSecondary,
                       size: 16,
                     ),
                     2.width,
@@ -265,18 +266,19 @@ class ServiceProviderCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: CustomButton.outlined(
-                    radius: Radius.circular(16.r),
-                    text: AppStrings.viewProfile.tr(),
-                    onTap: () => _openProfile(context),
+                  child: TaalaButton(
+                    label: AppStrings.viewProfile.tr(),
+                    variant: TaalaButtonVariant.secondary,
+                    height: 44,
+                    onPressed: () => _openProfile(context),
                   ),
                 ),
                 8.width,
                 Expanded(
-                  child: CustomButton.filled(
-                    radius: Radius.circular(16.r),
-                    text: AppStrings.rateShort.tr(),
-                    onTap: () => _openRate(context),
+                  child: TaalaButton(
+                    label: AppStrings.rateShort.tr(),
+                    height: 44,
+                    onPressed: () => _openRate(context),
                   ),
                 ),
               ],
@@ -286,33 +288,35 @@ class ServiceProviderCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: CustomButton.filled(
-      radius:  Radius.circular(16.r),
-                    text: AppStrings.callNow.tr(),
-                    onTap: () async {
-                      await getIt<CustomLauncher>().call(model.phone??'', model.name??'');
-                    }),
+                child: TaalaButton(
+                  label: AppStrings.callNow.tr(),
+                  height: 44,
+                  onPressed: () async {
+                    await getIt<CustomLauncher>()
+                        .call(model.phone ?? '', model.name ?? '');
+                  },
+                ),
               ),
               8.width,
               Expanded(
-                child: CustomButton.outlined(
-                    radius:  Radius.circular(16.r),
-                    text: AppStrings.whatsapp.tr(),
-                    onTap: () async {
-                      await getIt<CustomLauncher>().openWhatsApp(model.phone??'');
-                    }),
+                child: TaalaButton(
+                  label: AppStrings.whatsapp.tr(),
+                  variant: TaalaButtonVariant.secondary,
+                  height: 44,
+                  onPressed: () async {
+                    await getIt<CustomLauncher>().openWhatsApp(model.phone ?? '');
+                  },
+                ),
               ),
             ],
           ),
           8.height,
-          CustomButton.filled(
-            radius: Radius.circular(16.r),
-            text: AppStrings.openChat.tr(),
-            onTap: canStartOrder ? () => _openChat(context) : null,
+          TaalaButton(
+            label: AppStrings.openChat.tr(),
+            onPressed: canStartOrder ? () => _openChat(context) : null,
             enabled: canStartOrder,
           ),
         ]),
-      ),
     );
   }
 }

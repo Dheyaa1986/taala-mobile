@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../app_config/app_colors.dart';
-import '../../app_config/font_styles.dart';
+import '../../../design_system/theme/taala_tokens.dart';
 
 class CustomTextField extends StatefulWidget {
   final String hint;
@@ -80,18 +79,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     text: widget.label,
                     children: [
                       if (_validationMessage.isNotEmpty)
-                        const TextSpan(
+                        TextSpan(
                           text: '*',
                           style: TextStyle(
-                            color: AppColors.errorColor,
+                            color: TaalaTokens.of(context).error,
                           ),
                         )
                     ],
                   ),
                   style: widget.labelStyle ??
-                      Theme.of(context).textTheme.labelMedium!.copyWith(
-                        fontWeight:  FontWeight.w500,
-                      ),
+                      Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: TaalaTokens.of(context).textPrimary,
+                          ),
                 ),
               ],
             ],
@@ -120,17 +120,22 @@ class _CustomTextFieldState extends State<CustomTextField> {
             });
             return value != null ? '' : null;
           },
-          style: widget.textStyle ?? Theme.of(context).textTheme.headlineSmall,
+          style: widget.textStyle ??
+              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: TaalaTokens.of(context).textPrimary,
+                  ),
           decoration: InputDecoration(
-            fillColor: AppColors.textFieldFillColor,
-            filled: widget.filled,
+            fillColor: TaalaTokens.of(context).surfaceMuted,
+            filled: widget.filled ?? true,
             hintText: widget.hint,
-            hintStyle: FontStyles.textStyle14,
-            enabledBorder: fieldBorder,
-            border: fieldBorder,
-            focusedErrorBorder: fieldErrorBorder,
-            errorBorder: fieldErrorBorder,
-            focusedBorder: fieldBorder,
+            hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: TaalaTokens.of(context).textSecondary,
+                ),
+            enabledBorder: fieldBorder(context),
+            border: fieldBorder(context),
+            focusedErrorBorder: fieldErrorBorder(context),
+            errorBorder: fieldErrorBorder(context),
+            focusedBorder: focusedBorder(context),
             prefixIcon: widget.prefix,
             suffixIcon: widget.suffix,
           ),
@@ -139,38 +144,48 @@ class _CustomTextFieldState extends State<CustomTextField> {
           SizedBox(height: 6.h),
           Text(
             widget.helperText!,
-            style: FontStyles.textStyle12.copyWith(
-              color: AppColors.subtitleGreyColor,
-              fontWeight: FontWeight.w400,
-            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: TaalaTokens.of(context).textSecondary,
+                ),
           ),
         ],
         if (_validationMessage.isNotEmpty) ...[
           SizedBox(height: 4.h),
           Text(
             _validationMessage,
-            style: FontStyles.textStyle12.copyWith(
-              color: AppColors.errorColor,
-              fontWeight: FontWeight.w400,
-            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: TaalaTokens.of(context).error,
+                ),
           ),
         ],
       ],
     );
   }
 
-  InputBorder get fieldBorder => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: BorderSide(
-          color: _hasText ? AppColors.lightMainText : Colors.transparent,
-          width: 1,
-        ),
-      );
-  InputBorder get fieldErrorBorder => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(
-          color: AppColors.errorColor,
-          width: 1,
-        ),
-      );
+  InputBorder fieldBorder(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final radius = widget.borderRadius ?? tokens.inputRadius;
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(radius),
+      borderSide: BorderSide(color: tokens.borderSubtle),
+    );
+  }
+
+  InputBorder focusedBorder(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final radius = widget.borderRadius ?? tokens.inputRadius;
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(radius),
+      borderSide: BorderSide(color: tokens.primary, width: 1.5),
+    );
+  }
+
+  InputBorder fieldErrorBorder(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final radius = widget.borderRadius ?? tokens.inputRadius;
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(radius),
+      borderSide: BorderSide(color: tokens.error),
+    );
+  }
 }

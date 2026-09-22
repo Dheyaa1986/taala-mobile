@@ -12,7 +12,7 @@ import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/password_field.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
@@ -304,10 +304,8 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         (_) {
           Navigator.of(context).pop(false);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'تم حفظ طلبك بدون إنترنت وسيُرسل تلقائياً عند عودة الشبكة.',
-              ),
+            SnackBar(
+              content: Text(AppStrings.guestRequestSavedOffline.tr()),
             ),
           );
         },
@@ -569,9 +567,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
   Widget _buildStepActions() {
     if (_step == 0) {
-      return CustomButton.filled(
-        text: AppStrings.continueKey.tr(),
-        onTap: _continueContact,
+      return TaalaButton(
+        label: AppStrings.continueKey.tr(),
+        onPressed: _continueContact,
       );
     }
 
@@ -579,9 +577,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CustomButton.filled(
-            text: AppStrings.continueKey.tr(),
-            onTap: () {
+          TaalaButton(
+            label: AppStrings.continueKey.tr(),
+            onPressed: () {
               if (!_otpSendSucceeded) {
                 _showError(AppStrings.sendOtpFirst.tr());
                 return;
@@ -594,9 +592,10 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             },
           ),
           8.height,
-          CustomButton.outlined(
-            text: AppStrings.back.tr(),
-            onTap: () => _goToStep(0),
+          TaalaButton(
+            label: AppStrings.back.tr(),
+            variant: TaalaButtonVariant.secondary,
+            onPressed: () => _goToStep(0),
           ),
         ],
       );
@@ -610,14 +609,15 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Center(child: CircularProgressIndicator()),
               )
-            : CustomButton.filled(
-                text: AppStrings.requestHelp.tr(),
-                onTap: _submit,
+            : TaalaButton(
+                label: AppStrings.requestHelp.tr(),
+                onPressed: _submit,
               ),
         8.height,
-        CustomButton.outlined(
-          text: AppStrings.back.tr(),
-          onTap: _submitting ? null : () => _goToStep(1),
+        TaalaButton(
+          label: AppStrings.back.tr(),
+          variant: TaalaButtonVariant.secondary,
+          onPressed: _submitting ? null : () => _goToStep(1),
         ),
       ],
     );

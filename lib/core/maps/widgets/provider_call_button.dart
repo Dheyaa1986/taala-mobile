@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/maps/emergency/emergency_call_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -40,7 +42,7 @@ class _ProviderCallButtonState extends State<ProviderCallButton> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر بدء الاتصال. تحقق من الإنترنت.')),
+        SnackBar(content: Text(AppStrings.callFailedCheckInternet.tr())),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -49,6 +51,7 @@ class _ProviderCallButtonState extends State<ProviderCallButton> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     return SizedBox(
       height: 40.h,
       child: FilledButton.icon(
@@ -57,13 +60,16 @@ class _ProviderCallButtonState extends State<ProviderCallButton> {
             ? SizedBox(
                 width: 16.r,
                 height: 16.r,
-                child: const CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: tokens.onPrimary,
+                ),
               )
             : const Icon(Icons.phone_rounded, size: 18),
-        label: const Text('اتصال'),
+        label: Text(AppStrings.callShort.tr()),
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: tokens.primary,
+          foregroundColor: tokens.onPrimary,
         ),
       ),
     );

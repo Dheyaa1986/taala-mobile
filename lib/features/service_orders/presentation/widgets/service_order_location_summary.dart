@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 
 class ServiceOrderLocationSummary extends StatelessWidget {
@@ -48,6 +48,7 @@ class ServiceOrderLocationSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final distance = _distanceLabel;
     final breakdown = _breakdownAddress;
     final destination = _hasTowingDestination ? _destinationAddress : null;
@@ -60,17 +61,21 @@ class ServiceOrderLocationSummary extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final textStyle = TextStyle(
-      fontSize: compact ? 12.sp : 13.sp,
-      color: AppColors.commentColor,
-      height: 1.4,
-    );
-    final valueStyle = TextStyle(
-      fontSize: compact ? 12.sp : 13.sp,
-      fontWeight: FontWeight.w600,
-      color: AppColors.lightMainText,
-      height: 1.4,
-    );
+    final textStyle = (Theme.of(context).textTheme.bodySmall ??
+            const TextStyle())
+        .copyWith(
+          fontSize: compact ? 12.sp : 13.sp,
+          color: tokens.textSecondary,
+          height: 1.4,
+        );
+    final valueStyle = (Theme.of(context).textTheme.bodySmall ??
+            const TextStyle())
+        .copyWith(
+          fontSize: compact ? 12.sp : 13.sp,
+          fontWeight: FontWeight.w600,
+          color: tokens.textPrimary,
+          height: 1.4,
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +106,7 @@ class ServiceOrderLocationSummary extends StatelessWidget {
             label: AppStrings.orderDistance.tr(),
             value: distance,
             labelStyle: textStyle,
-            valueStyle: valueStyle.copyWith(color: AppColors.primaryColor),
+            valueStyle: valueStyle.copyWith(color: tokens.primary),
           ),
         if (eta != null) ...[
           (compact ? 4 : 6).height,

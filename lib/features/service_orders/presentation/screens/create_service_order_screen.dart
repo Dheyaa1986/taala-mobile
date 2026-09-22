@@ -19,7 +19,7 @@ import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/options/pagination_options.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
@@ -467,9 +467,9 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                 ),
               ],
               12.height,
-              CustomButton.filled(
-                text: AppStrings.openChat.tr(),
-                onTap: _trackingOrderId == null
+              TaalaButton(
+                label: AppStrings.openChat.tr(),
+                onPressed: _trackingOrderId == null
                     ? null
                     : () {
                         ServiceOrderNavigation.openDetail(
@@ -477,7 +477,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                           openChat: true,
                         );
                       },
-                height: 48.h,
+                height: 48,
               ),
             ],
           ),
@@ -614,11 +614,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             maxLines: 3,
           ),
           28.height,
-          CustomButton.filled(
-            text: AppStrings.requestHelp.tr(),
-            onTap: _submitting ? null : _submit,
+          TaalaButton(
+            label: AppStrings.requestHelp.tr(),
+            onPressed: _submitting ? null : _submit,
             enabled: !_submitting,
-            height: 52.h,
           ),
           if (_submitting) ...[
             12.height,

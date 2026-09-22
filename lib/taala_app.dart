@@ -21,6 +21,8 @@ import 'core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'features/notifications/presentation/cubit/notification_cubit.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
 import 'core/widgets/occasion_banner_shell.dart';
+import 'core/theme/app_theme_mode_cubit.dart';
+import 'core/theme/app_theme_preference.dart';
 import 'features/theme/presentation/cubit/theme_cubit.dart';
 
 class TaalaApp extends StatefulWidget {
@@ -125,6 +127,9 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
             BlocProvider.value(
               value: getIt<ThemeCubit>(),
             ),
+            BlocProvider.value(
+              value: getIt<AppThemeModeCubit>(),
+            ),
             BlocProvider(
               create: (context) {
                 final cubit = getIt<ProfileCubit>();
@@ -151,17 +156,29 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
             },
             child: BlocBuilder<ThemeCubit, ThemeState>(
               builder: (context, state) {
-                return MaterialApp.router(
-                  routerConfig: AppRouter.router,
-                  theme: TariqyAppTheme.getLightTheme(),
-                  debugShowCheckedModeBanner: false,
-                  locale: context.locale,
-                  supportedLocales: context.supportedLocales,
-                  localizationsDelegates: context.localizationDelegates,
-                  title: 'taal',
-                  builder: (context, child) {
-                    return OccasionBannerShell(
-                      child: child ?? const SizedBox.shrink(),
+                final occasionTheme =
+                    state is ThemeLoaded ? state.theme : null;
+                return BlocBuilder<AppThemeModeCubit, AppThemePreference>(
+                  builder: (context, themePreference) {
+                    return MaterialApp.router(
+                      routerConfig: AppRouter.router,
+                      theme: TariqyAppTheme.getLightTheme(
+                        customTheme: occasionTheme,
+                      ),
+                      darkTheme: TariqyAppTheme.getDarkTheme(
+                        customTheme: occasionTheme,
+                      ),
+                      themeMode: themePreference.themeMode,
+                      debugShowCheckedModeBanner: false,
+                      locale: context.locale,
+                      supportedLocales: context.supportedLocales,
+                      localizationsDelegates: context.localizationDelegates,
+                      title: 'taal',
+                      builder: (context, child) {
+                        return OccasionBannerShell(
+                          child: child ?? const SizedBox.shrink(),
+                        );
+                      },
                     );
                   },
                 );

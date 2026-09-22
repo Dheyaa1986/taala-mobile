@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../app_config/app_colors.dart';
-import '../../app_config/font_styles.dart';
+import '../../../design_system/theme/taala_tokens.dart';
 
 class CustomDropDownField<T> extends StatefulWidget {
   final T? value;
@@ -45,8 +44,11 @@ class CustomDropDownField<T> extends StatefulWidget {
 
 class _CustomTextFieldState<T> extends State<CustomDropDownField> {
   String _validationMessage = '';
+
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -59,16 +61,16 @@ class _CustomTextFieldState<T> extends State<CustomDropDownField> {
                   text: widget.label,
                   children: [
                     if (_validationMessage.isNotEmpty)
-                      const TextSpan(
+                      TextSpan(
                         text: '*',
-                        style: TextStyle(
-                          color: AppColors.errorColor,
-                        ),
-                      )
+                        style: TextStyle(color: tokens.error),
+                      ),
                   ],
                 ),
                 style: widget.labelStyle ??
-                    Theme.of(context).textTheme.labelMedium,
+                    Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: tokens.textPrimary,
+                        ),
               ),
             if (_validationMessage.isNotEmpty && !widget.bottomValidation)
               Expanded(
@@ -76,18 +78,14 @@ class _CustomTextFieldState<T> extends State<CustomDropDownField> {
                   _validationMessage,
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.errorColor,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w300,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.error,
+                      ),
                 ),
               ),
           ],
         ),
-        SizedBox(
-          height: 8.h,
-        ),
+        SizedBox(height: 8.h),
         DropdownButtonFormField<T>(
           value: widget.value,
           items: List.from(widget.items ?? []),
@@ -96,7 +94,8 @@ class _CustomTextFieldState<T> extends State<CustomDropDownField> {
             widget.onChanged?.call(value);
           },
           onTap: widget.onTap,
-          icon: widget.icon ?? const Icon(Icons.keyboard_arrow_down),
+          icon: widget.icon ??
+              Icon(Icons.keyboard_arrow_down, color: tokens.textSecondary),
           isDense: true,
           validator: (text) {
             String? value = widget.validator?.call(text);
@@ -106,34 +105,36 @@ class _CustomTextFieldState<T> extends State<CustomDropDownField> {
             if (widget.bottomValidation) return value;
             return value != null ? '' : null;
           },
-          style: widget.textStyle ?? Theme.of(context).textTheme.headlineSmall,
+          style: widget.textStyle ??
+              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: tokens.textPrimary,
+                  ),
           hint: Align(
             alignment: AlignmentDirectional.centerStart,
             child: Text(
               widget.hint,
-              style: widget.hintStyle ?? FontStyles.textStyle14,
+              style: widget.hintStyle ??
+                  Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.textSecondary,
+                      ),
             ),
           ),
-          dropdownColor: Theme.of(context).colorScheme.surface,
+          dropdownColor: tokens.surface,
           decoration: InputDecoration(
             alignLabelWithHint: true,
-            errorStyle: TextStyle(
-              color: AppColors.errorColor,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w300,
-            ),
-            hintStyle: TextStyle(
-              fontSize: 14.sp,
-              color: AppColors.hintColor,
-              fontWeight: FontWeight.w300,
-            ),
+            errorStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: tokens.error,
+                ),
+            hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: tokens.textSecondary,
+                ),
             filled: true,
-            fillColor: widget.fillColor ?? AppColors.textFieldFillColor,
-            enabledBorder: fieldBorder,
-            border: fieldBorder,
-            focusedErrorBorder: fieldErrorBorder,
-            errorBorder: fieldErrorBorder,
-            focusedBorder: fieldBorder,
+            fillColor: widget.fillColor ?? tokens.surfaceMuted,
+            enabledBorder: _fieldBorder(tokens),
+            border: _fieldBorder(tokens),
+            focusedErrorBorder: _fieldErrorBorder(tokens),
+            errorBorder: _fieldErrorBorder(tokens),
+            focusedBorder: _focusedBorder(tokens),
             prefixIcon: widget.prefix,
             suffixIcon: widget.suffix,
           ),
@@ -142,18 +143,18 @@ class _CustomTextFieldState<T> extends State<CustomDropDownField> {
     );
   }
 
-  InputBorder get fieldBorder => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(
-          color: Colors.transparent,
-          width: 1,
-        ),
+  InputBorder _fieldBorder(TaalaTokens tokens) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.borderRadius.r),
+        borderSide: BorderSide(color: tokens.borderSubtle),
       );
-  InputBorder get fieldErrorBorder => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        borderSide: const BorderSide(
-          color: AppColors.errorColor,
-          width: 1,
-        ),
+
+  InputBorder _focusedBorder(TaalaTokens tokens) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.borderRadius.r),
+        borderSide: BorderSide(color: tokens.primary, width: 1.5),
+      );
+
+  InputBorder _fieldErrorBorder(TaalaTokens tokens) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(widget.borderRadius.r),
+        borderSide: BorderSide(color: tokens.error),
       );
 }

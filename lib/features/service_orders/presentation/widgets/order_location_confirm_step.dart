@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
@@ -19,7 +20,7 @@ import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 
 class OrderLocationConfirmStep extends StatefulWidget {
@@ -281,7 +282,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
                 AppStrings.inAppMapHint.tr(),
                 style: TextStyle(
                   fontSize: 13.sp,
-                  color: AppColors.commentColor,
+                  color: TaalaTokens.of(context).textSecondary,
                   height: 1.35,
                 ),
               ),
@@ -448,11 +449,10 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
                   ),
                 ),
               12.height,
-              CustomButton.filled(
-                text: widget.confirmLabel,
-                onTap: _confirming ? null : _confirm,
+              TaalaButton(
+                label: widget.confirmLabel,
+                onPressed: _confirming ? null : _confirm,
                 enabled: !_confirming,
-                height: 52.h,
               ),
               if (_confirming) ...[
                 12.height,

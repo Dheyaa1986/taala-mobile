@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -11,108 +10,119 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
-import 'package:taal/features/profile/presentation/widgets/conversation_history_panel.dart';
-import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
-import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
+import 'package:taal/features/profile/client/presentation/widgets/rate_app_sheet.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_grouped_card.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_section_header.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_theme_mode_section.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
+import 'package:taal/features/profile/presentation/widgets/conversation_history_panel.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
-import '../widgets/settings_tile.dart';
+import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 
 class ClientSettingsScreen extends StatelessWidget {
   const ClientSettingsScreen({super.key});
 
+  static const _purple = Color(0xFF7C4DFF);
+  static const _teal = Color(0xFF00897B);
+  static const _amber = Color(0xFFF9A825);
+  static const _slate = Color(0xFF607D8B);
+  static const _blue = Color(0xFF1E88E5);
+
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Scaffold(
+      backgroundColor: tokens.background,
       appBar: CustomAppBar.backAppBar(
         title: AppStrings.menu.tr(),
         centerTitle: true,
       ),
       body: ListView(
-        padding: REdgeInsets.all(16),
+        padding: REdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           const ConversationHistoryPanel(),
-          16.height,
+          20.height,
+          SettingsSectionHeader(title: AppStrings.settings),
+          10.height,
+          const SettingsThemeModeSection(),
+          20.height,
+          SettingsSectionHeader(title: AppStrings.settingsSectionHelp),
+          10.height,
           SettingsTile(
             title: AppStrings.mySupportTickets,
+            icon: Icons.support_agent_outlined,
+            iconColor: _purple,
+            iconBackgroundColor: _purple.withValues(alpha: 0.12),
             onTap: () => context.pushNamed(Routes.supportTickets),
           ),
-          16.height,
+          10.height,
           SettingsTile(
             title: AppStrings.submitSupportTicket,
+            icon: Icons.edit_note_outlined,
+            iconColor: _teal,
+            iconBackgroundColor: _teal.withValues(alpha: 0.12),
             onTap: () => showSupportTicketSheet(context),
           ),
-          16.height,
+          10.height,
           SettingsTile(
             title: AppStrings.rateApp,
+            icon: Icons.star_outline_rounded,
+            iconColor: _amber,
+            iconBackgroundColor: _amber.withValues(alpha: 0.14),
             onTap: () => showRateAppSheet(context),
           ),
-          16.height,
-          SettingsTile(
-            title: AppStrings.termsAndConditions,
-            onTap: () => context.pushNamed(
-              Routes.legalDocument,
-              extra: LegalDocumentType.terms,
-            ),
+          20.height,
+          SettingsSectionHeader(title: AppStrings.settingsSectionLegal),
+          10.height,
+          SettingsGroupedCard(
+            items: [
+              SettingsGroupItem(
+                title: AppStrings.termsAndConditions,
+                icon: Icons.description_outlined,
+                iconColor: _slate,
+                iconBackgroundColor: _slate.withValues(alpha: 0.12),
+                onTap: () => context.pushNamed(
+                  Routes.legalDocument,
+                  extra: LegalDocumentType.terms,
+                ),
+              ),
+              SettingsGroupItem(
+                title: AppStrings.privacyPolicy,
+                icon: Icons.shield_outlined,
+                iconColor: _blue,
+                iconBackgroundColor: _blue.withValues(alpha: 0.12),
+                onTap: () => context.pushNamed(
+                  Routes.legalDocument,
+                  extra: LegalDocumentType.privacy,
+                ),
+              ),
+            ],
           ),
-          16.height,
-          SettingsTile(
-            title: AppStrings.privacyPolicy,
-            onTap: () => context.pushNamed(
-              Routes.legalDocument,
-              extra: LegalDocumentType.privacy,
-            ),
-          ),
-          _divider(),
+          20.height,
+          SettingsSectionHeader(title: AppStrings.settingsSectionAccount),
+          10.height,
           SettingsTile(
             title: AppStrings.deleteAccount,
-            titleColor: AppColors.redColor,
+            titleColor: tokens.error,
+            icon: Icons.delete_outline_rounded,
+            iconColor: tokens.error,
+            iconBackgroundColor: tokens.error.withValues(alpha: 0.1),
             onTap: () => confirmDeleteAccount(context),
           ),
-          16.height,
-          _logoutTile(context),
+          12.height,
+          SettingsLogoutTile(
+            onTap: () => getIt<DioService>().logout(),
+            icon: SvgImageWidget(
+              image: AppIcons.login,
+              width: 24.w,
+              height: 24.h,
+            ),
+          ),
         ],
       ),
     );
   }
-
-  Widget _divider() => Divider(
-        color: AppColors.lightGreyDividerColor,
-        height: 36.h,
-      );
-
-  Widget _logoutTile(BuildContext context) => GestureDetector(
-        onTap: () => getIt<DioService>().logout(),
-        child: Card(
-          elevation: 3,
-          shadowColor: const Color(0x269A9A9A),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            side: const BorderSide(color: AppColors.brandBorder),
-          ),
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: EdgeInsets.all(18.r),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgImageWidget(
-                  image: AppIcons.login,
-                  width: 24.w,
-                  height: 24.h,
-                ),
-                8.width,
-                Text(
-                  AppStrings.logout.tr(),
-                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.redColor,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
 }

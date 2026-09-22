@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 
-import '../../app_config/app_colors.dart';
+import '../../../design_system/theme/taala_tokens.dart';
 import '../buttons/back_button.dart';
 import '../buttons/notification_icon_button.dart';
 import '../buttons/profile_icon_button.dart';
@@ -80,11 +80,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
         title: title,
         bottomWidget: PreferredSize(
             preferredSize: Size.fromHeight(dividerHeight ?? 48),
-            child: Divider(
-              indent: 16.w,
-              endIndent: 16.w,
-              height: dividerHeight,
-              color: AppColors.lightGreyDividerColor,
+            child: Builder(
+              builder: (context) => Divider(
+                indent: 16.w,
+                endIndent: 16.w,
+                height: dividerHeight,
+                color: TaalaTokens.of(context).borderSubtle,
+              ),
             )),
         actions: actions,
       );
@@ -191,6 +193,7 @@ class LogoAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
 
     return Container(
@@ -207,13 +210,15 @@ class LogoAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
+                  color: tokens.primary,
                   borderRadius: BorderRadius.circular(40.r),
                 ),
                 child: Padding(
                   padding: REdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  child: const Icon(Icons.arrow_back,
-                      color: AppColors.lightBGColor),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: tokens.onPrimary,
+                  ),
                 ),
               ),
             ),

@@ -2,12 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
 import 'package:taal/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:taal/features/profile/presentation/cubit/provider_profile_cubit.dart';
 import 'package:taal/features/profile/presentation/screens/add_portfolio_screen.dart';
@@ -93,9 +93,9 @@ class _ProviderPortfolioScreenState extends State<ProviderPortfolioScreen> {
                       ),
                     ),
                     16.height,
-                    CustomButton.filled(
-                      onTap: _loadProfile,
-                      text: AppStrings.retry.tr(),
+                    TaalaButton(
+                      onPressed: _loadProfile,
+                      label: AppStrings.retry.tr(),
                     ),
                   ],
                 ),
@@ -111,6 +111,8 @@ class _ProviderPortfolioScreenState extends State<ProviderPortfolioScreen> {
                 ? state.provider
                 : (state as ProviderProfileRefreshing).provider;
 
+            final tokens = TaalaTokens.of(context);
+
             return Padding(
               padding: REdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Column(
@@ -118,11 +120,10 @@ class _ProviderPortfolioScreenState extends State<ProviderPortfolioScreen> {
                 children: [
                   Text(
                     AppStrings.providerPortfolioSubtitle.tr(),
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColors.commentColor,
-                      height: 1.5,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.textSecondary,
+                          height: 1.5,
+                        ),
                   ),
                   16.height,
                   Row(
@@ -131,29 +132,26 @@ class _ProviderPortfolioScreenState extends State<ProviderPortfolioScreen> {
                       Expanded(
                         child: Text(
                           AppStrings.portfolio.tr(),
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: tokens.textPrimary,
+                              ),
                         ),
                       ),
-                      SizedBox(
-                        width: 100,
-                        child: CustomButton.text(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BlocProvider.value(
-                                value: _cubit,
-                                child: const AddPortfolioScreen(),
-                              ),
+                      TaalaButton(
+                        label: AppStrings.addNew.tr(),
+                        variant: TaalaButtonVariant.text,
+                        expanded: false,
+                        height: 40,
+                        icon: Icon(Icons.add, color: tokens.primary, size: 20.r),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: _cubit,
+                              child: const AddPortfolioScreen(),
                             ),
                           ),
-                          prefix: const Icon(
-                            Icons.add,
-                            color: AppColors.primaryColor,
-                          ),
-                          text: AppStrings.addNew.tr(),
                         ),
                       ),
                     ],

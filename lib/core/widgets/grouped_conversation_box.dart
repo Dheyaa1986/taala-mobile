@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/conversation_history_helper.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class GroupedConversationBox extends StatelessWidget {
   const GroupedConversationBox({
@@ -21,22 +21,23 @@ class GroupedConversationBox extends StatelessWidget {
   Widget build(BuildContext context) {
     if (lines.isEmpty) return const SizedBox.shrink();
 
+    final tokens = TaalaTokens.of(context);
+
     return Align(
-      alignment:
-          isMine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      alignment: isMine
+          ? AlignmentDirectional.centerEnd
+          : AlignmentDirectional.centerStart,
       child: Container(
         width: double.infinity,
         margin: EdgeInsets.only(bottom: 12.h),
         padding: REdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isMine
-              ? AppColors.primaryColor.withValues(alpha: 0.12)
-              : AppColors.textFieldFillColor,
+          color: isMine ? tokens.primarySoft : tokens.surfaceMuted,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isMine
-                ? AppColors.primaryColor.withValues(alpha: 0.35)
-                : AppColors.brandBorder,
+                ? tokens.primary.withValues(alpha: 0.35)
+                : tokens.borderSubtle,
           ),
         ),
         child: Column(
@@ -44,11 +45,10 @@ class GroupedConversationBox extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: tokens.primary,
+                  ),
             ),
             10.height,
             ...lines.map(
@@ -59,20 +59,18 @@ class GroupedConversationBox extends StatelessWidget {
                   children: [
                     Text(
                       line.text,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        height: 1.45,
-                        color: AppColors.lightMainText,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            height: 1.45,
+                            color: tokens.textPrimary,
+                          ),
                     ),
                     if (line.time != null) ...[
                       4.height,
                       Text(
                         DateFormat.yMMMd().add_jm().format(line.time!),
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          color: AppColors.commentColor,
-                        ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: tokens.textSecondary,
+                            ),
                       ),
                     ],
                   ],

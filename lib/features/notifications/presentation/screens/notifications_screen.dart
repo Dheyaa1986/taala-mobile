@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/notifications/data/models/notification_model.dart';
@@ -134,7 +135,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         style: TextStyle(
                           color: unread > 0
                               ? AppColors.primaryColor
-                              : AppColors.greyText,
+                              : TaalaTokens.of(context).textSecondary,
                           fontWeight: FontWeight.w600,
                           fontSize: 13.sp,
                         ),

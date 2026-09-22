@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String? id;
@@ -11,9 +13,10 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: "John Doe");
-  final _emailController = TextEditingController(text: "john@example.com");
-  final _phoneController = TextEditingController(text: "+1234567890");
+  final _nameController = TextEditingController(text: 'John Doe');
+  final _emailController = TextEditingController(text: 'john@example.com');
+  final _phoneController = TextEditingController(text: '+1234567890');
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -24,9 +27,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Edit Profile"),
+        title: Text(AppStrings.editProfile.tr()),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -39,7 +44,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   CircleAvatar(
                     radius: 50.r,
                     backgroundImage: const NetworkImage(
-                      "https://cdn-icons-png.flaticon.com/512/219/219983.png",
+                      'https://cdn-icons-png.flaticon.com/512/219/219983.png',
                     ),
                   ),
                   Positioned(
@@ -47,41 +52,61 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     right: 0,
                     child: CircleAvatar(
                       radius: 16.r,
-                      backgroundColor: AppColors.primaryColor,
-                      child: Icon(Icons.camera_alt,
-                          size: 16.sp, color: Colors.white),
+                      backgroundColor: tokens.primary,
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 16.sp,
+                        color: tokens.onPrimary,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             24.verticalSpace,
-            _buildField("الاسم", _nameController, Icons.person),
+            _buildField(
+              context,
+              AppStrings.name.tr(),
+              _nameController,
+              Icons.person,
+            ),
             16.verticalSpace,
-            _buildField("الإيميل", _emailController, Icons.email),
+            _buildField(
+              context,
+              AppStrings.email.tr(),
+              _emailController,
+              Icons.email,
+            ),
             16.verticalSpace,
-            _buildField("الهاتف", _phoneController, Icons.phone),
+            _buildField(
+              context,
+              AppStrings.phone.tr(),
+              _phoneController,
+              Icons.phone,
+            ),
             32.verticalSpace,
             SizedBox(
               width: double.infinity,
               height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
+                  backgroundColor: tokens.primary,
+                  foregroundColor: tokens.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("تم الحفظ بنجاح")),
+                    SnackBar(
+                      content: Text(AppStrings.profileSavedSuccess.tr()),
+                    ),
                   );
                 },
                 child: Text(
-                  "حفظ",
+                  AppStrings.save.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -94,18 +119,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildField(
-      String label, TextEditingController controller, IconData icon) {
+    BuildContext context,
+    String label,
+    TextEditingController controller,
+    IconData icon,
+  ) {
+    final tokens = TaalaTokens.of(context);
+
     return TextField(
       controller: controller,
+      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: tokens.textPrimary,
+          ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primaryColor),
+        labelStyle: TextStyle(color: tokens.textSecondary),
+        prefixIcon: Icon(icon, color: tokens.primary),
+        filled: true,
+        fillColor: tokens.surfaceMuted,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: tokens.borderSubtle),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: tokens.borderSubtle),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+          borderSide: BorderSide(color: tokens.primary, width: 2),
         ),
       ),
     );

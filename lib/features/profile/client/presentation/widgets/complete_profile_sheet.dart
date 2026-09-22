@@ -15,7 +15,7 @@ import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/avatars/photo_avatar.dart';
 import 'package:taal/core/widgets/bottom_sheets/image_sheet.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/password_field.dart';
 import 'package:taal/features/auth/register/presentation/widgets/phone_field.dart';
@@ -235,9 +235,9 @@ class _CompleteProfileSheetState extends State<CompleteProfileSheet> {
               20.height,
               _saving
                   ? const CircularProgressIndicator()
-                  : CustomButton.filled(
-                      text: AppStrings.save.tr(),
-                      onTap: _save,
+                  : TaalaButton(
+                      label: AppStrings.save.tr(),
+                      onPressed: _save,
                     ),
             ],
           ),

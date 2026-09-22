@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -47,7 +47,7 @@ class LangPopup extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9.sp,
                 fontWeight: FontWeight.w400,
-                color: AppColors.lightTText,
+                color: TaalaTokens.of(context).textSecondary,
               ),
               textAlign: TextAlign.center,
             ),

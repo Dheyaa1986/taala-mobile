@@ -1,14 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/location_picker_screen.dart';
 import 'package:taal/core/maps/picked_location.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class MapLocationPickerField extends StatelessWidget {
   const MapLocationPickerField({
@@ -36,6 +36,7 @@ class MapLocationPickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final error = validator?.call(value);
 
     return Column(
@@ -44,12 +45,10 @@ class MapLocationPickerField extends StatelessWidget {
         Container(
           padding: REdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.textFieldFillColor,
-            borderRadius: BorderRadius.circular(12.r),
+            color: tokens.surfaceMuted,
+            borderRadius: BorderRadius.circular(tokens.inputRadius),
             border: Border.all(
-              color: error != null
-                  ? AppColors.redColor
-                  : AppColors.brandBorder.withValues(alpha: 0.5),
+              color: error != null ? tokens.error : tokens.borderSubtle,
             ),
           ),
           child: Column(
@@ -59,18 +58,17 @@ class MapLocationPickerField extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.map_outlined,
-                    color: AppColors.primaryColor,
+                    color: tokens.primary,
                     size: 22.r,
                   ),
                   8.width,
                   Expanded(
                     child: Text(
                       AppStrings.mapLink.tr(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightMainText,
-                      ),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
                     ),
                   ),
                 ],
@@ -80,51 +78,51 @@ class MapLocationPickerField extends StatelessWidget {
                 if (value!.address != null && value!.address!.isNotEmpty)
                   Text(
                     value!.address!,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColors.lightMainText,
-                      height: 1.4,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.textPrimary,
+                          height: 1.4,
+                        ),
                   )
                 else
                   Text(
                     AppStrings.locationPicked.tr(),
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColors.commentColor,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.textSecondary,
+                        ),
                   ),
                 6.height,
                 Text(
                   '${value!.lat}, ${value!.lng}',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.greyText,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.textSecondary,
+                      ),
                 ),
                 12.height,
                 Row(
                   children: [
                     Expanded(
-                      child: CustomButton.outlined(
-                        text: AppStrings.viewOnMap.tr(),
-                        onTap: _previewOnMap,
+                      child: TaalaButton(
+                        label: AppStrings.viewOnMap.tr(),
+                        variant: TaalaButtonVariant.secondary,
+                        height: 44,
+                        onPressed: _previewOnMap,
                       ),
                     ),
                     8.width,
                     Expanded(
-                      child: CustomButton.filled(
-                        text: AppStrings.changeLocation.tr(),
-                        onTap: () => _openPicker(context),
+                      child: TaalaButton(
+                        label: AppStrings.changeLocation.tr(),
+                        height: 44,
+                        onPressed: () => _openPicker(context),
                       ),
                     ),
                   ],
                 ),
               ] else
-                CustomButton.filled(
-                  text: AppStrings.pickLocation.tr(),
-                  onTap: () => _openPicker(context),
-                  height: 44.h,
+                TaalaButton(
+                  label: AppStrings.pickLocation.tr(),
+                  onPressed: () => _openPicker(context),
+                  height: 44,
                 ),
             ],
           ),
@@ -133,10 +131,9 @@ class MapLocationPickerField extends StatelessWidget {
           6.height,
           Text(
             error,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: AppColors.redColor,
-            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: tokens.error,
+                ),
           ),
         ],
       ],

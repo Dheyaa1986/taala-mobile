@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -198,6 +198,8 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -206,11 +208,10 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
             Expanded(
               child: Text(
                 AppStrings.providerIncomingOrders.tr(),
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.lightMainText,
-                ),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: tokens.textPrimary,
+                    ),
               ),
             ),
             TextButton(
@@ -228,10 +229,9 @@ class _ProviderServiceOrdersPanelState extends State<ProviderServiceOrdersPanel>
         else if (_orders.isEmpty)
           Text(
             AppStrings.noServiceOrders.tr(),
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: AppColors.commentColor,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: tokens.textSecondary,
+                ),
           )
         else
           ..._orders.map(

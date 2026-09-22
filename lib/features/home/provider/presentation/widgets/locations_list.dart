@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
@@ -33,10 +33,9 @@ class _LocationsListState extends State<LocationsList> {
         child: Text(
           AppStrings.noLocationsYet.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: AppColors.commentColor,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: TaalaTokens.of(context).textSecondary,
+              ),
         ),
       ),
     );
@@ -79,10 +78,9 @@ class _LocationsListState extends State<LocationsList> {
                   child: Text(
                     state.message,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: AppColors.commentColor,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: TaalaTokens.of(context).textSecondary,
+                        ),
                   ),
                 ),
               );

@@ -14,8 +14,8 @@ import 'package:taal/features/home/provider/data/model/governate.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 
-import '../../../../../core/widgets/buttons/custom_button.dart';
-import '../../core/app_config/app_colors.dart';
+import '../../design_system/theme/taala_tokens.dart';
+import 'client/presentation/widgets/sheet_buttons.dart';
 
 Future showSettingsCustomSheet(BuildContext context, Widget child,String title,String confirmText,Function()? onConfirm) async {
   return await showModalBottomSheet(
@@ -67,27 +67,18 @@ class _SettingsCustomSheetState extends State<SettingsCustomSheet> {
           ),),
 
           Divider(
-            color: AppColors.lightGreyDividerColor,
+            color: TaalaTokens.of(context).borderSubtle,
             height: 36.h,
           ),
           widget.widget,
           16.height,
-         Row(
-           children: [
-             Expanded(child:  CustomButton.filled(
-
-               text: widget.confirmText.tr(),
-               onTap: () => context.pop(),
-             ),),
-             8.width,
-             Expanded(child:  CustomButton.outlined(
-               borderColor:  AppColors.primaryColor,
-               textColor:  AppColors.primaryColor,
-               text: AppStrings.cancel.tr(),
-               onTap: () => context.pop(),
-             ),),
-           ],
-         )
+         SheetButtons(
+           title: widget.confirmText,
+           onPressed: () {
+             widget.onConfirm?.call();
+             context.pop();
+           },
+         ),
         ],
       ),
     );
@@ -110,7 +101,7 @@ class SettingsSheetHeader extends StatelessWidget {
           ),),
 
         Divider(
-          color: AppColors.lightGreyDividerColor,
+          color: TaalaTokens.of(context).borderSubtle,
           height: 36.h,
         ),
       ],

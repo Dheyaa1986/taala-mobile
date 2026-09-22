@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/service_type_selector_grid.dart';
@@ -86,24 +86,25 @@ class _CategorySectionBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Container(
       width: double.infinity,
       padding: REdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.textFieldFillColor.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.brandBorder, width: 1.2),
+        color: tokens.surfaceMuted,
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
+        border: Border.all(color: tokens.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             category.name ?? category.code ?? '',
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w800,
-              color: AppColors.lightMainText,
-            ),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: tokens.textPrimary,
+                ),
           ),
           12.height,
           ServiceTypeSelectorGrid(

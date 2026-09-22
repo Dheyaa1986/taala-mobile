@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/document_image_picker.dart';
 import 'package:taal/features/auth/register/utils/provider_registration_documents.dart';
@@ -23,6 +24,7 @@ class ProviderDocumentUploadSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -30,7 +32,7 @@ class ProviderDocumentUploadSection extends StatelessWidget {
           AppStrings.providerDocumentsHint.tr(),
           style: TextStyle(
             fontSize: 13.sp,
-            color: AppColors.commentColor,
+            color: tokens.textSecondary,
             height: 1.4,
           ),
         ),
@@ -224,6 +226,7 @@ class _DocumentSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -231,7 +234,7 @@ class _DocumentSlot extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12.sp,
-            color: AppColors.commentColor,
+            color: tokens.textSecondary,
           ),
         ),
         6.height,
@@ -267,7 +270,7 @@ class _DocumentSlot extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 11.sp,
-                              color: AppColors.commentColor,
+                              color: tokens.textSecondary,
                             ),
                           ),
                         ),

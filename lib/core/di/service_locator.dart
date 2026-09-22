@@ -27,6 +27,7 @@ import 'package:taal/features/rating/client/presentation/cubit/client_ratings_cu
 
 
 import '../../features/notifications/data/repository/notification_repository.dart';
+import '../../core/theme/app_theme_mode_cubit.dart';
 import '../../features/theme/data/repositories/theme_repository.dart';
 import '../../features/theme/data/repositories/theme_repository_impl.dart';
 import '../../features/theme/presentation/cubit/theme_cubit.dart';
@@ -187,6 +188,10 @@ void _initCubits() {
 
   getIt.registerLazySingleton<ThemeCubit>(
     () => ThemeCubit(getIt()),
+  );
+
+  getIt.registerLazySingleton<AppThemeModeCubit>(
+    () => AppThemeModeCubit(getIt()),
   );
 
   getIt.registerFactory<SupportTicketCubit>(

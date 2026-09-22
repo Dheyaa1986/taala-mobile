@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taal/core/extensions/space_extension.dart';
-
-import '../../app_config/app_colors.dart';
-
+import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class MessageViewText extends StatelessWidget {
   final String message;
@@ -26,7 +24,7 @@ class MessageViewText extends StatelessWidget {
                 8.height,
                 IconButton(
                   onPressed: onRefresh,
-                  color: AppColors.primaryColor,
+                  color: TaalaTokens.of(context).primary,
                   icon: const Icon(Icons.refresh),
                 ),
               ],
@@ -35,9 +33,13 @@ class MessageViewText extends StatelessWidget {
   }
 
   Text _buildText(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     return Text(
       message,
-      style: Theme.of(context).textTheme.bodyLarge,
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: tokens.textSecondary,
+          ),
     );
   }
 }

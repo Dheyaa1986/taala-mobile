@@ -4,8 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/fields/custom_search_field.dart';
 import 'package:taal/features/home/client/presentation/cubit/service_providers_cubit.dart';
@@ -79,7 +79,7 @@ class _ProvidersListState extends State<ProvidersList> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: AppColors.redColor,
+                      color: TaalaTokens.of(context).error,
                     ),
                   ),
                 );
@@ -96,7 +96,7 @@ class _ProvidersListState extends State<ProvidersList> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: AppColors.commentColor,
+                        color: TaalaTokens.of(context).textSecondary,
                       ),
                     ),
                   );

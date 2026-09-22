@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
-import 'package:taal/core/extensions/space_extension.dart';
 
+import '../../design_system/theme/taala_tokens.dart';
+import '../../design_system/tokens/taala_shadows.dart';
+import '../extensions/space_extension.dart';
+
+/// Soft list/card surface used for orders, notifications, and highlights.
 class YellowHighlightCard extends StatelessWidget {
   const YellowHighlightCard({
     super.key,
@@ -19,42 +22,49 @@ class YellowHighlightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: isHighlighted
-          ? AppColors.primaryColor.withValues(alpha: 0.18)
-          : AppColors.lightBGColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        side: const BorderSide(
-          color: AppColors.primaryColor,
-          width: 2,
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
+
+    final card = Container(
+      decoration: BoxDecoration(
+        color: isHighlighted ? tokens.primarySoft : tokens.surface,
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
+        border: Border.all(
+          color: isHighlighted ? tokens.primary : tokens.borderSubtle,
+          width: isHighlighted ? 1.5 : 1,
         ),
+        boxShadow: TaalaShadows.soft(brightness),
       ),
+      padding: REdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: child),
+          if (onDelete != null) ...[
+            8.width,
+            IconButton(
+              onPressed: onDelete,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: tokens.error,
+                size: 22.sp,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
-        child: Padding(
-          padding: REdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: child),
-              if (onDelete != null) ...[
-                8.width,
-                IconButton(
-                  onPressed: onDelete,
-                  icon: Icon(
-                    Icons.delete_outline_rounded,
-                    color: AppColors.redColor,
-                    size: 22.sp,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ],
-          ),
-        ),
+        borderRadius: BorderRadius.circular(tokens.cardRadius),
+        child: card,
       ),
     );
   }

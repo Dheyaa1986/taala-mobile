@@ -12,7 +12,7 @@ import 'package:taal/features/home/provider/presentation/widgets/sheet_header.da
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 import 'package:taal/features/rating/client/presentation/widget/rate_widget.dart';
 
-import '../../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../../design_system/components/taala_button.dart';
 
 Future showRateProviderSheet(
   BuildContext context, {
@@ -148,9 +148,9 @@ class _RateSheetState extends State<RateSheet> {
               maxLines: 5,
             ),
             40.height,
-            CustomButton.filled(
-              onTap: _submitting ? null : _submit,
-              text: AppStrings.submitRating.tr(),
+            TaalaButton(
+              onPressed: _submitting ? null : _submit,
+              label: AppStrings.submitRating.tr(),
             ),
           ],
         ),

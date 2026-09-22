@@ -18,7 +18,7 @@ import '../../../../../core/helpers/messages.dart';
 import '../../../../../core/validations/validators.dart';
 import '../../../../../core/widgets/avatars/photo_avatar.dart';
 import '../../../../../core/widgets/bottom_sheets/image_sheet.dart';
-import '../../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../../design_system/components/taala_button.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 import '../../../custom_sheet.dart';
 
@@ -174,14 +174,15 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                         padding: EdgeInsets.all(16),
                         child: CircularProgressIndicator(),
                       )
-                    : CustomButton(
-                        text: AppStrings.save.tr(),
-                        onTap: _save,
+                    : TaalaButton(
+                        label: AppStrings.save.tr(),
+                        onPressed: _save,
                       ),
                 12.height,
-                CustomButton.outlined(
-                  text: AppStrings.changePassword.tr(),
-                  onTap: () => showChangePasswordSheet(context),
+                TaalaButton(
+                  label: AppStrings.changePassword.tr(),
+                  variant: TaalaButtonVariant.secondary,
+                  onPressed: () => showChangePasswordSheet(context),
                 ),
               ],
             ),

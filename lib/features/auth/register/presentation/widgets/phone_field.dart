@@ -68,7 +68,7 @@ class PhoneField extends StatelessWidget {
                 return null;
               }
               if (value.length != 11) {
-                return 'رقم الهاتف يجب أن يتكون من 11 رقماً';
+                return AppStrings.phoneMustBe11Digits.tr();
               }
               return null;
             }
@@ -76,7 +76,7 @@ class PhoneField extends StatelessWidget {
               return AppStrings.enterPhone.tr();
             }
             if (value.length != 11) {
-              return 'رقم الهاتف يجب أن يتكون من 11 رقماً';
+              return AppStrings.phoneMustBe11Digits.tr();
             }
             return null;
           },

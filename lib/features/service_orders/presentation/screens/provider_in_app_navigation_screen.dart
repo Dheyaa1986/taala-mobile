@@ -4,8 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
@@ -256,6 +257,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
         formatNavigationDurationMinutes(_guidanceSnapshot.remainingDurationSeconds);
     final instruction = _guidanceSnapshot.currentInstruction;
 
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.departInApp.tr()),
@@ -280,8 +284,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
               right: 12.w,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: tokens.surface,
                   borderRadius: BorderRadius.circular(8.r),
+                  boxShadow: TaalaShadows.soft(brightness),
                 ),
                 child: Padding(
                   padding: REdgeInsets.all(8),
@@ -298,8 +303,8 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
             bottom: 180.h + context.safeBottomInset,
             child: FloatingActionButton(
               heroTag: 'provider_nav_gps',
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primaryColor,
+              backgroundColor: tokens.surface,
+              foregroundColor: tokens.primary,
               onPressed: () {
                 if (_providerPoint != null) {
                   setState(() => _cameraRevision++);
@@ -320,15 +325,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                 16 + context.safeBottomInset,
               ),
               decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: tokens.surface,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-                boxShadow: const [
-                  BoxShadow(
-                    blurRadius: 12,
-                    offset: Offset(0, -2),
-                    color: Colors.black12,
-                  ),
-                ],
+                boxShadow: TaalaShadows.soft(brightness),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -336,10 +335,10 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                 children: [
                   Text(
                     _targetTitle ?? AppStrings.navigateToClient.tr(),
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: tokens.textPrimary,
+                        ),
                   ),
                   8.height,
                   if (_navigationActive && instruction.isNotEmpty) ...[
@@ -348,7 +347,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                       children: [
                         Icon(
                           Icons.turn_right,
-                          color: AppColors.primaryColor,
+                          color: tokens.primary,
                           size: 28.r,
                         ),
                         8.width,
@@ -386,16 +385,19 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                   ],
                   Text(
                     _statusText(),
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColors.commentColor,
-                      height: 1.35,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.textSecondary,
+                          height: 1.35,
+                        ),
                   ),
                   if (!_navigationActive && _route != null) ...[
                     12.height,
                     FilledButton.icon(
                       onPressed: _startNavigation,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: tokens.primary,
+                        foregroundColor: tokens.onPrimary,
+                      ),
                       icon: const Icon(Icons.navigation),
                       label: Text(AppStrings.navigationStart.tr()),
                     ),
@@ -431,24 +433,25 @@ class _InfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return Container(
       padding: REdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.08),
+        color: tokens.primarySoft,
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16.r, color: AppColors.primaryColor),
+          Icon(icon, size: 16.r, color: tokens.primary),
           6.width,
           Text(
             label,
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
-            ),
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: tokens.primary,
+                ),
           ),
         ],
       ),

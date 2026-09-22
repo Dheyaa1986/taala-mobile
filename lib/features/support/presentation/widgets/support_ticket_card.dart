@@ -1,11 +1,12 @@
+import 'dart:ui' as ui;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/app_config/font_styles.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/support/data/models/support_ticket_model.dart';
 
 class SupportTicketCard extends StatelessWidget {
@@ -40,6 +41,8 @@ class SupportTicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+
     return YellowHighlightCard(
       isHighlighted: _isHighlighted,
       onTap: onTap,
@@ -52,28 +55,26 @@ class SupportTicketCard extends StatelessWidget {
               children: [
                 Text(
                   ticket.title,
-                  style: TextStyle(
-                    fontFamily: FontStyles.fontFamily,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.lightMainText,
-                  ),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: tokens.textPrimary,
+                      ),
                 ),
                 6.height,
                 Text(
                   '${ticket.type == 'complaint' ? AppStrings.complaint.tr() : AppStrings.request.tr()} • ${_statusLabel(ticket.status)}',
-                  style: TextStyle(
-                    fontFamily: FontStyles.fontFamily,
-                    fontSize: 12.sp,
-                    color: AppColors.commentColor,
-                  ),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: tokens.textSecondary,
+                      ),
                 ),
               ],
             ),
           ),
           Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.primaryColor,
+            Directionality.of(context) == ui.TextDirection.rtl
+                ? Icons.chevron_left_rounded
+                : Icons.chevron_right_rounded,
+            color: tokens.primary,
             size: 24.sp,
           ),
         ],

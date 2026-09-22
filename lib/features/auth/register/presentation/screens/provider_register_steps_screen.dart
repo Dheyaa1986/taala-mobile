@@ -14,7 +14,8 @@ import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'package:taal/core/widgets/buttons/back_button.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/layout/bottom_safe_area.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
@@ -211,6 +212,7 @@ class _ProviderRegisterStepsScreenState
   }
 
   Widget _buildServicesStep() {
+    final tokens = TaalaTokens.of(context);
     if (_loadingServiceTypes) {
       return Padding(
         padding: REdgeInsets.symmetric(vertical: 48),
@@ -227,13 +229,14 @@ class _ProviderRegisterStepsScreenState
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: AppColors.commentColor,
+                color: tokens.textSecondary,
               ),
             ),
             16.height,
-            CustomButton.outlined(
-              text: AppStrings.retry.tr(),
-              onTap: () {
+            TaalaButton(
+              label: AppStrings.retry.tr(),
+              variant: TaalaButtonVariant.secondary,
+              onPressed: () {
                 setState(() => _loadingServiceTypes = true);
                 _loadServiceTypes();
               },
@@ -391,11 +394,11 @@ class _ProviderRegisterStepsScreenState
                     ),
                   ),
                   BottomSafeArea(
-                    child: CustomButton.filled(
-                      text: _step == 3
+                    child: TaalaButton(
+                      label: _step == 3
                           ? AppStrings.signUp.tr()
                           : AppStrings.continueKey.tr(),
-                      onTap: _submitting ||
+                      onPressed: _submitting ||
                               (_step == 0 && _loadingServiceTypes)
                           ? null
                           : _nextStep,

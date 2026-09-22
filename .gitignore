@@ -46,6 +46,7 @@ app.*.map.json
 upload-certificate.pem
 *.pem
 android/key.properties
+android/key.propertie
 
 lib/core/maps/google/google_maps_local_token.dart
 android/app/src/main/res/values/google_maps_api.xml

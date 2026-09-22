@@ -15,7 +15,7 @@ import 'package:taal/features/home/provider/data/repository/locations_repository
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
 
 import '../../../../../core/options/pagination_options.dart';
-import '../../../../../core/widgets/buttons/custom_button.dart';
+import '../../../../../design_system/components/taala_button.dart';
 
 Future showFilterProvidersSheet(BuildContext context,
     {FilterProvidersModel? model}) async {
@@ -240,9 +240,9 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
                 Row(
                   children: [
                     Expanded(
-                      child: CustomButton.filled(
-                        width: 168.w,
-                        onTap: () {
+                      child: TaalaButton(
+                        label: AppStrings.apply.tr(),
+                        onPressed: () {
                           final filter = FilterProvidersModel(
                             serviceTypeId: selectedServiceType?.id,
                             active: selectedStatus == null
@@ -253,17 +253,16 @@ class _FilterProvidersSheetState extends State<FilterProvidersSheet> {
                           );
                           context.pop(filter);
                         },
-                        text: AppStrings.apply.tr(),
                       ),
                     ),
                     16.width,
                     Expanded(
-                      child: CustomButton.outlined(
-                        width: 168.w,
-                        onTap: () {
+                      child: TaalaButton(
+                        label: AppStrings.reset.tr(),
+                        variant: TaalaButtonVariant.secondary,
+                        onPressed: () {
                           context.pop(FilterProvidersModel());
                         },
-                        text: AppStrings.reset.tr(),
                       ),
                     ),
                   ],

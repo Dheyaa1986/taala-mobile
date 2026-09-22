@@ -1,10 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/conversation_history_helper.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/features/profile/client/presentation/widgets/settings_card_shell.dart';
 
 class ConversationHistoryPanel extends StatefulWidget {
   const ConversationHistoryPanel({super.key});
@@ -54,118 +55,162 @@ class _ConversationHistoryPanelState extends State<ConversationHistoryPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      shadowColor: const Color(0x269A9A9A),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.r),
-        side: const BorderSide(color: AppColors.brandBorder),
-      ),
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: REdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppStrings.conversationHistory.tr(),
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.lightMainText,
-              ),
-            ),
-            6.height,
-            Text(
-              AppStrings.conversationHistorySubtitle.tr(),
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.commentColor,
-                height: 1.4,
-              ),
-            ),
-            12.height,
-            if (_entries.isEmpty)
-              Text(
-                AppStrings.noConversationHistory.tr(),
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  color: AppColors.commentColor,
+    final tokens = TaalaTokens.of(context);
+
+    return SettingsCardShell(
+      padding: REdgeInsets.all(16),
+      borderRadius: tokens.cardRadius,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.conversationHistory.tr(),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: tokens.textPrimary,
                 ),
-              )
-            else
-              ..._entries.map(
-                (entry) => Container(
-                  width: double.infinity,
-                  margin: EdgeInsets.only(bottom: 10.h),
-                  padding: REdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFillColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: AppColors.brandBorder),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              entry.title,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+          ),
+          6.height,
+          Text(
+            AppStrings.conversationHistorySubtitle.tr(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: tokens.textSecondary,
+                  height: 1.4,
+                ),
+          ),
+          12.height,
+          if (_entries.isEmpty)
+            _EmptyConversationHistory(tokens: tokens)
+          else
+            ..._entries.map(
+              (entry) => Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(bottom: 10.h),
+                padding: REdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: tokens.surfaceMuted,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: tokens.borderSubtle),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            entry.title,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: tokens.textPrimary,
+                                ),
                           ),
-                          IconButton(
-                            onPressed: () => _confirmDelete(entry),
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: AppColors.redColor,
-                              size: 20.sp,
-                            ),
+                        ),
+                        IconButton(
+                          onPressed: () => _confirmDelete(entry),
+                          icon: Icon(
+                            Icons.delete_outline_rounded,
+                            color: tokens.error,
+                            size: 20.sp,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    if (entry.theirLines.isNotEmpty) ...[
+                      8.height,
+                      Text(
+                        AppStrings.incomingReplies.tr(),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: tokens.primary,
+                            ),
                       ),
-                      if (entry.theirLines.isNotEmpty) ...[
-                        8.height,
-                        Text(
-                          AppStrings.incomingReplies.tr(),
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                        4.height,
-                        Text(
-                          entry.theirLines.map((line) => line.text).join('\n'),
-                          style: TextStyle(fontSize: 13.sp, height: 1.4),
-                        ),
-                      ],
-                      if (entry.myLines.isNotEmpty) ...[
-                        8.height,
-                        Text(
-                          AppStrings.myMessages.tr(),
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.commentColor,
-                          ),
-                        ),
-                        4.height,
-                        Text(
-                          entry.myLines.map((line) => line.text).join('\n'),
-                          style: TextStyle(fontSize: 13.sp, height: 1.4),
-                        ),
-                      ],
+                      4.height,
+                      Text(
+                        entry.theirLines.map((line) => line.text).join('\n'),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              height: 1.4,
+                              color: tokens.textPrimary,
+                            ),
+                      ),
                     ],
-                  ),
+                    if (entry.myLines.isNotEmpty) ...[
+                      8.height,
+                      Text(
+                        AppStrings.myMessages.tr(),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: tokens.textSecondary,
+                            ),
+                      ),
+                      4.height,
+                      Text(
+                        entry.myLines.map((line) => line.text).join('\n'),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              height: 1.4,
+                              color: tokens.textPrimary,
+                            ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyConversationHistory extends StatelessWidget {
+  const _EmptyConversationHistory({required this.tokens});
+
+  final TaalaTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: REdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      decoration: BoxDecoration(
+        color: tokens.surfaceMuted,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: tokens.borderSubtle),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56.r,
+            height: 56.r,
+            decoration: BoxDecoration(
+              color: tokens.primarySoft,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: tokens.primary,
+              size: 28.r,
+            ),
+          ),
+          12.height,
+          Text(
+            AppStrings.noConversationHistory.tr(),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: tokens.textPrimary,
+                ),
+          ),
+          6.height,
+          Text(
+            AppStrings.noConversationHistoryHint.tr(),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: tokens.textSecondary,
+                  height: 1.45,
+                ),
+          ),
+        ],
       ),
     );
   }

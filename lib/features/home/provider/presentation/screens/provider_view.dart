@@ -4,7 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -76,6 +77,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
+    final brightness = Theme.of(context).brightness;
+
     return BlocProvider(
       create: (context) => getIt<LocationCubit>(),
       child: Builder(builder: (context) {
@@ -98,11 +102,14 @@ class _LocationsScreenState extends State<LocationsScreen> {
               children: [
                 16.height,
                 Container(
-                  padding: REdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: REdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.textFieldFillColor,
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: AppColors.brandBorder),
+                    color: _isAvailable ? tokens.primarySoft : tokens.surfaceMuted,
+                    borderRadius: BorderRadius.circular(tokens.cardRadius),
+                    border: Border.all(
+                      color: _isAvailable ? tokens.primary : tokens.borderSubtle,
+                    ),
+                    boxShadow: TaalaShadows.soft(brightness),
                   ),
                   child: Row(
                     children: [
@@ -114,21 +121,19 @@ class _LocationsScreenState extends State<LocationsScreen> {
                               _isAvailable
                                   ? AppStrings.providerAvailable.tr()
                                   : AppStrings.providerUnavailable.tr(),
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.lightMainText,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: tokens.textPrimary,
+                                  ),
                             ),
                             4.height,
                             Text(
                               _isAvailable
-                                  ? 'يتم تحديث موقعك تلقائياً للعملاء'
-                                  : 'لن يظهر موقعك للعملاء',
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: AppColors.commentColor,
-                              ),
+                                  ? AppStrings.providerLocationAutoUpdateHint.tr()
+                                  : AppStrings.providerLocationHiddenHint.tr(),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: tokens.textSecondary,
+                                  ),
                             ),
                           ],
                         ),
@@ -142,7 +147,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       else
                         Switch(
                           value: _isAvailable,
-                          activeThumbColor: AppColors.primaryColor,
+                          activeThumbColor: tokens.primary,
                           onChanged: _toggleAvailability,
                         ),
                     ],

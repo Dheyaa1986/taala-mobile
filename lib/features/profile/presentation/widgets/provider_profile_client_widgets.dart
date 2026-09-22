@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/extensions/space_extension.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 import 'package:taal/features/profile/data/models/portfolio_model.dart';
@@ -13,7 +14,6 @@ import 'package:taal/features/profile/presentation/widgets/portfolio_list_sectio
 import 'package:taal/features/profile/presentation/widgets/services_list.dart';
 import 'package:taal/features/rating/client/presentation/widget/rate_provider_sheet.dart';
 
-import '../../../../core/app_config/app_colors.dart';
 import '../../../../core/app_config/app_icons.dart';
 import '../../../../core/app_config/app_strings.dart';
 import '../../../../core/custom_launcher/custom_launcher.dart';
@@ -30,6 +30,7 @@ class ProviderProfileClientWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final services = provider.services;
     final phone = provider.phone ?? '';
 
@@ -39,9 +40,8 @@ class ProviderProfileClientWidgets extends StatelessWidget {
           Text(
             services.join(' • '),
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w400,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: tokens.textSecondary,
                 ),
           ),
         8.height,
@@ -54,10 +54,10 @@ class ProviderProfileClientWidgets extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: CustomButton.filled(
-                radius: Radius.circular(12.r),
-                text: AppStrings.rateProvider.tr(),
-                onTap: () {
+              child: TaalaButton(
+                label: AppStrings.rateProvider.tr(),
+                height: 44,
+                onPressed: () {
                   showRateProviderSheet(
                     context,
                     providerId: provider.id ?? '',
@@ -79,8 +79,8 @@ class ProviderProfileClientWidgets extends StatelessWidget {
                     iconSize: 24.r,
                     padding: 12.r,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.iconBorderColor),
-                    bgColor: Theme.of(context).scaffoldBackgroundColor,
+                    border: Border.all(color: tokens.borderSubtle),
+                    bgColor: tokens.surface,
                     icon: AppIcons.whatsapp,
                   ),
                   14.width,
@@ -93,8 +93,8 @@ class ProviderProfileClientWidgets extends StatelessWidget {
                     },
                     iconSize: 24.r,
                     padding: 12.r,
-                    border: Border.all(color: AppColors.iconBorderColor),
-                    bgColor: Theme.of(context).scaffoldBackgroundColor,
+                    border: Border.all(color: tokens.borderSubtle),
+                    bgColor: tokens.surface,
                     icon: AppIcons.call,
                     shape: BoxShape.circle,
                   ),
@@ -112,11 +112,10 @@ class ProviderProfileClientWidgets extends StatelessWidget {
           children: [
             Text(
               AppStrings.portfolio.tr(),
-              style: TextStyle(
-                color: AppColors.greyTitle,
-                fontSize: 24.sp,
-                fontWeight: FontWeight.w400,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: tokens.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ],
         ),

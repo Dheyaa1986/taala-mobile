@@ -10,7 +10,7 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
@@ -166,12 +166,11 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
                       autoSendOnMount: true,
                     ),
                     32.height,
-                    CustomButton.filled(
-                      text: _isProvider
+                    TaalaButton(
+                      label: _isProvider
                           ? AppStrings.next.tr()
                           : AppStrings.signUp.tr(),
-                      isBackgroundGradient: false,
-                      onTap: _continue,
+                      onPressed: _continue,
                     ),
                     24.height,
                   ],

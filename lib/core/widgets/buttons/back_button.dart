@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:taal/core/app_config/app_colors.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class CustomBackButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -10,6 +10,7 @@ class CustomBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     if (!context.canPop() && onPressed == null) return const SizedBox.shrink();
     return Padding(
       padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 8),
@@ -21,14 +22,14 @@ class CustomBackButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: AppColors.borderColorMain,
+              color: tokens.borderSubtle,
               width: 1,
             ),
           ),
-          child: const Center(
+          child: Center(
             child: Icon(
               Icons.arrow_back,
-              color: AppColors.lightMainText,
+              color: tokens.textPrimary,
             ),
           ),
         ),

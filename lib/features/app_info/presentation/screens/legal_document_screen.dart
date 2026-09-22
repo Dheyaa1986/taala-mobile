@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
@@ -86,7 +86,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                       _error!,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.redColor,
+                        color: TaalaTokens.of(context).error,
                         fontSize: 14.sp,
                       ),
                     ),
@@ -101,7 +101,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       height: 1.6,
-                      color: AppColors.lightMainText,
+                      color: TaalaTokens.of(context).textPrimary,
                     ),
                   ),
                 ),

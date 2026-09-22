@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
@@ -13,7 +12,8 @@ import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/yellow_highlight_card.dart';
 import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_fab.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
@@ -157,6 +157,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
   @override
   Widget build(BuildContext context) {
     final hasActiveOrder = _activeOrder?.id != null;
+    final tokens = TaalaTokens.of(context);
 
     return Scaffold(
       appBar: CustomAppBar.langAppBar(
@@ -191,15 +192,15 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                   children: [
                     Text(
                       AppStrings.activeOrderBlockingSearch.tr(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
                     ),
                     12.height,
-                    CustomButton.filled(
-                      text: AppStrings.openActiveOrder.tr(),
-                      onTap: () => ServiceOrderNavigation.openDetail(
+                    TaalaButton(
+                      label: AppStrings.openActiveOrder.tr(),
+                      onPressed: () => ServiceOrderNavigation.openDetail(
                         _activeOrder!.id!,
                         openChat: true,
                       ),
@@ -211,39 +212,35 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
             ],
             Text(
               AppStrings.clientHomeWelcome.tr(),
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.lightMainText,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: tokens.textPrimary,
+                  ),
             ),
             8.height,
             Text(
               AppStrings.clientHomeSubtitle.tr(),
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: AppColors.commentColor,
-                height: 1.5,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: tokens.textSecondary,
+                    height: 1.5,
+                  ),
             ),
             24.height,
-            CustomButton.filled(
-              text: AppStrings.requestHelp.tr(),
-              onTap: hasActiveOrder
+            TaalaButton(
+              label: AppStrings.requestHelp.tr(),
+              onPressed: hasActiveOrder
                   ? _showActiveOrderBlockedMessage
                   : _openCreateOrder,
               enabled: !hasActiveOrder,
-              height: 56.h,
             ),
             if (widget.clientLocation != null) ...[
               24.height,
               Text(
                 AppStrings.nearestProviders.tr(),
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.lightMainText,
-                ),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: tokens.textPrimary,
+                    ),
               ),
               12.height,
               BlocBuilder<ServiceProvidersCubit, ServiceProvidersState>(
@@ -257,20 +254,18 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                   if (state is ServiceProvidersError) {
                     return Text(
                       state.error,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: AppColors.redColor,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: tokens.error,
+                          ),
                     );
                   }
                   if (state is ServiceProvidersLoaded &&
                       state.serviceProviders.isEmpty) {
                     return Text(
                       AppStrings.noProvidersNearby.tr(),
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: AppColors.commentColor,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: tokens.textSecondary,
+                          ),
                     );
                   }
                   if (state is ServiceProvidersLoaded) {

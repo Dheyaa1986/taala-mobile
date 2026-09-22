@@ -6,7 +6,8 @@ import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
-import 'package:taal/core/widgets/buttons/custom_button.dart';
+import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/cached_network_image/custom_cached_network_image.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/provider/presentation/widgets/sheet_header.dart';
@@ -100,7 +101,7 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
                       provider.services.join(', '),
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: AppColors.commentColor,
+                        color: TaalaTokens.of(context).textSecondary,
                       ),
                     ),
                     if (provider.distanceKm != null) ...[
@@ -123,10 +124,10 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
           Row(
             children: [
               Expanded(
-                child: CustomButton.filled(
-                  radius: Radius.circular(16.r),
-                  text: AppStrings.callNow.tr(),
-                  onTap: () => getIt<CustomLauncher>().call(
+                child: TaalaButton(
+                  label: AppStrings.callNow.tr(),
+                  height: 44,
+                  onPressed: () => getIt<CustomLauncher>().call(
                     provider.phone ?? '',
                     provider.name ?? '',
                   ),
@@ -134,10 +135,11 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
               ),
               8.width,
               Expanded(
-                child: CustomButton.outlined(
-                  radius: Radius.circular(16.r),
-                  text: AppStrings.whatsapp.tr(),
-                  onTap: () => getIt<CustomLauncher>().openWhatsApp(
+                child: TaalaButton(
+                  label: AppStrings.whatsapp.tr(),
+                  variant: TaalaButtonVariant.secondary,
+                  height: 44,
+                  onPressed: () => getIt<CustomLauncher>().openWhatsApp(
                     provider.phone ?? '',
                   ),
                 ),
@@ -150,10 +152,10 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
                   padding: EdgeInsets.all(12),
                   child: CircularProgressIndicator(),
                 )
-              : CustomButton.filled(
-                  text: AppStrings.openChat.tr(),
-                  onTap: _openChat,
-                  height: 48.h,
+              : TaalaButton(
+                  label: AppStrings.openChat.tr(),
+                  onPressed: _openChat,
+                  height: 48,
                 ),
         ],
       ),

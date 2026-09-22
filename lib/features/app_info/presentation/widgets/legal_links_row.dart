@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
 
 class LegalLinksRow extends StatelessWidget {
@@ -13,14 +13,15 @@ class LegalLinksRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = TaalaTokens.of(context);
     final linkStyle = TextStyle(
-      color: AppColors.primaryColor,
+      color: tokens.primary,
       fontWeight: FontWeight.w600,
       fontSize: 11.sp,
       decoration: TextDecoration.underline,
     );
     final separatorStyle = TextStyle(
-      color: AppColors.commentColor,
+      color: tokens.textSecondary,
       fontSize: 11.sp,
     );
 
@@ -39,7 +40,7 @@ class LegalLinksRow extends StatelessWidget {
                       extra: LegalDocumentType.terms,
                     ),
             ),
-            TextSpan(text: ' • '),
+            const TextSpan(text: ' • '),
             TextSpan(
               text: AppStrings.privacyPolicy.tr(),
               style: linkStyle,
