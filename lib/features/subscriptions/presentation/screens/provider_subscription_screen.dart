@@ -265,7 +265,9 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
               children: [
                 if (widget.isRequiredGate) ...[
                   Text(
-                    AppStrings.subscriptionRequiredMessage.tr(),
+                    (subscription?.message?.trim().isNotEmpty == true)
+                        ? subscription!.message!
+                        : AppStrings.subscriptionRequiredMessage.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15.sp,

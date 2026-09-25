@@ -420,12 +420,34 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
+  bool _isPriceLocked(ServiceOrderModel order) => order.priceLockedAt != null;
+
+  bool _canClientCancelBecauseProviderNotMoving(ServiceOrderModel order) =>
+      !_isProvider &&
+      _isPriceLocked(order) &&
+      order.status == 'accepted' &&
+      order.providerEnRouteAt == null;
+
   Future<void> _confirmCancelOrder() async {
+    final order = _order;
+    if (order != null &&
+        order.priceLockedAt != null &&
+        order.providerEnRouteAt != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.cancelOrderActiveHint.tr())),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppStrings.cancelOrder.tr()),
-        content: Text(AppStrings.cancelOrderConfirm.tr()),
+        content: Text(
+          order != null && _canClientCancelBecauseProviderNotMoving(order)
+              ? AppStrings.cancelOnlyIfProviderNotMoving.tr()
+              : AppStrings.cancelOrderConfirm.tr(),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -441,6 +463,66 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     if (confirmed == true && mounted) {
       await _updateStatus('cancelled');
     }
+  }
+
+  Future<bool> _confirmActionDialog({
+    required String titleKey,
+    required String bodyKey,
+    required String confirmKey,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(titleKey.tr()),
+        content: Text(bodyKey.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppStrings.cancel.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(confirmKey.tr()),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _confirmClientReady() async {
+    final loc = await getIt<DeviceLocationService>().getCurrentLocation();
+    final result = await _repository.confirmClientReady(
+      orderId: widget.orderId,
+      clientLatitude: loc?.latitude,
+      clientLongitude: loc?.longitude,
+    );
+    if (!mounted) return;
+    result.fold(
+      (error) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      ),
+      (order) => setState(() => _order = order),
+    );
+  }
+
+  Future<void> _performAction(String action, {bool terminal = true}) async {
+    final result = await _repository.performAction(
+      orderId: widget.orderId,
+      action: action,
+    );
+    if (!mounted) return;
+    result.fold(
+      (error) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      ),
+      (order) {
+        setState(() => _order = order);
+        if (terminal) {
+          _handleTerminalStatus(order, remote: false);
+        }
+      },
+    );
   }
 
   Future<void> _updateStatus(String status, {double? agreedPrice}) async {
@@ -472,8 +554,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     if (!mounted) return;
 
     if (remote && !_isProvider && order.status == 'cancelled') {
+      final reason = order.cancellationReason;
+      final message = reason == 'vehicle_breakdown'
+          ? AppStrings.orderCancelledReorderHint.tr()
+          : reason == 'problem_solved'
+              ? AppStrings.orderProblemSolvedByClient.tr()
+              : AppStrings.orderCancelledByProvider.tr();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.orderCancelledByProvider.tr())),
+        SnackBar(content: Text(message)),
       );
     }
 
@@ -604,7 +692,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     await _updateStatus('accepted');
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.orderApprovedLaunchMap.tr())),
+      SnackBar(content: Text(AppStrings.confirmStillNeedServiceHint.tr())),
     );
   }
 
@@ -779,8 +867,24 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   ),
                 if (_isProvider &&
                     order != null &&
+                    order.status == 'accepted' &&
+                    order.clientReadyAt == null)
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      AppStrings.waitForClientReady.tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: TaalaTokens.of(context).textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                if (_isProvider &&
+                    order != null &&
                     _canOpenInAppNavigation(order) &&
-                    (order.status == 'accepted' ||
+                    ((order.status == 'accepted' && order.clientReadyAt != null) ||
                         order.status == 'en_route' ||
                         order.status == 'arrived'))
                   Padding(
@@ -814,6 +918,49 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           ),
                         ],
                       ],
+                    ),
+                  ),
+                if (_isProvider &&
+                    order != null &&
+                    _isPriceLocked(order) &&
+                    (order.status == 'accepted' ||
+                        order.status == 'en_route' ||
+                        order.status == 'arrived'))
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: TaalaButton(
+                      label: AppStrings.vehicleBreakdown.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () async {
+                        final ok = await _confirmActionDialog(
+                          titleKey: AppStrings.vehicleBreakdown,
+                          bodyKey: AppStrings.vehicleBreakdownConfirm,
+                          confirmKey: AppStrings.vehicleBreakdown,
+                        );
+                        if (ok && mounted) {
+                          await _performAction('vehicle_breakdown');
+                        }
+                      },
+                    ),
+                  ),
+                if (_isProvider &&
+                    order != null &&
+                    (order.status == 'en_route' || order.status == 'arrived'))
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.clientNotFound.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () async {
+                        final ok = await _confirmActionDialog(
+                          titleKey: AppStrings.clientNotFound,
+                          bodyKey: AppStrings.clientNotFoundConfirm,
+                          confirmKey: AppStrings.clientNotFound,
+                        );
+                        if (ok && mounted) {
+                          await _performAction('client_not_found');
+                        }
+                      },
                     ),
                   ),
                 8.height,
@@ -917,12 +1064,56 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                   ],
                 ],
                 if (!_isProvider &&
-                    (order?.status == 'accepted' ||
-                        order?.status == 'en_route')) ...[
+                    order != null &&
+                    _isPriceLocked(order) &&
+                    order.status == 'accepted' &&
+                    order.clientReadyAt == null) ...[
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: Text(
-                      AppStrings.cancelOrderActiveHint.tr(),
+                      AppStrings.confirmStillNeedServiceHint.tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: TaalaTokens.of(context).textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  12.height,
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.confirmStillNeedService.tr(),
+                      onPressed: _confirmClientReady,
+                    ),
+                  ),
+                  8.height,
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.problemSolved.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () async {
+                        final ok = await _confirmActionDialog(
+                          titleKey: AppStrings.problemSolved,
+                          bodyKey: AppStrings.problemSolvedConfirm,
+                          confirmKey: AppStrings.problemSolved,
+                        );
+                        if (ok && mounted) {
+                          await _performAction('problem_solved');
+                        }
+                      },
+                    ),
+                  ),
+                ],
+                if (!_isProvider &&
+                    order != null &&
+                    _canClientCancelBecauseProviderNotMoving(order)) ...[
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      AppStrings.cancelOnlyIfProviderNotMoving.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13.sp,
@@ -940,27 +1131,55 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       onPressed: _confirmCancelOrder,
                     ),
                   ),
+                  8.height,
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.problemSolved.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () async {
+                        final ok = await _confirmActionDialog(
+                          titleKey: AppStrings.problemSolved,
+                          bodyKey: AppStrings.problemSolvedConfirm,
+                          confirmKey: AppStrings.problemSolved,
+                        );
+                        if (ok && mounted) {
+                          await _performAction('problem_solved');
+                        }
+                      },
+                    ),
+                  ),
+                ],
+                if (!_isProvider &&
+                    order != null &&
+                    _isPriceLocked(order) &&
+                    (order.status == 'accepted' || order.status == 'en_route') &&
+                    order.clientReadyAt != null &&
+                    order.providerEnRouteAt != null) ...[
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.problemSolved.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () async {
+                        final ok = await _confirmActionDialog(
+                          titleKey: AppStrings.problemSolved,
+                          bodyKey: AppStrings.problemSolvedConfirm,
+                          confirmKey: AppStrings.problemSolved,
+                        );
+                        if (ok && mounted) {
+                          await _performAction('problem_solved');
+                        }
+                      },
+                    ),
+                  ),
                 ],
                 if (!_isProvider && order?.status == 'arrived')
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TaalaButton(
-                            label: AppStrings.cancelOrder.tr(),
-                            variant: TaalaButtonVariant.secondary,
-                            onPressed: _confirmCancelOrder,
-                          ),
-                        ),
-                        12.width,
-                        Expanded(
-                          child: TaalaButton(
-                            label: AppStrings.completeOrder.tr(),
-                            onPressed: () => _updateStatus('completed'),
-                          ),
-                        ),
-                      ],
+                    child: TaalaButton(
+                      label: AppStrings.completeOrder.tr(),
+                      onPressed: () => _updateStatus('completed'),
                     ),
                   ),
                 Padding(

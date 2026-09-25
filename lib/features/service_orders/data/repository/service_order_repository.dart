@@ -36,6 +36,17 @@ abstract class ServiceOrderRepository {
     double? agreedPrice,
   });
 
+  Future<Either<CustomException, ServiceOrderModel>> confirmClientReady({
+    required String orderId,
+    double? clientLatitude,
+    double? clientLongitude,
+  });
+
+  Future<Either<CustomException, ServiceOrderModel>> performAction({
+    required String orderId,
+    required String action,
+  });
+
   Future<Either<CustomException, ServiceOrderModel>> proposePrice({
     required String orderId,
     required double agreedPrice,
@@ -180,6 +191,44 @@ class ServiceOrderRepositoryImpl extends Repository
             'status': status,
             if (agreedPrice != null) 'agreedPrice': agreedPrice,
           },
+        ),
+      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
+    });
+  }
+
+  @override
+  Future<Either<CustomException, ServiceOrderModel>> confirmClientReady({
+    required String orderId,
+    double? clientLatitude,
+    double? clientLongitude,
+  }) {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi(
+        NetworkRequest(
+          AppUrls.serviceOrderConfirmReady(orderId),
+          method: RequestMethod.post,
+          body: {
+            if (clientLatitude != null) 'clientLatitude': clientLatitude,
+            if (clientLongitude != null) 'clientLongitude': clientLongitude,
+          },
+        ),
+      );
+      return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));
+    });
+  }
+
+  @override
+  Future<Either<CustomException, ServiceOrderModel>> performAction({
+    required String orderId,
+    required String action,
+  }) {
+    return exceptionHandler(() async {
+      final json = await dioService.callApi(
+        NetworkRequest(
+          AppUrls.serviceOrderAction(orderId),
+          method: RequestMethod.post,
+          body: {'action': action},
         ),
       );
       return ServiceOrderModel.fromJson(ApiResponseHelper.unwrap(json));

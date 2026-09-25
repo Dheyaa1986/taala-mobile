@@ -85,6 +85,9 @@ class AppUrls {
   static String serviceOrderMessages(String id) =>
       '/service-orders/$id/messages';
   static String serviceOrderStatus(String id) => '/service-orders/$id/status';
+  static String serviceOrderConfirmReady(String id) =>
+      '/service-orders/$id/confirm-ready';
+  static String serviceOrderAction(String id) => '/service-orders/$id/action';
   static String serviceOrderPrice(String id) => '/service-orders/$id/price';
   static String clientUpdateProfile(String id) => '$base/clients/$id';
   static String get providerUpdateProfile => '$base/providers/profile';

@@ -40,6 +40,10 @@ class ServiceOrderModel {
   final double? destinationLatitude;
   final double? destinationLongitude;
   final double? agreedPrice;
+  final DateTime? priceLockedAt;
+  final DateTime? clientReadyAt;
+  final DateTime? providerEnRouteAt;
+  final String? cancellationReason;
   final double? distanceKm;
   final int? etaMinutes;
   final String? providerName;
@@ -58,6 +62,10 @@ class ServiceOrderModel {
     this.destinationLatitude,
     this.destinationLongitude,
     this.agreedPrice,
+    this.priceLockedAt,
+    this.clientReadyAt,
+    this.providerEnRouteAt,
+    this.cancellationReason,
     this.distanceKm,
     this.etaMinutes,
     this.providerName,
@@ -81,6 +89,16 @@ class ServiceOrderModel {
       destinationLongitude:
           ApiResponseHelper.parseDouble(json['destinationLongitude']),
       agreedPrice: ApiResponseHelper.parseDouble(json['agreedPrice']),
+      priceLockedAt: json['priceLockedAt'] != null
+          ? DateTime.tryParse(json['priceLockedAt'].toString())
+          : null,
+      clientReadyAt: json['clientReadyAt'] != null
+          ? DateTime.tryParse(json['clientReadyAt'].toString())
+          : null,
+      providerEnRouteAt: json['providerEnRouteAt'] != null
+          ? DateTime.tryParse(json['providerEnRouteAt'].toString())
+          : null,
+      cancellationReason: json['cancellationReason']?.toString(),
       distanceKm: ApiResponseHelper.parseDouble(json['distanceKm']),
       etaMinutes: ApiResponseHelper.parseInt(json['etaMinutes']),
       providerName: json['provider']?['name']?.toString(),
