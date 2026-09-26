@@ -26,7 +26,10 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/home/client/data/model/service_provider_model/service_category_catalog_model.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
+import 'package:taal/core/provider_offering/provider_offering_mode.dart';
+import 'package:taal/core/provider_offering/provider_service_offering_model.dart';
 import 'package:taal/features/auth/register/presentation/widgets/provider_document_upload_section.dart';
+import 'package:taal/features/auth/register/presentation/widgets/provider_offering_config_step.dart';
 import 'package:taal/features/auth/register/utils/provider_registration_documents.dart';
 import 'package:taal/features/auth/widgets/auth_header_widget.dart';
 import 'package:taal/features/home/provider/data/repository/locations_repository.dart';
@@ -55,6 +58,12 @@ class _ProviderRegisterStepsScreenState
   bool _submitting = false;
   ProviderRegistrationDocumentFiles _documentFiles =
       const ProviderRegistrationDocumentFiles();
+  List<ProviderServiceOfferingInput> _offeringInputs = [];
+
+  static const _totalSteps = 5;
+
+  bool get _needsShopLocation =>
+      _offeringInputs.any((offering) => offering.requiresShop);
 
   @override
   void initState() {
@@ -101,6 +110,46 @@ class _ProviderRegisterStepsScreenState
         _serviceCatalog,
       );
 
+  void _syncOfferingInputs() {
+    final updated = <ProviderServiceOfferingInput>[];
+    for (final category in _serviceCatalog) {
+      for (final type in category.serviceTypes) {
+        final id = type.id;
+        if (id == null || !_selectedServiceTypeIds.contains(id)) continue;
+        if (isMobileOnlyServiceCategory(type.categoryCode ?? category.code)) {
+          continue;
+        }
+
+        ProviderServiceOfferingInput? existing;
+        for (final item in _offeringInputs) {
+          if (item.serviceTypeId == id) {
+            existing = item;
+            break;
+          }
+        }
+        updated.add(
+          existing ??
+              ProviderServiceOfferingInput(
+                serviceTypeId: id,
+                serviceTypeName: type.name ?? '',
+                categoryCode: type.categoryCode ?? category.code,
+              ),
+        );
+      }
+    }
+    _offeringInputs = updated;
+  }
+
+  void _applyShopLocationToOfferings() {
+    if (_pickedLocation == null) return;
+    for (final offering in _offeringInputs) {
+      if (!offering.requiresShop) continue;
+      offering.shopLatitude = _pickedLocation!.latitude;
+      offering.shopLongitude = _pickedLocation!.longitude;
+      offering.shopGoogleMapsUrl = _pickedLocation!.googleMapsUrl;
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -115,6 +164,8 @@ class _ProviderRegisterStepsScreenState
       case 1:
         return AppStrings.providerRegisterStepDocuments.tr();
       case 2:
+        return AppStrings.providerRegisterStepOfferings.tr();
+      case 3:
         return AppStrings.providerRegisterStep1.tr();
       default:
         return AppStrings.providerRegisterStep2.tr();
@@ -147,6 +198,7 @@ class _ProviderRegisterStepsScreenState
         AppMessages.showError(context, AppStrings.serviceUnavailable.tr());
         return;
       }
+      _syncOfferingInputs();
     }
     if (_step == 1) {
       if (!_documentFiles.satisfies(_documentRequirements)) {
@@ -158,19 +210,33 @@ class _ProviderRegisterStepsScreenState
       }
     }
     if (_step == 2) {
+      for (final offering in _offeringInputs) {
+        if (!offering.requiresShop) continue;
+        final hasOpenDay = offering.workingHours.any((day) => day.isOpen);
+        if (!hasOpenDay) {
+          AppMessages.showError(
+            context,
+            AppStrings.providerOfferingIncomplete.tr(),
+          );
+          return;
+        }
+      }
+    }
+    if (_step == 3) {
       final description = _descriptionController.text.trim();
       if (description.isEmpty) {
         AppMessages.showError(context, AppStrings.requiredField.tr());
         return;
       }
     }
-    if (_step == 3) {
+    if (_step == 4) {
       final locationError =
           CustomValidators.validatePickedLocation(_pickedLocation);
       if (locationError != null) {
         AppMessages.showError(context, locationError);
         return;
       }
+      _applyShopLocationToOfferings();
       _submit();
       return;
     }
@@ -206,6 +272,8 @@ class _ProviderRegisterStepsScreenState
       serviceTypesIds: _selectedServiceTypeIds.toList(),
       otp: widget.options.otp,
       providerDocuments: _documentFiles,
+      serviceOfferings:
+          _offeringInputs.isEmpty ? null : List.from(_offeringInputs),
     );
 
     _registerCubit.registerClient(options: options);
@@ -248,7 +316,10 @@ class _ProviderRegisterStepsScreenState
     return ServiceTypeCatalogSelector(
       categories: _serviceCatalog,
       selectedIds: _selectedServiceTypeIds,
-      onChanged: (ids) => setState(() => _selectedServiceTypeIds = ids),
+      onChanged: (ids) => setState(() {
+        _selectedServiceTypeIds = ids;
+        _syncOfferingInputs();
+      }),
     );
   }
 
@@ -335,7 +406,7 @@ class _ProviderRegisterStepsScreenState
                   ),
                   12.height,
                   Row(
-                    children: List.generate(4, (index) {
+                    children: List.generate(_totalSteps, (index) {
                       final active = index <= _step;
                       return Expanded(
                         child: Container(
@@ -374,6 +445,16 @@ class _ProviderRegisterStepsScreenState
                         SingleChildScrollView(
                           child: Padding(
                             padding: REdgeInsets.only(bottom: 16),
+                            child: ProviderOfferingConfigStep(
+                              offerings: _offeringInputs,
+                              onChanged: (offerings) =>
+                                  setState(() => _offeringInputs = offerings),
+                            ),
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: Padding(
+                            padding: REdgeInsets.only(bottom: 16),
                             child: CustomTextField(
                               controller: _descriptionController,
                               label: AppStrings.providerServiceDescription.tr(),
@@ -383,11 +464,29 @@ class _ProviderRegisterStepsScreenState
                           ),
                         ),
                         SingleChildScrollView(
-                          child: MapLocationPickerField(
-                            value: _pickedLocation,
-                            onChanged: (value) =>
-                                setState(() => _pickedLocation = value),
-                            validator: CustomValidators.validatePickedLocation,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (_needsShopLocation)
+                                Padding(
+                                  padding: REdgeInsets.only(bottom: 12),
+                                  child: Text(
+                                    AppStrings.providerOfferingFixedHint.tr(),
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      color: TaalaTokens.of(context)
+                                          .textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              MapLocationPickerField(
+                                value: _pickedLocation,
+                                onChanged: (value) =>
+                                    setState(() => _pickedLocation = value),
+                                validator:
+                                    CustomValidators.validatePickedLocation,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -395,7 +494,7 @@ class _ProviderRegisterStepsScreenState
                   ),
                   BottomSafeArea(
                     child: TaalaButton(
-                      label: _step == 3
+                      label: _step == _totalSteps - 1
                           ? AppStrings.signUp.tr()
                           : AppStrings.continueKey.tr(),
                       onPressed: _submitting ||

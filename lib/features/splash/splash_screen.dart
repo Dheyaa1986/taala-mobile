@@ -12,6 +12,7 @@ import '../../core/helpers/auth_session_helper.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../../core/helpers/secure_local_storage.dart';
 import '../../core/updates/app_update_prompt.dart';
+import '../../core/updates/force_update_screen.dart';
 import '../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
+  bool _forceUpdateRequired = false;
 
   @override
   void initState() {
@@ -48,8 +50,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
-    final canContinue = await handleAppUpdateCheck();
-    if (!canContinue || !context.mounted) return;
+    final gateResult = await handleAppUpdateCheck(presentBlockingUi: false);
+    if (gateResult == AppUpdateGateResult.blocked) {
+      if (mounted) {
+        setState(() => _forceUpdateRequired = true);
+      }
+      return;
+    }
+    if (!context.mounted) return;
 
     final hasSession = await AuthSessionHelper.hasActiveSession();
     if (!hasSession) {
@@ -88,6 +96,10 @@ class _SplashScreenState extends State<SplashScreen>
                 ? themeLogo
                 : AppUrls.imageLink(themeLogo))
             : null;
+
+        if (_forceUpdateRequired) {
+          return const ForceUpdateScreen();
+        }
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,

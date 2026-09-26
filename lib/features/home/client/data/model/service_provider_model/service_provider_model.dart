@@ -1,4 +1,5 @@
 import 'package:taal/core/app_config/app_urls.dart';
+import 'package:taal/core/provider_offering/provider_service_offering_model.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_type_model.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/profile/data/models/portfolio_model.dart';
@@ -20,6 +21,7 @@ class ServiceProviderModel {
   int? etaMinutes;
   List<LocationModel> locations;
   List<PortfolioModel> portfolios;
+  List<ProviderServiceOfferingModel> serviceOfferings;
 
   final bool callAvailable;
 
@@ -40,8 +42,17 @@ class ServiceProviderModel {
     this.distanceKm,
     this.etaMinutes,
     this.portfolios = const [],
+    this.serviceOfferings = const [],
     this.callAvailable = false,
   });
+
+  ProviderServiceOfferingModel? offeringForServiceType(String? serviceTypeId) {
+    if (serviceTypeId == null) return null;
+    for (final offering in serviceOfferings) {
+      if (offering.serviceTypeId == serviceTypeId) return offering;
+    }
+    return null;
+  }
 
   factory ServiceProviderModel.fromJson(Map<String, dynamic> json) {
     final serviceTypes = json['serviceTypes'] as List<dynamic>? ?? [];
@@ -81,6 +92,13 @@ class ServiceProviderModel {
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),
       etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
       callAvailable: json['callAvailable'] == true,
+      serviceOfferings: (json['serviceOfferings'] as List<dynamic>? ?? [])
+          .map(
+            (item) => ProviderServiceOfferingModel.fromJson(
+              item as Map<String, dynamic>,
+            ),
+          )
+          .toList(),
       portfolios: (json['portofolios'] as List<dynamic>? ?? [])
           .map(
             (item) => PortfolioModel.fromJson(item as Map<String, dynamic>),

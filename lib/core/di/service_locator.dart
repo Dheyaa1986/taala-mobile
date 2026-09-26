@@ -55,6 +55,7 @@ import '../helpers/shared_pref_local_storage.dart';
 import '../network/dio_service.dart';
 import '../remote_config_helper/remote_config_helper.dart';
 import '../updates/app_update_service.dart';
+import '../updates/app_version_config_provider.dart';
 
 final getIt = GetIt.instance;
 
@@ -63,6 +64,9 @@ Future<void> setupServiceLocator() async {
   await PushNotificationService.instance.initialize();
 
   getIt.registerLazySingleton<RemoteConfigHelper>(() => RemoteConfigHelper());
+  getIt.registerLazySingleton<AppVersionConfigProvider>(
+    () => AppVersionConfigProvider(getIt(), getIt()),
+  );
   getIt.registerLazySingleton<AppUpdateService>(
     () => AppUpdateService(getIt()),
   );

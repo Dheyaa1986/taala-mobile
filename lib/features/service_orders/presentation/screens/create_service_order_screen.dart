@@ -35,6 +35,7 @@ import 'package:taal/features/service_orders/presentation/models/create_service_
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/presentation/widgets/dual_location_preview_map.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_location_confirm_step.dart';
+import 'package:taal/core/provider_offering/provider_offering_mode.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_wizard_step_indicator.dart';
 
 class CreateServiceOrderScreen extends StatefulWidget {
@@ -70,6 +71,24 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   bool _highlightServiceStep = false;
 
   ServiceProviderModel? get _presetProvider => widget.args?.provider;
+
+  ServiceOrderVisitType get _visitType =>
+      widget.args?.visitType ?? ServiceOrderVisitType.mobileOnSite;
+
+  bool get _isCraneOrder {
+    final type = _selectedServiceType();
+    return isMobileOnlyServiceCategory(type?.categoryCode);
+  }
+
+  bool get _skipDestination =>
+      !_isCraneOrder && _visitType == ServiceOrderVisitType.mobileOnSite;
+
+  int get _wizardDisplayStep {
+    if (_skipDestination) {
+      return _step >= _stepService ? 1 : 0;
+    }
+    return _step.clamp(0, _stepService);
+  }
 
   @override
   void initState() {
@@ -131,8 +150,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     );
     setState(() {
       _clientLocation = resolved;
-      _step = _stepDestination;
-      _highlightServiceStep = false;
+      _step = _skipDestination ? _stepService : _stepDestination;
+      _highlightServiceStep = _skipDestination;
     });
   }
 
@@ -168,7 +187,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       return;
     }
 
-    if (_clientLocation == null || _destinationLocation == null) {
+    if (_clientLocation == null) {
+      AppMessages.showError(context, AppStrings.clientLocationRequired.tr());
+      return;
+    }
+    if (!_skipDestination && _destinationLocation == null) {
       AppMessages.showError(context, AppStrings.destinationRequired.tr());
       return;
     }
@@ -178,23 +201,31 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       _clientLocation!,
       geocoding,
     );
-    final destination = await OrderLocationPrefs.ensureAddress(
-      _destinationLocation!,
-      geocoding,
-    );
+    PickedLocation? destination;
+    if (!_skipDestination && _destinationLocation != null) {
+      destination = await OrderLocationPrefs.ensureAddress(
+        _destinationLocation!,
+        geocoding,
+      );
+    }
     if (!mounted) return;
 
     if (!OrderLocationPrefsValidators.isValidClient(client)) {
       AppMessages.showError(context, AppStrings.clientLocationRequired.tr());
       return;
     }
-    if (!OrderLocationPrefsValidators.isValidDestination(destination)) {
-      AppMessages.showError(context, AppStrings.destinationRequired.tr());
-      return;
+    if (!_skipDestination) {
+      if (destination == null ||
+          !OrderLocationPrefsValidators.isValidDestination(destination)) {
+        AppMessages.showError(context, AppStrings.destinationRequired.tr());
+        return;
+      }
     }
 
     await OrderLocationPrefs.saveClient(getIt<SharedPref>(), client);
-    await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), destination);
+    if (destination != null) {
+      await OrderLocationPrefs.saveDestination(getIt<SharedPref>(), destination);
+    }
     if (!mounted) return;
 
     final allowed = await ClientProfileGuard.ensureReadyForNewOrder(context);
@@ -265,9 +296,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       clientAddress: client.address,
       clientLatitude: client.latitude,
       clientLongitude: client.longitude,
-      destinationAddress: destination.address,
-      destinationLatitude: destination.latitude,
-      destinationLongitude: destination.longitude,
+      destinationAddress: destination?.address,
+      destinationLatitude: destination?.latitude,
+      destinationLongitude: destination?.longitude,
+      visitType: _visitType,
     );
 
     if (!mounted) return;
@@ -343,7 +375,13 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
-                  setState(() => _step -= 1);
+                  setState(() {
+                    if (_skipDestination && _step == _stepService) {
+                      _step = _stepDeparture;
+                    } else {
+                      _step -= 1;
+                    }
+                  });
                 },
               )
             : null,
@@ -352,7 +390,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (_step < _stepTracking)
-            OrderWizardStepIndicator(currentStep: _step),
+            OrderWizardStepIndicator(
+              currentStep: _wizardDisplayStep,
+              skipDestination: _skipDestination,
+            ),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 380),
@@ -546,10 +587,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             ),
             16.height,
           ],
-          if (_clientLocation != null && _destinationLocation != null) ...[
+          if (_clientLocation != null &&
+              (_destinationLocation != null || _skipDestination)) ...[
             DualLocationPreviewMap(
               origin: _clientLocation!,
-              destination: _destinationLocation,
+              destination: _skipDestination ? null : _destinationLocation,
               height: 240.h,
             ),
             8.height,
@@ -562,11 +604,13 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                   icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
                   label: Text(AppStrings.editDeparturePoint.tr()),
                 ),
-                TextButton.icon(
-                  onPressed: () => setState(() => _step = _stepDestination),
-                  icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
-                  label: Text(AppStrings.editDestinationPoint.tr()),
-                ),
+                if (!_skipDestination)
+                  TextButton.icon(
+                    onPressed: () => setState(() => _step = _stepDestination),
+                    icon:
+                        const Icon(Icons.edit_location_alt_outlined, size: 18),
+                    label: Text(AppStrings.editDestinationPoint.tr()),
+                  ),
               ],
             ),
             16.height,

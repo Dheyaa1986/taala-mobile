@@ -9,9 +9,11 @@ class OrderWizardStepIndicator extends StatelessWidget {
   const OrderWizardStepIndicator({
     super.key,
     required this.currentStep,
+    this.skipDestination = false,
   });
 
   final int currentStep;
+  final bool skipDestination;
 
   static const _stepLabels = [
     AppStrings.orderStepDeparture,
@@ -19,9 +21,14 @@ class OrderWizardStepIndicator extends StatelessWidget {
     AppStrings.orderStepService,
   ];
 
+  List<String> get _visibleLabels => skipDestination
+      ? [AppStrings.orderStepDeparture, AppStrings.orderStepService]
+      : _stepLabels;
+
   @override
   Widget build(BuildContext context) {
     final tokens = TaalaTokens.of(context);
+    final labels = _visibleLabels;
 
     return Padding(
       padding: REdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -32,7 +39,7 @@ class OrderWizardStepIndicator extends StatelessWidget {
             AppStrings.wizardStepProgress.tr(
               namedArgs: {
                 'current': '${currentStep + 1}',
-                'total': '${_stepLabels.length}',
+                'total': '${labels.length}',
               },
             ),
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -44,7 +51,7 @@ class OrderWizardStepIndicator extends StatelessWidget {
           10.height,
           Row(
             children: [
-              for (var i = 0; i < _stepLabels.length; i++) ...[
+              for (var i = 0; i < labels.length; i++) ...[
                 if (i > 0)
                   Expanded(
                     child: AnimatedContainer(
@@ -61,7 +68,7 @@ class OrderWizardStepIndicator extends StatelessWidget {
                   ),
                 _StepDot(
                   index: i,
-                  label: _stepLabels[i].tr(),
+                  label: labels[i].tr(),
                   isActive: i == currentStep,
                   isCompleted: i < currentStep,
                   tokens: tokens,

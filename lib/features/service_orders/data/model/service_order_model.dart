@@ -33,6 +33,7 @@ class ServiceOrderModel {
   final String? id;
   final String? description;
   final String? status;
+  final String? visitType;
   final String? clientAddress;
   final double? clientLatitude;
   final double? clientLongitude;
@@ -55,6 +56,7 @@ class ServiceOrderModel {
     this.id,
     this.description,
     this.status,
+    this.visitType,
     this.clientAddress,
     this.clientLatitude,
     this.clientLongitude,
@@ -80,6 +82,7 @@ class ServiceOrderModel {
       id: json['id']?.toString(),
       description: json['description']?.toString(),
       status: json['status']?.toString(),
+      visitType: json['visitType']?.toString(),
       clientAddress: json['clientAddress']?.toString(),
       clientLatitude: ApiResponseHelper.parseDouble(json['clientLatitude']),
       clientLongitude: ApiResponseHelper.parseDouble(json['clientLongitude']),

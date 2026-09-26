@@ -16,7 +16,9 @@ import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/buttons/view_map_button.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
+import 'package:taal/core/provider_offering/provider_offering_mode.dart';
 import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
+import 'package:taal/features/service_orders/presentation/widgets/provider_visit_choice_sheet.dart';
 import 'package:taal/features/rating/client/presentation/widget/rate_provider_sheet.dart';
 import 'package:taal/features/rating/client/presentation/widget/view_profile.dart';
 import '../../data/model/service_provider_model/service_provider_model.dart';
@@ -99,12 +101,28 @@ class ServiceProviderCard extends StatelessWidget {
     }
 
     if (!context.mounted) return;
-    context.pushNamed(
-      Routes.createServiceOrder,
-      extra: CreateServiceOrderArgs(
-        provider: model,
-        serviceTypeId: selected.id,
-      ),
+
+    final offering = model.offeringForServiceType(selected.id);
+    final isCrane = isMobileOnlyServiceCategory(selected.categoryCode);
+
+    if (isCrane ||
+        offering?.offeringMode == ProviderOfferingMode.mobile) {
+      context.pushNamed(
+        Routes.createServiceOrder,
+        extra: CreateServiceOrderArgs(
+          provider: model,
+          serviceTypeId: selected.id,
+          visitType: ServiceOrderVisitType.mobileOnSite,
+        ),
+      );
+      return;
+    }
+
+    await showProviderVisitChoiceSheet(
+      context,
+      provider: model,
+      serviceType: selected,
+      offering: offering,
     );
   }
 

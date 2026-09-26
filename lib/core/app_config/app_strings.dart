@@ -510,4 +510,29 @@ class AppStrings {
   static const String activeOrderBlockingSearch = 'activeOrderBlockingSearch';
   static const String openActiveOrder = 'openActiveOrder';
   static const String back = 'back';
+
+  static const String providerRegisterStepOfferings = 'providerRegisterStepOfferings';
+  static const String providerOfferingFixed = 'providerOfferingFixed';
+  static const String providerOfferingFixedHint = 'providerOfferingFixedHint';
+  static const String providerOfferingMobile = 'providerOfferingMobile';
+  static const String providerOfferingMobileHint = 'providerOfferingMobileHint';
+  static const String providerOfferingBoth = 'providerOfferingBoth';
+  static const String providerOfferingBothHint = 'providerOfferingBothHint';
+  static const String providerOfferingCraneOnlyHint = 'providerOfferingCraneOnlyHint';
+  static const String providerWorkingHours = 'providerWorkingHours';
+  static const String providerOpenTime = 'providerOpenTime';
+  static const String providerCloseTime = 'providerCloseTime';
+  static const String providerOfferingDaySun = 'providerOfferingDaySun';
+  static const String providerOfferingDayMon = 'providerOfferingDayMon';
+  static const String providerOfferingDayTue = 'providerOfferingDayTue';
+  static const String providerOfferingDayWed = 'providerOfferingDayWed';
+  static const String providerOfferingDayThu = 'providerOfferingDayThu';
+  static const String providerOfferingDayFri = 'providerOfferingDayFri';
+  static const String providerOfferingDaySat = 'providerOfferingDaySat';
+  static const String providerOfferingIncomplete = 'providerOfferingIncomplete';
+  static const String clientVisitShop = 'clientVisitShop';
+  static const String clientRequestMobile = 'clientRequestMobile';
+  static const String priceByAgreement = 'priceByAgreement';
+  static const String shopOpenNow = 'shopOpenNow';
+  static const String visitShopOrderDescription = 'visitShopOrderDescription';
 }

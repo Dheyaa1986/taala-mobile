@@ -7,7 +7,15 @@ import 'package:taal/config/routes/app_router.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/updates/app_update_service.dart';
+import 'package:taal/core/updates/force_update_screen.dart';
 import 'package:taal/core/widgets/buttons/custom_button.dart';
+
+enum AppUpdateGateResult {
+  proceed,
+  blocked,
+}
+
+bool _forceUpdateVisible = false;
 
 Future<void> showAppUpdatePrompt({
   required bool forceUpdate,
@@ -85,19 +93,49 @@ Future<void> showAppUpdatePrompt({
   );
 }
 
-Future<bool> handleAppUpdateCheck() async {
+Future<void> _presentForceUpdateScreen() async {
+  if (_forceUpdateVisible) return;
+
+  final context = AppRouter.appNavigatorKey.currentContext;
+  if (context == null) return;
+
+  _forceUpdateVisible = true;
+  try {
+    await Navigator.of(context, rootNavigator: true).push<void>(
+      PageRouteBuilder<void>(
+        opaque: true,
+        barrierDismissible: false,
+        pageBuilder: (_, __, ___) => const ForceUpdateScreen(),
+      ),
+    );
+  } finally {
+    _forceUpdateVisible = false;
+  }
+}
+
+Future<AppUpdateGateResult> handleAppUpdateCheck({
+  bool showRecommended = true,
+  bool presentBlockingUi = true,
+}) async {
   final updateService = getIt<AppUpdateService>();
-  await updateService.refreshConfig();
+
+  try {
+    await updateService.refreshConfig();
+  } catch (_) {
+    // Never block startup on config fetch failures.
+  }
 
   final status = updateService.checkForUpdate();
   if (status == AppUpdateStatus.required) {
-    await showAppUpdatePrompt(forceUpdate: true);
-    return false;
+    if (presentBlockingUi) {
+      await _presentForceUpdateScreen();
+    }
+    return AppUpdateGateResult.blocked;
   }
 
-  if (updateService.shouldShowRecommendedPrompt()) {
+  if (showRecommended && updateService.shouldShowRecommendedPrompt()) {
     await showAppUpdatePrompt(forceUpdate: false);
   }
 
-  return true;
+  return AppUpdateGateResult.proceed;
 }

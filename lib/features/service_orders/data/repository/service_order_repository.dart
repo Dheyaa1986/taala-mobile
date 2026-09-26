@@ -1,6 +1,7 @@
 import 'package:taal/core/network/api_response_helper.dart';
 import 'package:taal/core/app_config/app_urls.dart';
 import 'package:taal/core/network/network_request.dart';
+import 'package:taal/core/provider_offering/provider_offering_mode.dart';
 import 'package:taal/core/repository/repository.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:dartz/dartz.dart';
@@ -17,6 +18,7 @@ abstract class ServiceOrderRepository {
     double? destinationLatitude,
     double? destinationLongitude,
     String? providerId,
+    ServiceOrderVisitType? visitType,
   });
 
   Future<Either<CustomException, ServiceOrderModel>> getOrder(String id);
@@ -73,6 +75,7 @@ class ServiceOrderRepositoryImpl extends Repository
     double? destinationLatitude,
     double? destinationLongitude,
     String? providerId,
+    ServiceOrderVisitType? visitType,
   }) {
     return exceptionHandler(() async {
       final json = await dioService.callApi(
@@ -92,6 +95,7 @@ class ServiceOrderRepositoryImpl extends Repository
             if (destinationLongitude != null)
               'destinationLongitude': destinationLongitude,
             if (providerId != null) 'providerId': providerId,
+            if (visitType != null) 'visitType': visitType.apiValue,
           },
         ),
       );

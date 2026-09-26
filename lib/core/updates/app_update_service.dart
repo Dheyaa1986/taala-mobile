@@ -4,7 +4,8 @@ import 'package:taal/core/app_config/app_store_config.dart';
 import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/package_info_helper/package_info_helper.dart';
-import 'package:taal/core/remote_config_helper/remote_config_helper.dart';
+import 'package:taal/core/updates/android_in_app_update_helper.dart';
+import 'package:taal/core/updates/app_version_config_provider.dart';
 
 enum AppUpdateStatus {
   none,
@@ -13,30 +14,44 @@ enum AppUpdateStatus {
 }
 
 class AppUpdateService {
-  AppUpdateService(this._remoteConfigHelper);
+  AppUpdateService(this._configProvider);
 
-  final RemoteConfigHelper _remoteConfigHelper;
+  final AppVersionConfigProvider _configProvider;
   bool _recommendedPromptShown = false;
 
   Future<void> refreshConfig() async {
-    await _remoteConfigHelper.refresh();
+    await _configProvider.refresh();
   }
 
   AppUpdateStatus checkForUpdate() {
     final installedBuild = PackageInfoHelper.buildNumber;
     if (installedBuild <= 0) return AppUpdateStatus.none;
 
-    final minimumBuild = _remoteConfigHelper.getMinimumAppBuild();
+    final minimumBuild = _minimumBuildForPlatform();
     if (minimumBuild > 0 && installedBuild < minimumBuild) {
       return AppUpdateStatus.required;
     }
 
-    final recommendedBuild = _remoteConfigHelper.getRecommendedAppBuild();
+    final recommendedBuild = _recommendedBuildForPlatform();
     if (recommendedBuild > 0 && installedBuild < recommendedBuild) {
       return AppUpdateStatus.recommended;
     }
 
     return AppUpdateStatus.none;
+  }
+
+  int _minimumBuildForPlatform() {
+    final requirements = _configProvider.requirements;
+    if (Platform.isIOS) return requirements.iosMinimumBuild;
+    if (Platform.isAndroid) return requirements.androidMinimumBuild;
+    return 0;
+  }
+
+  int _recommendedBuildForPlatform() {
+    final requirements = _configProvider.requirements;
+    if (Platform.isIOS) return requirements.iosRecommendedBuild;
+    if (Platform.isAndroid) return requirements.androidRecommendedBuild;
+    return 0;
   }
 
   bool shouldShowRecommendedPrompt() {
@@ -48,20 +63,26 @@ class AppUpdateService {
     _recommendedPromptShown = true;
   }
 
+  Future<AndroidUpdateAttemptResult> tryAndroidImmediateUpdate() {
+    return AndroidInAppUpdateHelper.tryImmediateUpdate();
+  }
+
   Future<void> openStoreListing() async {
-    final url = _resolveStoreUrl();
+    final url = _resolveStoreUrl(preferNativeScheme: true);
     await getIt<CustomLauncher>().openUrl(url);
   }
 
-  String _resolveStoreUrl() {
+  String _resolveStoreUrl({required bool preferNativeScheme}) {
+    final requirements = _configProvider.requirements;
+
     if (Platform.isAndroid) {
-      final configured = _remoteConfigHelper.getAndroidStoreUrl().trim();
-      if (configured.isNotEmpty) return configured;
-      return AppStoreConfig.defaultAndroidStoreUrl;
+      return AppStoreConfig.resolveAndroidStoreUrl(requirements.androidStoreUrl);
     }
 
-    final configured = _remoteConfigHelper.getIosStoreUrl().trim();
-    if (configured.isNotEmpty) return configured;
-    return AppStoreConfig.defaultIosStoreUrl;
+    return AppStoreConfig.resolveIosStoreUrl(
+      configuredUrl: requirements.iosStoreUrl,
+      appStoreId: requirements.iosAppStoreId,
+      preferNativeScheme: preferNativeScheme,
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:taal/core/network/extensions.dart';
+import 'package:taal/core/provider_offering/provider_service_offering_model.dart';
 import 'package:taal/features/auth/register/utils/provider_registration_documents.dart';
 
 class RegisterOptions {
@@ -19,6 +20,7 @@ class RegisterOptions {
   final List<String>? serviceTypesIds;
   final String? otp;
   final ProviderRegistrationDocumentFiles? providerDocuments;
+  final List<ProviderServiceOfferingInput>? serviceOfferings;
 
   RegisterOptions({
     required this.username,
@@ -34,6 +36,7 @@ class RegisterOptions {
     this.serviceTypesIds,
     this.otp,
     this.providerDocuments,
+    this.serviceOfferings,
   });
 
   Future<FormData> toFormData() async {
@@ -61,6 +64,12 @@ class RegisterOptions {
 
     if (serviceTypesIds != null && serviceTypesIds!.isNotEmpty) {
       map['serviceTypesIds'] = jsonEncode(serviceTypesIds);
+    }
+
+    if (serviceOfferings != null && serviceOfferings!.isNotEmpty) {
+      map['serviceOfferings'] = jsonEncode(
+        serviceOfferings!.map((item) => item.toRegistrationJson()).toList(),
+      );
     }
 
     final otpCode = otp?.trim();
