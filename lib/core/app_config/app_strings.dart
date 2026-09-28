@@ -319,6 +319,15 @@ class AppStrings {
   static const String emailOrPhone = 'emailOrPhone';
   static const String enterEmailOrPhone = 'enterEmailOrPhone';
   static const String clientUseGuestMap = 'clientUseGuestMap';
+  static const String browseAsGuest = 'browseAsGuest';
+  static const String guestWelcomeBanner = 'guestWelcomeBanner';
+  static const String guestRegistrationRequiredTitle =
+      'guestRegistrationRequiredTitle';
+  static const String guestRegistrationRequiredMessage =
+      'guestRegistrationRequiredMessage';
+  static const String guestGoToRegister = 'guestGoToRegister';
+  static const String guestContinueBrowsing = 'guestContinueBrowsing';
+  static const String guestLoginOrRegister = 'guestLoginOrRegister';
   static const String completeProfileTitle = 'completeProfileTitle';
   static const String completeProfileOptionalHint = 'completeProfileOptionalHint';
   static const String completeProfileRequiredHint = 'completeProfileRequiredHint';

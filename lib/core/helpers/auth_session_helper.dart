@@ -13,6 +13,7 @@ import '../alerts/app_icon_badge_service.dart';
 import '../di/service_locator.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
+import 'guest_session_helper.dart';
 import 'secure_local_storage.dart';
 import 'shared_pref_local_storage.dart';
 
@@ -112,6 +113,7 @@ class AuthSessionHelper {
     );
     await SecureLocalStorage.write(PrefsKeys.token, token);
     await SecureLocalStorage.write(PrefsKeys.refreshToken, refreshToken);
+    await GuestSessionHelper.clearGuestBrowsing();
     syncNavigationRole(false);
   }
 
@@ -128,6 +130,7 @@ class AuthSessionHelper {
     await getIt<AppIconBadgeService>().updateCount(0);
     ProviderSubscriptionGate.invalidate();
     await clearSession();
+    await GuestSessionHelper.clearGuestBrowsing();
     final context = AppRouter.appNavigatorKey.currentContext;
     if (context != null && context.mounted) {
       context.goNamed(Routes.guestMap);

@@ -7,6 +7,8 @@ import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/guest/guest_action_guard.dart';
+import 'package:taal/core/helpers/guest_session_helper.dart';
 import 'package:taal/core/network/dio_service.dart';
 import 'package:taal/core/widgets/appbar/logo_skip_appbar.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
@@ -34,95 +36,139 @@ class ClientSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = TaalaTokens.of(context);
 
-    return Scaffold(
-      backgroundColor: tokens.background,
-      appBar: CustomAppBar.backAppBar(
-        title: AppStrings.menu.tr(),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: REdgeInsets.fromLTRB(16, 8, 16, 24),
-        children: [
-          const ConversationHistoryPanel(),
-          20.height,
-          SettingsSectionHeader(title: AppStrings.settings),
-          10.height,
-          const SettingsThemeModeSection(),
-          20.height,
-          SettingsSectionHeader(title: AppStrings.settingsSectionHelp),
-          10.height,
-          SettingsTile(
-            title: AppStrings.mySupportTickets,
-            icon: Icons.support_agent_outlined,
-            iconColor: _purple,
-            iconBackgroundColor: _purple.withValues(alpha: 0.12),
-            onTap: () => context.pushNamed(Routes.supportTickets),
+    return FutureBuilder<bool>(
+      future: GuestSessionHelper.isGuestBrowsing(),
+      builder: (context, snapshot) {
+        final isGuest = snapshot.data == true;
+
+        return Scaffold(
+          backgroundColor: tokens.background,
+          appBar: CustomAppBar.backAppBar(
+            title: AppStrings.menu.tr(),
+            centerTitle: true,
           ),
-          10.height,
-          SettingsTile(
-            title: AppStrings.submitSupportTicket,
-            icon: Icons.edit_note_outlined,
-            iconColor: _teal,
-            iconBackgroundColor: _teal.withValues(alpha: 0.12),
-            onTap: () => showSupportTicketSheet(context),
-          ),
-          10.height,
-          SettingsTile(
-            title: AppStrings.rateApp,
-            icon: Icons.star_outline_rounded,
-            iconColor: _amber,
-            iconBackgroundColor: _amber.withValues(alpha: 0.14),
-            onTap: () => showRateAppSheet(context),
-          ),
-          20.height,
-          SettingsSectionHeader(title: AppStrings.settingsSectionLegal),
-          10.height,
-          SettingsGroupedCard(
-            items: [
-              SettingsGroupItem(
-                title: AppStrings.termsAndConditions,
-                icon: Icons.description_outlined,
-                iconColor: _slate,
-                iconBackgroundColor: _slate.withValues(alpha: 0.12),
-                onTap: () => context.pushNamed(
-                  Routes.legalDocument,
-                  extra: LegalDocumentType.terms,
+          body: ListView(
+            padding: REdgeInsets.fromLTRB(16, 8, 16, 24),
+            children: [
+              if (isGuest) ...[
+                Text(
+                  AppStrings.guestLoginOrRegister.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: tokens.textSecondary,
+                        height: 1.5,
+                      ),
                 ),
-              ),
-              SettingsGroupItem(
-                title: AppStrings.privacyPolicy,
-                icon: Icons.shield_outlined,
-                iconColor: _blue,
-                iconBackgroundColor: _blue.withValues(alpha: 0.12),
-                onTap: () => context.pushNamed(
-                  Routes.legalDocument,
-                  extra: LegalDocumentType.privacy,
+                12.height,
+                SettingsTile(
+                  title: AppStrings.login.tr(),
+                  icon: Icons.login_rounded,
+                  iconColor: tokens.primary,
+                  iconBackgroundColor: tokens.primary.withValues(alpha: 0.12),
+                  onTap: () => context.pushNamed(Routes.login),
                 ),
+                10.height,
+                SettingsTile(
+                  title: AppStrings.register.tr(),
+                  icon: Icons.person_add_alt_1_outlined,
+                  iconColor: _teal,
+                  iconBackgroundColor: _teal.withValues(alpha: 0.12),
+                  onTap: () => context.pushNamed(Routes.register),
+                ),
+                20.height,
+              ] else ...[
+                const ConversationHistoryPanel(),
+                20.height,
+              ],
+              SettingsSectionHeader(title: AppStrings.settings),
+              10.height,
+              const SettingsThemeModeSection(),
+              20.height,
+              SettingsSectionHeader(title: AppStrings.settingsSectionHelp),
+              10.height,
+              SettingsTile(
+                title: AppStrings.mySupportTickets,
+                icon: Icons.support_agent_outlined,
+                iconColor: _purple,
+                iconBackgroundColor: _purple.withValues(alpha: 0.12),
+                onTap: () async {
+                  if (!await GuestActionGuard.ensureRegistered(context)) return;
+                  if (!context.mounted) return;
+                  context.pushNamed(Routes.supportTickets);
+                },
               ),
+              10.height,
+              SettingsTile(
+                title: AppStrings.submitSupportTicket,
+                icon: Icons.edit_note_outlined,
+                iconColor: _teal,
+                iconBackgroundColor: _teal.withValues(alpha: 0.12),
+                onTap: () async {
+                  if (!await GuestActionGuard.ensureRegistered(context)) return;
+                  if (!context.mounted) return;
+                  showSupportTicketSheet(context);
+                },
+              ),
+              10.height,
+              SettingsTile(
+                title: AppStrings.rateApp,
+                icon: Icons.star_outline_rounded,
+                iconColor: _amber,
+                iconBackgroundColor: _amber.withValues(alpha: 0.14),
+                onTap: () => showRateAppSheet(context),
+              ),
+              20.height,
+              SettingsSectionHeader(title: AppStrings.settingsSectionLegal),
+              10.height,
+              SettingsGroupedCard(
+                items: [
+                  SettingsGroupItem(
+                    title: AppStrings.termsAndConditions,
+                    icon: Icons.description_outlined,
+                    iconColor: _slate,
+                    iconBackgroundColor: _slate.withValues(alpha: 0.12),
+                    onTap: () => context.pushNamed(
+                      Routes.legalDocument,
+                      extra: LegalDocumentType.terms,
+                    ),
+                  ),
+                  SettingsGroupItem(
+                    title: AppStrings.privacyPolicy,
+                    icon: Icons.shield_outlined,
+                    iconColor: _blue,
+                    iconBackgroundColor: _blue.withValues(alpha: 0.12),
+                    onTap: () => context.pushNamed(
+                      Routes.legalDocument,
+                      extra: LegalDocumentType.privacy,
+                    ),
+                  ),
+                ],
+              ),
+              if (!isGuest) ...[
+                20.height,
+                SettingsSectionHeader(title: AppStrings.settingsSectionAccount),
+                10.height,
+                SettingsTile(
+                  title: AppStrings.deleteAccount,
+                  titleColor: tokens.error,
+                  icon: Icons.delete_outline_rounded,
+                  iconColor: tokens.error,
+                  iconBackgroundColor: tokens.error.withValues(alpha: 0.1),
+                  onTap: () => confirmDeleteAccount(context),
+                ),
+                12.height,
+                SettingsLogoutTile(
+                  onTap: () => getIt<DioService>().logout(),
+                  icon: SvgImageWidget(
+                    image: AppIcons.login,
+                    width: 24.w,
+                    height: 24.h,
+                  ),
+                ),
+              ],
             ],
           ),
-          20.height,
-          SettingsSectionHeader(title: AppStrings.settingsSectionAccount),
-          10.height,
-          SettingsTile(
-            title: AppStrings.deleteAccount,
-            titleColor: tokens.error,
-            icon: Icons.delete_outline_rounded,
-            iconColor: tokens.error,
-            iconBackgroundColor: tokens.error.withValues(alpha: 0.1),
-            onTap: () => confirmDeleteAccount(context),
-          ),
-          12.height,
-          SettingsLogoutTile(
-            onTap: () => getIt<DioService>().logout(),
-            icon: SvgImageWidget(
-              image: AppIcons.login,
-              width: 24.w,
-              height: 24.h,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

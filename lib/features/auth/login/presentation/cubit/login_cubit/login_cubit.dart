@@ -7,6 +7,7 @@ import '../../../../../../core/alerts/push_notification_service.dart';
 import '../../../../../../core/app_config/prefs_keys.dart';
 import '../../../../../../core/alerts/app_alert_monitor.dart';
 import '../../../../../../core/di/service_locator.dart';
+import '../../../../../../core/helpers/guest_session_helper.dart';
 import '../../../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../../../core/helpers/secure_local_storage.dart';
 import '../../../data/model/request/login_request_options.dart';
@@ -62,6 +63,7 @@ class LoginCubit extends Cubit<LoginState> {
           await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
         }
         await SecureLocalStorage.delete(PrefsKeys.password);
+        await GuestSessionHelper.clearGuestBrowsing();
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
@@ -92,6 +94,7 @@ class LoginCubit extends Cubit<LoginState> {
           response.refreshToken,
         );
         await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: false);
+        await GuestSessionHelper.clearGuestBrowsing();
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();
@@ -128,6 +131,7 @@ class LoginCubit extends Cubit<LoginState> {
           response.refreshToken,
         );
         await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: false);
+        await GuestSessionHelper.clearGuestBrowsing();
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
         getIt<AppAlertMonitor>().start();

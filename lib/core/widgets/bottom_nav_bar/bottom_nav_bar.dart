@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/guest/guest_welcome_banner.dart';
 import '../../../design_system/components/taala_bottom_nav.dart';
 import '../../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../dialog/exit_app_dialog.dart';
@@ -45,7 +46,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
       },
       child: Scaffold(
         appBar: null,
-        body: widget.shell,
+        body: Column(
+          children: [
+            const GuestWelcomeBanner(),
+            Expanded(child: widget.shell),
+          ],
+        ),
         bottomNavigationBar: Localizations.override(
           context: context,
           locale: context.locale,

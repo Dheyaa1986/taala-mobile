@@ -24,6 +24,8 @@ import 'package:taal/features/service_orders/data/repository/service_order_repos
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
+import 'package:taal/core/guest/guest_action_guard.dart';
+import 'package:taal/core/helpers/guest_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 
 class ClientHomeView extends StatefulWidget {
@@ -96,12 +98,22 @@ class _ClientHomeBody extends StatefulWidget {
 class _ClientHomeBodyState extends State<_ClientHomeBody> {
   ServiceOrderModel? _activeOrder;
   final _activeOrderRefresh = getIt<ActiveOrderRefreshNotifier>();
+  bool _isGuest = false;
 
   @override
   void initState() {
     super.initState();
     _activeOrderRefresh.addListener(_loadActiveOrder);
-    _loadActiveOrder();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final isGuest = await GuestSessionHelper.isGuestBrowsing();
+    if (!mounted) return;
+    setState(() => _isGuest = isGuest);
+    if (!isGuest) {
+      _loadActiveOrder();
+    }
     _loadProvidersIfNeeded(widget.clientLocation);
   }
 
@@ -146,6 +158,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
   }
 
   Future<void> _openCreateOrder() async {
+    if (!await GuestActionGuard.ensureRegistered(context)) return;
     await context.pushNamed(Routes.createServiceOrder);
     if (!mounted) return;
     final saved = await OrderLocationPrefs.readClient(getIt<SharedPref>());
@@ -168,7 +181,11 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
           IconButton(
             tooltip: AppStrings.myServiceOrders.tr(),
             icon: const Icon(Icons.assignment_outlined),
-            onPressed: () => context.pushNamed(Routes.serviceOrders),
+            onPressed: () async {
+              if (!await GuestActionGuard.ensureRegistered(context)) return;
+              if (!context.mounted) return;
+              context.pushNamed(Routes.serviceOrders);
+            },
           ),
         ],
       ),
@@ -184,7 +201,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (hasActiveOrder) ...[
+            if (hasActiveOrder && !_isGuest) ...[
               YellowHighlightCard(
                 isHighlighted: true,
                 child: Column(

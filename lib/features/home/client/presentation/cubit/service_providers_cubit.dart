@@ -2,7 +2,10 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/guest_session_helper.dart';
+import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/options/pagination_options.dart';
+import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 
@@ -43,7 +46,17 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
   Future<void> getProviders({
     bool reset = false,
     String? query,
+    double? latitude,
+    double? longitude,
   }) async {
+    if (await GuestSessionHelper.isGuestBrowsing()) {
+      await _loadGuestProviders(
+        latitude: latitude,
+        longitude: longitude,
+      );
+      return;
+    }
+
     emit(ServiceProvidersLoading());
     final clientId = await _resolveClientId();
     if (clientId == null) {
@@ -91,6 +104,14 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
     required double latitude,
     required double longitude,
   }) async {
+    if (await GuestSessionHelper.isGuestBrowsing()) {
+      await _loadGuestProviders(
+        latitude: latitude,
+        longitude: longitude,
+      );
+      return;
+    }
+
     emit(ServiceProvidersLoading());
     final clientId = await _resolveClientId();
     if (clientId == null) {
@@ -110,6 +131,43 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
         clientLatitude: latitude,
         clientLongitude: longitude,
       ),
+    );
+
+    result.fold(
+      (error) => emit(ServiceProvidersError(error: error.message)),
+      (items) {
+        providers = items;
+        reachedMax = true;
+        emit(ServiceProvidersLoaded(
+          serviceProviders: providers,
+          reachedMax: reachedMax,
+        ));
+      },
+    );
+  }
+
+  Future<void> _loadGuestProviders({
+    double? latitude,
+    double? longitude,
+  }) async {
+    emit(ServiceProvidersLoading());
+
+    latitude ??=
+        (await OrderLocationPrefs.readClient(getIt<SharedPref>()))?.latitude;
+    longitude ??=
+        (await OrderLocationPrefs.readClient(getIt<SharedPref>()))?.longitude;
+
+    if (latitude == null || longitude == null) {
+      emit(ServiceProvidersError(error: 'Location required'));
+      return;
+    }
+
+    resetPagination();
+    final result = await repository.getGuestNearbyProviders(
+      latitude: latitude,
+      longitude: longitude,
+      page: page,
+      limit: pageSize,
     );
 
     result.fold(

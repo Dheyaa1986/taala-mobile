@@ -9,6 +9,7 @@ import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 
 import '../../core/app_config/prefs_keys.dart';
 import '../../core/helpers/auth_session_helper.dart';
+import '../../core/helpers/guest_session_helper.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../../core/helpers/secure_local_storage.dart';
 import '../../core/updates/app_update_prompt.dart';
@@ -81,7 +82,12 @@ class _SplashScreenState extends State<SplashScreen>
       if (hadStoredToken) {
         await AuthSessionHelper.clearSession();
       }
-      context.goNamed(Routes.guestMap);
+      if (await GuestSessionHelper.isGuestBrowsing()) {
+        context.read<BottomNavigationCubit>().isProvider = false;
+        context.goNamed(Routes.home);
+      } else {
+        context.goNamed(Routes.guestMap);
+      }
     }
   }
 

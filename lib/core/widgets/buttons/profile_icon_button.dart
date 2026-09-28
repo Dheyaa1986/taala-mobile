@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_icons.dart';
 import 'package:taal/core/widgets/svg_image/svg_image_widget.dart';
+import 'package:taal/core/guest/guest_action_guard.dart';
 import 'package:taal/features/profile/client/presentation/widgets/edit_profile_sheet.dart';
 
 class ProfileIconButton extends StatelessWidget {
@@ -13,7 +14,11 @@ class ProfileIconButton extends StatelessWidget {
     return IconButton(
       padding: EdgeInsets.zero,
       constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.w),
-      onPressed: () => openMyProfileSheet(context),
+      onPressed: () async {
+        if (!await GuestActionGuard.ensureRegistered(context)) return;
+        if (!context.mounted) return;
+        openMyProfileSheet(context);
+      },
       icon: Container(
         width: 36.w,
         height: 36.w,

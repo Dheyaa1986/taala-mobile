@@ -5,3 +5,4 @@
 ///
 /// Enable **Maps SDK for Android/iOS** and **Directions API** in Google Cloud.
 const String kGoogleMapsLocalApiKey = '';
+

@@ -12,6 +12,7 @@ import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 import '../../../../../core/app_config/app_colors.dart';
 import '../../../../../core/app_config/app_strings.dart';
 import '../../../../../core/custom_launcher/custom_launcher.dart';
+import '../../../../../core/guest/guest_action_guard.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/buttons/view_map_button.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +39,7 @@ class ServiceProviderCard extends StatelessWidget {
   final VoidCallback? onRated;
 
   Future<void> _openChat(BuildContext context) async {
+    if (!await GuestActionGuard.ensureRegistered(context)) return;
     if (!canStartOrder) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.activeOrderBlockingSearch.tr())),
@@ -132,7 +134,8 @@ class ServiceProviderCard extends StatelessWidget {
     context.pushNamed(Routes.menu, extra: profileId);
   }
 
-  void _openRate(BuildContext context) {
+  Future<void> _openRate(BuildContext context) async {
+    if (!await GuestActionGuard.ensureRegistered(context)) return;
     final providerId = model.id;
     if (providerId == null || providerId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

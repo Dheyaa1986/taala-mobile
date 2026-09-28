@@ -26,6 +26,7 @@ import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/extensions/device_insets_extension.dart';
 import '../../../../../core/helpers/messages.dart';
 
+import '../../../../../core/helpers/guest_session_helper.dart';
 import '../../../../../core/helpers/secure_local_storage.dart';
 
 import '../../../../../core/helpers/shared_pref_local_storage.dart';
@@ -269,7 +270,7 @@ class _LoginFormState extends State<LoginForm> {
                     },
                   ),
                 )
-              else if (_role == UserRole.client)
+              else if (_role == UserRole.client) ...[
                 Center(
                   child: ClickableTextWidget(
                     textStyle: Theme.of(context).textTheme.labelSmall,
@@ -289,6 +290,20 @@ class _LoginFormState extends State<LoginForm> {
                     },
                   ),
                 ),
+                12.height,
+                Center(
+                  child: TextButton(
+                    onPressed: _browseAsGuest,
+                    child: Text(
+                      AppStrings.browseAsGuest.tr(),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: TaalaTokens.of(context).primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(height: context.safeBottomInset + 16.h),
             ],
           ),
@@ -303,6 +318,16 @@ class _LoginFormState extends State<LoginForm> {
       return trimmed;
     }
     return PhoneFormatterHelper.normalizeForApi(trimmed);
+  }
+
+  Future<void> _browseAsGuest() async {
+    await GuestSessionHelper.startGuestBrowsing();
+    if (!mounted) return;
+    context.read<BottomNavigationCubit>().isProvider = false;
+    context.pushNamedAndRemoveUntil(
+      Routes.home,
+      predicate: (_) => false,
+    );
   }
 
   void _login() {

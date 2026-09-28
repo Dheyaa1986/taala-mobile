@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
+import 'package:taal/core/guest/guest_action_guard.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/features/notifications/presentation/cubit/notification_cubit.dart';
 
@@ -19,7 +20,9 @@ class NotificationIconButton extends StatelessWidget {
         return IconButton(
           padding: EdgeInsets.zero,
           constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.w),
-          onPressed: () {
+          onPressed: () async {
+            if (!await GuestActionGuard.ensureRegistered(context)) return;
+            if (!context.mounted) return;
             context.pushNamed(Routes.notifications);
           },
           icon: Stack(
