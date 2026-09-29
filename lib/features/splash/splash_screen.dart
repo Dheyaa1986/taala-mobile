@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
   bool _forceUpdateRequired = false;
+  bool _startupStarted = false;
 
   @override
   void initState() {
@@ -42,6 +45,11 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeOut,
     );
     _fadeController.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _startupStarted) return;
+      _startupStarted = true;
+      unawaited(_checkAuthAndNavigate(context));
+    });
   }
 
   @override
@@ -93,52 +101,47 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _checkAuthAndNavigate(context),
-      builder: (context, snapshot) {
-        final themeLogo = TariqyAppTheme.activeTheme?.logoUrl;
-        final splashLogo = themeLogo != null && themeLogo.isNotEmpty
-            ? (themeLogo.startsWith('http')
-                ? themeLogo
-                : AppUrls.imageLink(themeLogo))
-            : null;
+    if (_forceUpdateRequired) {
+      return const ForceUpdateScreen();
+    }
 
-        if (_forceUpdateRequired) {
-          return const ForceUpdateScreen();
-        }
+    final themeLogo = TariqyAppTheme.activeTheme?.logoUrl;
+    final splashLogo = themeLogo != null && themeLogo.isNotEmpty
+        ? (themeLogo.startsWith('http')
+            ? themeLogo
+            : AppUrls.imageLink(themeLogo))
+        : null;
 
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: Stack(
-            children: [
-              Center(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: splashLogo != null
-                      ? Image.network(
-                          splashLogo,
-                          width: 220,
-                          errorBuilder: (_, __, ___) => Image.asset(
-                            'assets/taal.png',
-                            width: 220,
-                          ),
-                        )
-                      : Image.asset(
-                          'assets/taal.png',
-                          width: 220,
-                        ),
-                ),
-              ),
-              const SafeArea(
-                child: Align(
-                  alignment: AlignmentDirectional.topEnd,
-                  child: LangPopup(),
-                ),
-              ),
-            ],
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+          Center(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: splashLogo != null
+                  ? Image.network(
+                      splashLogo,
+                      width: 220,
+                      errorBuilder: (_, __, ___) => Image.asset(
+                        'assets/taal.png',
+                        width: 220,
+                      ),
+                    )
+                  : Image.asset(
+                      'assets/taal.png',
+                      width: 220,
+                    ),
+            ),
           ),
-        );
-      },
+          const SafeArea(
+            child: Align(
+              alignment: AlignmentDirectional.topEnd,
+              child: LangPopup(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

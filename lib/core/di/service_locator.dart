@@ -62,7 +62,11 @@ final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
   await _initExternals();
-  await PushNotificationService.instance.initialize();
+  try {
+    await PushNotificationService.instance.initialize();
+  } catch (_) {
+    // Push setup must not block app startup on sideload/release builds.
+  }
 
   getIt.registerLazySingleton<RemoteConfigHelper>(() => RemoteConfigHelper());
   getIt.registerLazySingleton<AppVersionConfigProvider>(
