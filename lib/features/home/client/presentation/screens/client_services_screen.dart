@@ -31,15 +31,22 @@ class _ClientServicesScreenState extends State<ClientServicesScreen> {
   bool _catalogError = false;
   String? _selectedServiceTypeId;
   String? _selectedServiceTypeName;
+  bool _isGuest = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCatalog();
+    _bootstrap();
   }
 
-  Future<void> _loadCatalog() async {
+  Future<void> _bootstrap() async {
     final isGuest = await GuestSessionHelper.isGuestBrowsing();
+    if (!mounted) return;
+    setState(() => _isGuest = isGuest);
+    await _loadCatalog(isGuest);
+  }
+
+  Future<void> _loadCatalog(bool isGuest) async {
     final audience =
         isGuest ? ServiceTypesAudience.guest : ServiceTypesAudience.client;
     final result = await getIt<LocationsRepository>().getServiceCatalog(
@@ -125,11 +132,12 @@ class _ClientServicesScreenState extends State<ClientServicesScreen> {
                           ),
                         ),
                         16.height,
-                        const Expanded(
+                        Expanded(
                           child: ProvidersList(
-                            showQuickActions: true,
+                            showQuickActions: !_isGuest,
                             showSearch: true,
                             loadOnInit: false,
+                            browseOnly: _isGuest,
                           ),
                         ),
                       ],

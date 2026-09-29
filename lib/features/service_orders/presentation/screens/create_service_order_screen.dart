@@ -50,8 +50,8 @@ class CreateServiceOrderScreen extends StatefulWidget {
 
 class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   static const _stepDeparture = 0;
-  static const _stepDestination = 1;
-  static const _stepService = 2;
+  static const _stepService = 1;
+  static const _stepDestination = 2;
   static const _stepTracking = 3;
 
   final _descriptionController = TextEditingController();
@@ -69,6 +69,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   String? _catalogError;
   bool _submitting = false;
   bool _highlightServiceStep = false;
+  bool _skippedDepartureStep = false;
 
   ServiceProviderModel? get _presetProvider => widget.args?.provider;
 
@@ -85,16 +86,39 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
 
   int get _wizardDisplayStep {
     if (_skipDestination) {
-      return _step >= _stepService ? 1 : 0;
+      if (_step <= _stepDeparture) return 0;
+      return 1;
     }
-    return _step.clamp(0, _stepService);
+    return _step.clamp(0, _stepDestination);
+  }
+
+  bool get _needsDestinationStep => _isCraneOrder;
+
+  bool get _canWizardGoBack {
+    if (_step <= _stepDeparture || _step >= _stepTracking) return false;
+    if (_step == _stepService && _skippedDepartureStep) return false;
+    return true;
   }
 
   @override
   void initState() {
     super.initState();
     _selectedServiceTypeId = widget.args?.serviceTypeId;
+    _bootstrapWizard();
     _loadCatalog();
+  }
+
+  Future<void> _bootstrapWizard() async {
+    final saved = await OrderLocationPrefs.readClient(getIt<SharedPref>());
+    if (!mounted) return;
+    if (saved != null && OrderLocationPrefsValidators.isValidClient(saved)) {
+      setState(() {
+        _clientLocation = saved;
+        _step = _stepService;
+        _skippedDepartureStep = true;
+        _highlightServiceStep = true;
+      });
+    }
   }
 
   @override
@@ -150,8 +174,8 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     );
     setState(() {
       _clientLocation = resolved;
-      _step = _skipDestination ? _stepService : _stepDestination;
-      _highlightServiceStep = _skipDestination;
+      _step = _stepService;
+      _highlightServiceStep = true;
     });
   }
 
@@ -168,11 +192,28 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       context,
       AppStrings.destinationPointConfirmed.tr(),
     );
-    setState(() {
-      _destinationLocation = resolved;
-      _step = _stepService;
-      _highlightServiceStep = true;
-    });
+    setState(() => _destinationLocation = resolved);
+    await _submit();
+  }
+
+  Future<void> _onServiceStepContinue() async {
+    if (_selectedServiceTypeId == null) {
+      AppMessages.showError(context, AppStrings.selectServiceType.tr());
+      return;
+    }
+
+    final selectedType = _selectedServiceType();
+    if (selectedType != null && !selectedType.isEnabled) {
+      AppMessages.showError(context, AppStrings.serviceUnavailable.tr());
+      return;
+    }
+
+    if (_needsDestinationStep) {
+      setState(() => _step = _stepDestination);
+      return;
+    }
+
+    await _submit();
   }
 
   Future<void> _submit() async {
@@ -356,10 +397,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     switch (_step) {
       case _stepDeparture:
         return AppStrings.orderStepDeparture.tr();
-      case _stepDestination:
-        return AppStrings.orderStepDestination.tr();
       case _stepService:
         return AppStrings.orderStepService.tr();
+      case _stepDestination:
+        return AppStrings.orderStepDestination.tr();
       default:
         return AppStrings.trackProviderOnMap.tr();
     }
@@ -371,17 +412,11 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       appBar: AppBar(
         title: Text(_stepTitle()),
         centerTitle: true,
-        leading: _step > _stepDeparture && _step < _stepTracking
+        leading: _canWizardGoBack
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () {
-                  setState(() {
-                    if (_skipDestination && _step == _stepService) {
-                      _step = _stepDeparture;
-                    } else {
-                      _step -= 1;
-                    }
-                  });
+                  setState(() => _step -= 1);
                 },
               )
             : null,
@@ -432,6 +467,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           followLiveLocation: true,
           onConfirmed: _onDepartureConfirmed,
         ),
+      _stepService => _buildServiceStep(context),
       _stepDestination => OrderLocationConfirmStep(
           title: AppStrings.destinationPointHint.tr(),
           confirmLabel: AppStrings.confirmDestinationPoint.tr(),
@@ -441,7 +477,6 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           autoGpsOnStart: false,
           onConfirmed: _onDestinationConfirmed,
         ),
-      _stepService => _buildServiceStep(context),
       _ => _buildTrackingStep(context),
     };
   }
@@ -545,7 +580,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_highlightServiceStep) ...[
+          if (_highlightServiceStep && _clientLocation != null) ...[
             YellowHighlightCard(
               isHighlighted: true,
               child: Row(
@@ -558,7 +593,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                   10.width,
                   Expanded(
                     child: Text(
-                      AppStrings.destinationPointConfirmed.tr(),
+                      AppStrings.departurePointConfirmed.tr(),
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w700,
@@ -587,31 +622,17 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             ),
             16.height,
           ],
-          if (_clientLocation != null &&
-              (_destinationLocation != null || _skipDestination)) ...[
+          if (_clientLocation != null) ...[
             DualLocationPreviewMap(
               origin: _clientLocation!,
-              destination: _skipDestination ? null : _destinationLocation,
+              destination: _destinationLocation,
               height: 240.h,
             ),
             8.height,
-            Wrap(
-              spacing: 4.w,
-              runSpacing: 4.h,
-              children: [
-                TextButton.icon(
-                  onPressed: () => setState(() => _step = _stepDeparture),
-                  icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
-                  label: Text(AppStrings.editDeparturePoint.tr()),
-                ),
-                if (!_skipDestination)
-                  TextButton.icon(
-                    onPressed: () => setState(() => _step = _stepDestination),
-                    icon:
-                        const Icon(Icons.edit_location_alt_outlined, size: 18),
-                    label: Text(AppStrings.editDestinationPoint.tr()),
-                  ),
-              ],
+            TextButton.icon(
+              onPressed: () => setState(() => _step = _stepDeparture),
+              icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
+              label: Text(AppStrings.editDeparturePoint.tr()),
             ),
             16.height,
           ],
@@ -637,19 +658,33 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             ),
             12.height,
           ],
-          ServiceTypeCatalogSections(
-            categories: _catalog,
-            selectedIds: _selectedServiceTypeId == null
-                ? {}
-                : {_selectedServiceTypeId!},
-            multiSelect: false,
-            isLoadError: _catalogError != null,
-            onChanged: (ids) {
-              setState(() {
-                _selectedServiceTypeId = ids.isEmpty ? null : ids.first;
-              });
-            },
-          ),
+          if (widget.args?.serviceTypeId == null)
+            ServiceTypeCatalogSections(
+              categories: _catalog,
+              selectedIds: _selectedServiceTypeId == null
+                  ? {}
+                  : {_selectedServiceTypeId!},
+              multiSelect: false,
+              isLoadError: _catalogError != null,
+              onChanged: (ids) {
+                setState(() {
+                  _selectedServiceTypeId = ids.isEmpty ? null : ids.first;
+                });
+              },
+            )
+          else ...[
+            YellowHighlightCard(
+              isHighlighted: true,
+              child: Text(
+                _selectedServiceType()?.name ?? AppStrings.services.tr(),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
           20.height,
           CustomTextField(
             controller: _descriptionController,
@@ -659,8 +694,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           ),
           28.height,
           TaalaButton(
-            label: AppStrings.requestHelp.tr(),
-            onPressed: _submitting ? null : _submit,
+            label: _needsDestinationStep
+                ? AppStrings.continueKey.tr()
+                : AppStrings.requestHelp.tr(),
+            onPressed: _submitting ? null : _onServiceStepContinue,
             enabled: !_submitting,
           ),
           if (_submitting) ...[

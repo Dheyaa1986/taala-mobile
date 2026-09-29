@@ -18,11 +18,13 @@ class ProvidersList extends StatefulWidget {
     this.showQuickActions = false,
     this.showSearch = false,
     this.loadOnInit = true,
+    this.browseOnly = false,
   });
 
   final bool showQuickActions;
   final bool showSearch;
   final bool loadOnInit;
+  final bool browseOnly;
 
   @override
   State<ProvidersList> createState() => _ProvidersListState();
@@ -114,6 +116,7 @@ class _ProvidersListState extends State<ProvidersList> {
                     return ServiceProviderCard(
                       model: provider,
                       showQuickActions: widget.showQuickActions,
+                      browseOnly: widget.browseOnly,
                       onRated: widget.showQuickActions
                           ? () => cubit.getProviders(reset: true)
                           : null,

@@ -190,7 +190,8 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
           ),
         ],
       ),
-      floatingActionButton: const SupportWhatsAppFab(),
+      floatingActionButton:
+          _isGuest ? null : const SupportWhatsAppFab(),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: SingleChildScrollView(
         padding: REdgeInsets.fromLTRB(
@@ -244,13 +245,14 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                   ),
             ),
             24.height,
-            TaalaButton(
-              label: AppStrings.requestHelp.tr(),
-              onPressed: hasActiveOrder
-                  ? _showActiveOrderBlockedMessage
-                  : _openCreateOrder,
-              enabled: !hasActiveOrder,
-            ),
+            if (!_isGuest)
+              TaalaButton(
+                label: AppStrings.requestHelp.tr(),
+                onPressed: hasActiveOrder
+                    ? _showActiveOrderBlockedMessage
+                    : _openCreateOrder,
+                enabled: !hasActiveOrder,
+              ),
             if (widget.clientLocation != null) ...[
               24.height,
               Text(
@@ -295,6 +297,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                               child: ServiceProviderCard(
                                 model: provider,
                                 canStartOrder: !hasActiveOrder,
+                                browseOnly: _isGuest,
                               ),
                             ),
                           )

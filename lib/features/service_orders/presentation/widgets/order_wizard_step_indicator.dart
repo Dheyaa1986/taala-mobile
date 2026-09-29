@@ -17,8 +17,8 @@ class OrderWizardStepIndicator extends StatelessWidget {
 
   static const _stepLabels = [
     AppStrings.orderStepDeparture,
-    AppStrings.orderStepDestination,
     AppStrings.orderStepService,
+    AppStrings.orderStepDestination,
   ];
 
   List<String> get _visibleLabels => skipDestination

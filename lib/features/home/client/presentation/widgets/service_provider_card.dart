@@ -31,11 +31,13 @@ class ServiceProviderCard extends StatelessWidget {
     required this.model,
     this.canStartOrder = true,
     this.showQuickActions = false,
+    this.browseOnly = false,
     this.onRated,
   });
   final ServiceProviderModel model;
   final bool canStartOrder;
   final bool showQuickActions;
+  final bool browseOnly;
   final VoidCallback? onRated;
 
   Future<void> _openChat(BuildContext context) async {
@@ -282,7 +284,7 @@ class ServiceProviderCard extends StatelessWidget {
               ),
             ],
           ]),
-          if (showQuickActions) ...[
+          if (showQuickActions && !browseOnly) ...[
             12.height,
             Row(
               children: [
@@ -305,38 +307,41 @@ class ServiceProviderCard extends StatelessWidget {
               ],
             ),
           ],
-          10.height,
-          Row(
-            children: [
-              Expanded(
-                child: TaalaButton(
-                  label: AppStrings.callNow.tr(),
-                  height: 44,
-                  onPressed: () async {
-                    await getIt<CustomLauncher>()
-                        .call(model.phone ?? '', model.name ?? '');
-                  },
+          if (!browseOnly) ...[
+            10.height,
+            Row(
+              children: [
+                Expanded(
+                  child: TaalaButton(
+                    label: AppStrings.callNow.tr(),
+                    height: 44,
+                    onPressed: () async {
+                      await getIt<CustomLauncher>()
+                          .call(model.phone ?? '', model.name ?? '');
+                    },
+                  ),
                 ),
-              ),
-              8.width,
-              Expanded(
-                child: TaalaButton(
-                  label: AppStrings.whatsapp.tr(),
-                  variant: TaalaButtonVariant.secondary,
-                  height: 44,
-                  onPressed: () async {
-                    await getIt<CustomLauncher>().openWhatsApp(model.phone ?? '');
-                  },
+                8.width,
+                Expanded(
+                  child: TaalaButton(
+                    label: AppStrings.whatsapp.tr(),
+                    variant: TaalaButtonVariant.secondary,
+                    height: 44,
+                    onPressed: () async {
+                      await getIt<CustomLauncher>()
+                          .openWhatsApp(model.phone ?? '');
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-          8.height,
-          TaalaButton(
-            label: AppStrings.openChat.tr(),
-            onPressed: canStartOrder ? () => _openChat(context) : null,
-            enabled: canStartOrder,
-          ),
+              ],
+            ),
+            8.height,
+            TaalaButton(
+              label: AppStrings.openChat.tr(),
+              onPressed: canStartOrder ? () => _openChat(context) : null,
+              enabled: canStartOrder,
+            ),
+          ],
         ]),
     );
   }
