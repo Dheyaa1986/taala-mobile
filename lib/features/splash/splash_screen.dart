@@ -90,9 +90,12 @@ class _SplashScreenState extends State<SplashScreen>
       if (hadStoredToken) {
         await AuthSessionHelper.clearSession();
       }
-      await GuestSessionHelper.startGuestBrowsing();
-      context.read<BottomNavigationCubit>().isProvider = false;
-      context.goNamed(Routes.home);
+      if (await GuestSessionHelper.isGuestBrowsing()) {
+        context.read<BottomNavigationCubit>().isProvider = false;
+        context.goNamed(Routes.home);
+      } else {
+        context.goNamed(Routes.guestMap);
+      }
     }
   }
 

@@ -130,11 +130,11 @@ class AuthSessionHelper {
     await getIt<AppIconBadgeService>().updateCount(0);
     ProviderSubscriptionGate.invalidate();
     await clearSession();
-    await GuestSessionHelper.startGuestBrowsing();
+    await GuestSessionHelper.clearGuestBrowsing();
     final context = AppRouter.appNavigatorKey.currentContext;
     if (context != null && context.mounted) {
       context.read<BottomNavigationCubit>().isProvider = false;
-      context.goNamed(Routes.home);
+      context.goNamed(Routes.guestMap);
     }
   }
 }

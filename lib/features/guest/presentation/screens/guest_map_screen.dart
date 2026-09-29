@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,8 @@ import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/helpers/guest_session_helper.dart';
+import 'package:taal/core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
@@ -153,6 +156,13 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
 
   void _openLogin({bool? asProvider}) {
     context.pushNamed(Routes.login, extra: asProvider);
+  }
+
+  Future<void> _browseAsGuest() async {
+    await GuestSessionHelper.startGuestBrowsing();
+    if (!mounted) return;
+    context.read<BottomNavigationCubit>().isProvider = false;
+    context.goNamed(Routes.home);
   }
 
   void _requestHelp() {
@@ -369,6 +379,13 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     TaalaButton(
                       label: AppStrings.requestHelp.tr(),
                       onPressed: _requestHelp,
+                      height: 48,
+                    ),
+                    12.height,
+                    TaalaButton(
+                      label: AppStrings.browseAsGuest.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: _browseAsGuest,
                       height: 48,
                     ),
                     12.height,
