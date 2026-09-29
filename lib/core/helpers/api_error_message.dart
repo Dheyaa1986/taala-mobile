@@ -5,6 +5,22 @@ import '../app_config/app_strings.dart';
 class ApiErrorMessage {
   const ApiErrorMessage._();
 
+  static String resolve(String? message) {
+    if (message == null || message.trim().isEmpty) {
+      return AppStrings.genericError.tr();
+    }
+
+    final text = message.trim();
+    if (!_hasArabic(text) && !text.contains(' ')) {
+      final translated = text.tr();
+      if (translated != text) {
+        return translated;
+      }
+    }
+
+    return from(text);
+  }
+
   static String from(String? message) {
     if (message == null || message.trim().isEmpty) {
       return AppStrings.genericError.tr();
@@ -53,6 +69,20 @@ class ApiErrorMessage {
       case 'Requested Info Not Found':
       case 'No Internet Connection':
         return AppStrings.genericError.tr();
+      case 'Failed to load client profile':
+        return AppStrings.errorFailedToLoadClientProfile.tr();
+      case 'Failed to load provider profile':
+        return AppStrings.errorFailedToLoadProviderProfile.tr();
+      case 'Location required':
+        return AppStrings.errorLocationRequired.tr();
+      case 'Provider not found':
+        return AppStrings.errorProviderNotFound.tr();
+      case 'Failed to load notifications':
+        return AppStrings.errorFailedToLoadNotifications.tr();
+      case 'City and map link are required':
+        return AppStrings.errorCityAndMapLinkRequired.tr();
+      case 'Invalid location data':
+        return AppStrings.errorInvalidLocationData.tr();
       case 'Network Error':
         return AppStrings.networkError.tr();
       case 'ThrottlerException: Too Many Requests':

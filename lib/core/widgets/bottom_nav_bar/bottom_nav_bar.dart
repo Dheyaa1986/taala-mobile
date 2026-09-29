@@ -8,6 +8,7 @@ import '../../../core/guest/guest_welcome_banner.dart';
 import '../../../design_system/components/taala_bottom_nav.dart';
 import '../../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../dialog/exit_app_dialog.dart';
+import '../../../features/usage_guides/presentation/widgets/usage_guides_prompt.dart';
 
 class BottomNavBar extends StatefulWidget {
   final StatefulNavigationShell shell;
@@ -18,20 +19,64 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  void _onItemTapped(int index) {
-    if (index == widget.shell.currentIndex && index == 0) {
+  static const int _menuBranchIndex = 3;
+  bool _usagePromptScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleUsageGuidesPrompt());
+  }
+
+  void _scheduleUsageGuidesPrompt() {
+    if (_usagePromptScheduled || !mounted) return;
+    _usagePromptScheduled = true;
+    maybeShowUsageGuidesPrompt(context);
+  }
+
+  bool get _isProvider => context.read<BottomNavigationCubit>().isProvider;
+
+  int _branchIndexForNav(int navIndex) {
+    if (_isProvider) {
+      return switch (navIndex) {
+        0 => 0,
+        1 => 2,
+        2 => _menuBranchIndex,
+        _ => 0,
+      };
+    }
+    return navIndex;
+  }
+
+  int _navIndexForBranch(int branchIndex) {
+    if (_isProvider) {
+      return switch (branchIndex) {
+        0 => 0,
+        2 => 1,
+        _menuBranchIndex => 2,
+        _ => 0,
+      };
+    }
+    return branchIndex;
+  }
+
+  void _onItemTapped(int navIndex) {
+    final branchIndex = _branchIndexForNav(navIndex);
+    if (branchIndex == widget.shell.currentIndex && branchIndex == 0) {
       HapticFeedback.lightImpact();
       return;
     }
     HapticFeedback.lightImpact();
     widget.shell.goBranch(
-      index,
-      initialLocation: index == 2,
+      branchIndex,
+      initialLocation: branchIndex == _menuBranchIndex,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final navIndex = _navIndexForBranch(widget.shell.currentIndex);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -56,7 +101,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           context: context,
           locale: context.locale,
           child: TaalaBottomNavBar(
-            currentIndex: widget.shell.currentIndex,
+            currentIndex: navIndex,
             onTap: _onItemTapped,
             items: _navItems,
           ),
@@ -66,11 +111,17 @@ class _BottomNavBarState extends State<BottomNavBar> {
   }
 
   List<TaalaBottomNavItem> get _navItems {
-    final isProvider =
-        context.read<BottomNavigationCubit>().isProvider ?? false;
+    if (_isProvider) {
+      return [
+        homeNavItem(),
+        portfolioNavItem(),
+        menuNavItem(),
+      ];
+    }
     return [
       homeNavItem(),
-      isProvider ? portfolioNavItem() : providersNavItem(),
+      servicesNavItem(),
+      providersNavItem(),
       menuNavItem(),
     ];
   }

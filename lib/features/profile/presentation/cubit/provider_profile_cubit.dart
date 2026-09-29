@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/profile/data/repository/profile_repository.dart';
 
@@ -27,7 +28,7 @@ class ProviderProfileCubit extends Cubit<ProviderProfileState> {
     } else if (currentUserId != null && currentUserId.isNotEmpty) {
       _targetId = currentUserId;
     } else {
-      emit(ProviderProfileError('Provider not found'));
+      emit(ProviderProfileError(AppStrings.errorProviderNotFound));
       return;
     }
 

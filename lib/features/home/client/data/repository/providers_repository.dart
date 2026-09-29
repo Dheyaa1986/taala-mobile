@@ -16,5 +16,6 @@ abstract class ProviderRepository {
     required double longitude,
     int page = 1,
     int limit = 15,
+    String? serviceTypeId,
   });
 }

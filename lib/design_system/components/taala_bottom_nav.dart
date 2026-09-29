@@ -49,7 +49,7 @@ class TaalaBottomNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
           child: Row(
             children: List.generate(items.length, (index) {
               final item = items[index];
@@ -92,41 +92,51 @@ class _NavItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
-          decoration: BoxDecoration(
-            color: selected ? tokens.primarySoft : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (item.materialIcon != null)
-                Icon(item.materialIcon, size: 24.r, color: color)
-              else
-                SvgImageWidget(
-                  image: selected && item.activeIcon != null
-                      ? item.activeIcon!
-                      : item.icon!,
-                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                  width: 24.r,
-                  height: 24.r,
+        borderRadius: BorderRadius.circular(12.r),
+        splashColor: tokens.primary.withValues(alpha: 0.12),
+        highlightColor: tokens.primary.withValues(alpha: 0.08),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: 52.h, minWidth: 48.w),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 2.w),
+            decoration: BoxDecoration(
+              color: selected ? tokens.primarySoft : Colors.transparent,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (item.materialIcon != null)
+                  Icon(item.materialIcon, size: 22.r, color: color)
+                else
+                  SvgImageWidget(
+                    image: selected && item.activeIcon != null
+                        ? item.activeIcon!
+                        : item.icon!,
+                    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                    width: 22.r,
+                    height: 22.r,
+                  ),
+                SizedBox(height: 3.h),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 10.sp,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      height: 1.1,
+                    ),
+                  ),
                 ),
-              SizedBox(height: 4.h),
-              Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11.sp,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -143,6 +153,11 @@ TaalaBottomNavItem homeNavItem() => TaalaBottomNavItem(
 TaalaBottomNavItem menuNavItem() => TaalaBottomNavItem(
       label: AppStrings.menu.tr(),
       icon: AppIcons.menu,
+    );
+
+TaalaBottomNavItem servicesNavItem() => TaalaBottomNavItem(
+      label: AppStrings.services.tr(),
+      materialIcon: Icons.grid_view_rounded,
     );
 
 TaalaBottomNavItem providersNavItem() => TaalaBottomNavItem(

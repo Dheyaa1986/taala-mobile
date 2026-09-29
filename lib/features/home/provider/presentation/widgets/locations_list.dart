@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/features/home/provider/data/model/location_model.dart';
 import 'package:taal/features/home/provider/presentation/cubit/locations/location_cubit.dart';
@@ -76,7 +77,7 @@ class _LocationsListState extends State<LocationsList> {
                 child: Padding(
                   padding: REdgeInsets.symmetric(vertical: 24),
                   child: Text(
-                    state.message,
+                    ApiErrorMessage.resolve(state.message),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: TaalaTokens.of(context).textSecondary,

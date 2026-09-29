@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
@@ -270,7 +271,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                   }
                   if (state is ServiceProvidersError) {
                     return Text(
-                      state.error,
+                      ApiErrorMessage.resolve(state.error),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: tokens.error,
                           ),

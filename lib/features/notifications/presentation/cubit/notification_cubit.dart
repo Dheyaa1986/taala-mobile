@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/alerts/app_icon_badge_service.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/features/notifications/data/models/notification_model.dart';
@@ -88,7 +89,7 @@ class NotificationCubit extends Cubit<NotificationState> {
           unreadCount: previous.unreadCount,
         );
       } else {
-        emit(NotificationError('Failed to load notifications'));
+        emit(NotificationError(AppStrings.errorFailedToLoadNotifications));
       }
       return;
     }

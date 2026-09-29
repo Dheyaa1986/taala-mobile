@@ -26,4 +26,5 @@ class PrefsKeys {
   static const String appAlertSoundVolume = 'app_alert_sound_volume';
   static const String appAlertVibrationEnabled = 'app_alert_vibration_enabled';
   static const String alertVendorSetupDone = 'alert_vendor_setup_done';
+  static const String usageGuidesRevision = 'usage_guides_revision';
 }

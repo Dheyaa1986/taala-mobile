@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -88,7 +89,7 @@ class _ProviderPortfolioScreenState extends State<ProviderPortfolioScreen> {
                     Padding(
                       padding: REdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        state.message,
+                        ApiErrorMessage.resolve(state.message),
                         textAlign: TextAlign.center,
                       ),
                     ),

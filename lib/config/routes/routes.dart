@@ -10,6 +10,7 @@ class Routes {
   static const String clientRatingsScreen = '/clientRatingsScreen';
 
   static const String home = '/homeScreen';
+  static const String baseServices = '/baseServices';
   static const String editProfile = '/editProfile';
 
   static const String menu = '/menu';
@@ -29,4 +30,5 @@ class Routes {
   static const String providerSubscriptionRequired =
       '/providerSubscriptionRequired';
   static const String legalDocument = '/legal-document';
+  static const String usageGuides = '/usage-guides';
 }

@@ -28,6 +28,7 @@ import 'package:taal/features/home/client/data/model/service_provider_model/serv
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
 import 'package:taal/features/app_info/presentation/widgets/legal_links_row.dart';
 import 'package:taal/features/app_info/presentation/widgets/support_whatsapp_fab.dart';
+import 'package:taal/features/usage_guides/presentation/widgets/usage_guides_prompt.dart';
 import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 
 class GuestMapScreen extends StatefulWidget {
@@ -80,6 +81,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
         _center.longitude == MapStyleConfig.defaultLongitude) {
       await _loadProviders();
     }
+    if (!mounted) return;
+    await maybeShowUsageGuidesPrompt(context);
   }
 
   Future<void> _goToCurrentLocation({bool silent = false}) async {
@@ -374,6 +377,12 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                       variant: TaalaButtonVariant.secondary,
                       onPressed: () => _openLogin(asProvider: true),
                       height: 48,
+                    ),
+                    8.height,
+                    TextButton.icon(
+                      onPressed: () => context.pushNamed(Routes.usageGuides),
+                      icon: const Icon(Icons.menu_book_outlined),
+                      label: Text(AppStrings.usageGuidesTitle.tr()),
                     ),
                     20.height,
                     Row(

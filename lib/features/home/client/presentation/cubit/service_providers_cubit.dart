@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/guest_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -60,7 +61,8 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
     emit(ServiceProvidersLoading());
     final clientId = await _resolveClientId();
     if (clientId == null) {
-      emit(ServiceProvidersError(error: 'Failed to load client profile'));
+      emit(ServiceProvidersError(
+          error: AppStrings.errorFailedToLoadClientProfile));
       return;
     }
 
@@ -115,7 +117,8 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
     emit(ServiceProvidersLoading());
     final clientId = await _resolveClientId();
     if (clientId == null) {
-      emit(ServiceProvidersError(error: 'Failed to load client profile'));
+      emit(ServiceProvidersError(
+          error: AppStrings.errorFailedToLoadClientProfile));
       return;
     }
 
@@ -158,7 +161,7 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
         (await OrderLocationPrefs.readClient(getIt<SharedPref>()))?.longitude;
 
     if (latitude == null || longitude == null) {
-      emit(ServiceProvidersError(error: 'Location required'));
+      emit(ServiceProvidersError(error: AppStrings.errorLocationRequired));
       return;
     }
 
@@ -168,6 +171,7 @@ class ServiceProvidersCubit extends Cubit<ServiceProvidersState> {
       longitude: longitude,
       page: page,
       limit: pageSize,
+      serviceTypeId: filter.value.serviceTypeId,
     );
 
     result.fold(

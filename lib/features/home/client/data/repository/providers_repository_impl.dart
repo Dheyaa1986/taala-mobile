@@ -59,6 +59,7 @@ class ProvidersRepositoryImpl extends Repository implements ProviderRepository {
     required double longitude,
     int page = 1,
     int limit = 15,
+    String? serviceTypeId,
   }) async {
     return exceptionHandler(() async {
       final json = await dioService.callApi<Map<String, dynamic>>(
@@ -72,6 +73,7 @@ class ProvidersRepositoryImpl extends Repository implements ProviderRepository {
             'clientLatitude': latitude,
             'clientLongitude': longitude,
             'providerStatus': true,
+            if (serviceTypeId != null) 'serviceTypeId': serviceTypeId,
           },
         ),
       );

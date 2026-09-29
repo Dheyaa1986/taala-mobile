@@ -86,6 +86,14 @@ class ClientSettingsScreen extends StatelessWidget {
               SettingsSectionHeader(title: AppStrings.settingsSectionHelp),
               10.height,
               SettingsTile(
+                title: AppStrings.usageGuidesTitle.tr(),
+                icon: Icons.menu_book_outlined,
+                iconColor: _blue,
+                iconBackgroundColor: _blue.withValues(alpha: 0.12),
+                onTap: () => context.pushNamed(Routes.usageGuides),
+              ),
+              10.height,
+              SettingsTile(
                 title: AppStrings.mySupportTickets,
                 icon: Icons.support_agent_outlined,
                 iconColor: _purple,

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -98,7 +99,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(state.message),
+                    Text(ApiErrorMessage.resolve(state.message)),
                     16.height,
                     TaalaButton(
                       onPressed: _loadProfile,

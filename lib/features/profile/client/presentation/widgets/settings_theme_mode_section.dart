@@ -75,14 +75,7 @@ class SettingsThemeModeSection extends StatelessWidget {
                     ),
                   ),
                   TaalaChip(
-                    label: AppStrings.themeLight.tr(),
-                    selected: selected == AppThemePreference.light,
-                    onTap: () => getIt<AppThemeModeCubit>().setPreference(
-                      AppThemePreference.light,
-                    ),
-                  ),
-                  TaalaChip(
-                    label: AppStrings.themeDark.tr(),
+                    label: AppStrings.themeNight.tr(),
                     selected: selected == AppThemePreference.dark,
                     onTap: () => getIt<AppThemeModeCubit>().setPreference(
                       AppThemePreference.dark,
@@ -97,4 +90,3 @@ class SettingsThemeModeSection extends StatelessWidget {
     );
   }
 }
-

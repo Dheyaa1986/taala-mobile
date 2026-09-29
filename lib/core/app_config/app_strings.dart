@@ -159,8 +159,7 @@ class AppStrings {
   static const settingsSectionAccount = 'settingsSectionAccount';
   static const noConversationHistoryHint = 'noConversationHistoryHint';
   static const themeSystem = 'themeSystem';
-  static const themeLight = 'themeLight';
-  static const themeDark = 'themeDark';
+  static const themeNight = 'themeNight';
   static const providerLocationAutoUpdateHint = 'providerLocationAutoUpdateHint';
   static const providerLocationHiddenHint = 'providerLocationHiddenHint';
   static const callFailedCheckInternet = 'callFailedCheckInternet';
@@ -213,6 +212,17 @@ class AppStrings {
   static const ticketStatusResolved = 'ticketStatusResolved';
   static const ticketStatusClosed = 'ticketStatusClosed';
   static const services = 'services';
+  static const servicesSubtitle = 'servicesSubtitle';
+  static const servicesProvidersForType = 'servicesProvidersForType';
+  static const errorFailedToLoadClientProfile = 'errorFailedToLoadClientProfile';
+  static const errorFailedToLoadProviderProfile =
+      'errorFailedToLoadProviderProfile';
+  static const errorLocationRequired = 'errorLocationRequired';
+  static const errorProviderNotFound = 'errorProviderNotFound';
+  static const errorFailedToLoadNotifications =
+      'errorFailedToLoadNotifications';
+  static const errorCityAndMapLinkRequired = 'errorCityAndMapLinkRequired';
+  static const errorInvalidLocationData = 'errorInvalidLocationData';
   static const portfolio = 'portfolio';
   static const providerPortfolioSubtitle = 'providerPortfolioSubtitle';
   static const serviceProviders = 'serviceProviders';
@@ -544,4 +554,12 @@ class AppStrings {
   static const String priceByAgreement = 'priceByAgreement';
   static const String shopOpenNow = 'shopOpenNow';
   static const String visitShopOrderDescription = 'visitShopOrderDescription';
+  static const String usageGuidesTitle = 'usageGuidesTitle';
+  static const String usageGuidesSubtitle = 'usageGuidesSubtitle';
+  static const String usageGuidesEmpty = 'usageGuidesEmpty';
+  static const String usageGuidesWatchVideo = 'usageGuidesWatchVideo';
+  static const String usageGuidesPromptTitle = 'usageGuidesPromptTitle';
+  static const String usageGuidesPromptBody = 'usageGuidesPromptBody';
+  static const String usageGuidesOpen = 'usageGuidesOpen';
+  static const String usageGuidesLater = 'usageGuidesLater';
 }

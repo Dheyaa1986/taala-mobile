@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/widgets/fields/custom_search_field.dart';
@@ -16,10 +17,12 @@ class ProvidersList extends StatefulWidget {
     super.key,
     this.showQuickActions = false,
     this.showSearch = false,
+    this.loadOnInit = true,
   });
 
   final bool showQuickActions;
   final bool showSearch;
+  final bool loadOnInit;
 
   @override
   State<ProvidersList> createState() => _ProvidersListState();
@@ -32,7 +35,9 @@ class _ProvidersListState extends State<ProvidersList> {
   @override
   void initState() {
     super.initState();
-    context.read<ServiceProvidersCubit>().getProviders(reset: true);
+    if (widget.loadOnInit) {
+      context.read<ServiceProvidersCubit>().getProviders(reset: true);
+    }
   }
 
   @override
@@ -75,7 +80,7 @@ class _ProvidersListState extends State<ProvidersList> {
               if (state is ServiceProvidersError) {
                 return Center(
                   child: Text(
-                    state.error,
+                    ApiErrorMessage.resolve(state.error),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14.sp,

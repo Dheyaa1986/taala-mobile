@@ -46,6 +46,8 @@ class AppUrls {
   static String notificationDelete(String id) => '$base/notifications/$id';
   static String get supportTickets => '$base/support-tickets';
   static const String appPublicInfo = '/app/public-info';
+  static String usageGuides(String audience) =>
+      '/app/usage-guides?audience=$audience';
   static const String themesActive = '/themes/active';
   static const String countriesList = '/countries/list';
   static String governoratesList(String countryId) =>

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/options/pagination_options.dart';
@@ -39,7 +40,7 @@ class LocationCubit extends Cubit<LocationState> {
     emit(LocationsLoading());
     final providerId = await _resolveProviderId();
     if (providerId == null) {
-      emit(LocationsError('Failed to load provider profile'));
+      emit(LocationsError(AppStrings.errorFailedToLoadProviderProfile));
       return;
     }
 
@@ -72,7 +73,7 @@ class LocationCubit extends Cubit<LocationState> {
     final cityId = location.cityId ?? location.city?.id;
     final mapUrl = location.mapLink;
     if (cityId == null || mapUrl == null || mapUrl.isEmpty) {
-      emit(LocationsError('City and map link are required'));
+      emit(LocationsError(AppStrings.errorCityAndMapLinkRequired));
       return;
     }
 
@@ -114,7 +115,7 @@ class LocationCubit extends Cubit<LocationState> {
         location.id == null ||
         cityId == null ||
         mapUrl == null) {
-      emit(LocationsError('Invalid location data'));
+      emit(LocationsError(AppStrings.errorInvalidLocationData));
       return;
     }
 

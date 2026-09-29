@@ -5,6 +5,7 @@ import 'package:taal/config/routes/routes.dart';
 import 'package:taal/config/routes/routing_observer.dart';
 import 'package:taal/features/auth/login/presentation/screens/login_screen.dart';
 import 'package:taal/features/auth/register/presentation/screens/register_screen.dart';
+import 'package:taal/features/home/client/presentation/screens/client_services_screen.dart';
 import 'package:taal/features/home/home_screen.dart';
 import 'package:taal/features/profile/client/presentation/screens/client_settings_screen.dart';
 import 'package:taal/features/profile/presentation/screens/edit_profile_screen.dart';
@@ -20,6 +21,7 @@ import 'package:taal/features/rating/presentation/screens/rating_screen.dart';
 import 'package:taal/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:taal/features/app_info/data/model/app_public_info_model.dart';
 import 'package:taal/features/app_info/presentation/screens/legal_document_screen.dart';
+import 'package:taal/features/usage_guides/presentation/screens/usage_guides_screen.dart';
 import 'package:taal/features/guest/presentation/screens/guest_map_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
@@ -45,6 +47,9 @@ class AppRouter {
   static final GlobalKey<NavigatorState> _homeTabNavigatorKey =
       GlobalKey<NavigatorState>();
 
+  static final GlobalKey<NavigatorState> _servicesNavigatorKey =
+      GlobalKey<NavigatorState>();
+
   static final GlobalKey<NavigatorState> _rateNavigatorKey =
       GlobalKey<NavigatorState>();
 
@@ -64,6 +69,23 @@ class AppRouter {
             child: HomeScreen(),
           ),
           routes: const [],
+        ),
+      ],
+    ),
+  ];
+
+  static final List<StatefulShellBranch> _servicesBranches = [
+    StatefulShellBranch(
+      navigatorKey: _servicesNavigatorKey,
+      routes: [
+        GoRoute(
+          path: Routes.baseServices,
+          name: Routes.baseServices,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const ClientServicesScreen(),
+          ),
         ),
       ],
     ),
@@ -183,6 +205,7 @@ class AppRouter {
           },
           branches: [
             ..._homeBranches,
+            ..._servicesBranches,
             ..._rateBranches,
             ..._settingsBranches,
           ],
@@ -264,6 +287,16 @@ class AppRouter {
               documentType: state.extra as LegalDocumentType? ??
                   LegalDocumentType.terms,
             ),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.usageGuides,
+          name: Routes.usageGuides,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const UsageGuidesScreen(),
           ),
         ),
         GoRoute(
