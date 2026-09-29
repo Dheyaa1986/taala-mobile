@@ -13,18 +13,25 @@ class ProviderSubscriptionGate {
     _canReceiveOrders = null;
   }
 
-  static Future<bool> providerNeedsSubscription() async {
+  static void syncCanReceiveOrders(bool canReceiveOrders) {
+    _canReceiveOrders = canReceiveOrders;
+  }
+
+  static Future<bool> providerNeedsSubscription({bool forceRefresh = false}) async {
     if (!await AuthSessionHelper.isProviderSession()) {
       return false;
     }
 
-    if (_canReceiveOrders != null) {
+    if (!forceRefresh && _canReceiveOrders != null) {
       return !_canReceiveOrders!;
     }
 
     final result = await SubscriptionRepository().getMySubscription();
     return result.fold(
-      (_) => true,
+      (_) {
+        _canReceiveOrders = false;
+        return true;
+      },
       (subscription) {
         _canReceiveOrders = subscription.canReceiveOrders;
         return !subscription.canReceiveOrders;
@@ -35,6 +42,7 @@ class ProviderSubscriptionGate {
   static Future<void> navigateAfterAuth(BuildContext context) async {
     if (!context.mounted) return;
 
+    invalidate();
     if (await providerNeedsSubscription()) {
       context.goNamed(Routes.providerSubscriptionRequired);
       return;

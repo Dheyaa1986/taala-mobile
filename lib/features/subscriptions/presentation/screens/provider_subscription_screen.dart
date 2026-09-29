@@ -69,12 +69,17 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
         subscriptionError: error.displayMessage,
         plansError: plansError,
       ),
-      (subscription) => (
-        subscription: subscription,
-        plans: plans,
-        subscriptionError: null,
-        plansError: plansError,
-      ),
+      (subscription) {
+        ProviderSubscriptionGate.syncCanReceiveOrders(
+          subscription.canReceiveOrders,
+        );
+        return (
+          subscription: subscription,
+          plans: plans,
+          subscriptionError: null,
+          plansError: plansError,
+        );
+      },
     );
   }
 
@@ -246,6 +251,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
               subscription?.canReceiveOrders == true) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
+                ProviderSubscriptionGate.syncCanReceiveOrders(true);
                 context.goNamed(Routes.home);
               }
             });
@@ -263,7 +269,8 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             child: ListView(
               padding: REdgeInsets.all(16),
               children: [
-                if (widget.isRequiredGate) ...[
+                if (widget.isRequiredGate &&
+                    subscription?.canReceiveOrders != true) ...[
                   Text(
                     (subscription?.message?.trim().isNotEmpty == true)
                         ? subscription!.message!
