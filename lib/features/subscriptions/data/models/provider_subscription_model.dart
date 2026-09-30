@@ -9,6 +9,11 @@ class ProviderSubscriptionModel {
     this.expiresAt,
     this.message,
     this.planName,
+    this.planDescription,
+    this.hideOtherPlans = false,
+    this.isFreePlan = false,
+    this.remainingLabel,
+    this.startsAt,
   });
 
   final String status;
@@ -20,6 +25,11 @@ class ProviderSubscriptionModel {
   final DateTime? expiresAt;
   final String? message;
   final String? planName;
+  final String? planDescription;
+  final bool hideOtherPlans;
+  final bool isFreePlan;
+  final String? remainingLabel;
+  final DateTime? startsAt;
 
   factory ProviderSubscriptionModel.fromJson(Map<String, dynamic> json) {
     final plan = json['plan'] as Map<String, dynamic>?;
@@ -33,6 +43,12 @@ class ProviderSubscriptionModel {
       expiresAt: DateTime.tryParse(json['expiresAt']?.toString() ?? ''),
       message: json['message']?.toString(),
       planName: plan?['nameAr']?.toString() ?? plan?['nameEn']?.toString(),
+      planDescription:
+          plan?['descriptionAr']?.toString() ?? plan?['descriptionEn']?.toString(),
+      hideOtherPlans: json['hideOtherPlans'] == true,
+      isFreePlan: json['isFreePlan'] == true || plan?['isFree'] == true,
+      remainingLabel: json['remainingLabel']?.toString(),
+      startsAt: DateTime.tryParse(json['startsAt']?.toString() ?? ''),
     );
   }
 
@@ -56,6 +72,9 @@ class SubscriptionPlanModel {
     this.orderQuota,
     this.cardColor,
     this.cardStyle = 'border',
+    this.descriptionAr,
+    this.descriptionEn,
+    this.isFree = false,
   });
 
   final String id;
@@ -69,6 +88,9 @@ class SubscriptionPlanModel {
   final int? orderQuota;
   final String? cardColor;
   final String cardStyle;
+  final String? descriptionAr;
+  final String? descriptionEn;
+  final bool isFree;
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(
@@ -83,6 +105,9 @@ class SubscriptionPlanModel {
       orderQuota: _parseInt(json['orderQuota']),
       cardColor: json['cardColor']?.toString(),
       cardStyle: json['cardStyle']?.toString() ?? 'border',
+      descriptionAr: json['descriptionAr']?.toString(),
+      descriptionEn: json['descriptionEn']?.toString(),
+      isFree: json['isFree'] == true,
     );
   }
 

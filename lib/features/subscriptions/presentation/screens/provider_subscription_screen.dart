@@ -119,6 +119,10 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
 
   String? _activeSubscriptionDetail(ProviderSubscriptionModel subscription) {
     if (!subscription.canReceiveOrders) return null;
+    if (subscription.remainingLabel != null &&
+        subscription.remainingLabel!.trim().isNotEmpty) {
+      return subscription.remainingLabel;
+    }
 
     if (subscription.expiresAt != null) {
       final formatted = DateFormat.yMMMd(context.locale.languageCode)
@@ -286,6 +290,16 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                 ],
                 if (subscription != null &&
                     subscription.canReceiveOrders &&
+                    (subscription.planDescription ?? '').trim().isNotEmpty) ...[
+                  Text(
+                    subscription.planDescription!.trim(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13.sp, height: 1.5),
+                  ),
+                  12.height,
+                ],
+                if (subscription != null &&
+                    subscription.canReceiveOrders &&
                     _activeSubscriptionDetail(subscription) != null) ...[
                   Container(
                     width: double.infinity,
@@ -334,7 +348,10 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                   16.height,
                 ],
                 Text(
-                  AppStrings.availablePlans.tr(),
+                  subscription?.hideOtherPlans == true &&
+                          subscription?.canReceiveOrders == true
+                      ? AppStrings.currentPlan.tr()
+                      : AppStrings.availablePlans.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
@@ -349,7 +366,13 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                 else if (data.plans.isEmpty)
                   Text(AppStrings.noPlansAvailable.tr())
                 else
-                  ...data.plans.map(
+                  ...data.plans.where((plan) {
+                    if (subscription?.hideOtherPlans == true &&
+                        subscription?.canReceiveOrders == true) {
+                      return plan.id == subscription?.planId || plan.isFree;
+                    }
+                    return !plan.isFree;
+                  }).map(
                     (plan) {
                       final isCurrent = subscription?.planId == plan.id &&
                           (subscription?.canReceiveOrders ?? false);
