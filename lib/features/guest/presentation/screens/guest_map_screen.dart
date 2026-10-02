@@ -18,14 +18,11 @@ import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/offline/map_offline_manager.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
-import 'package:taal/core/maps/widgets/provider_call_button.dart';
-import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
-import 'package:taal/features/guest/presentation/widgets/guest_help_request_sheet.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_map_point.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
@@ -165,22 +162,6 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     context.goNamed(Routes.home);
   }
 
-  void _requestHelp() {
-    showGuestHelpRequestSheet(
-      context,
-      location: PickedLocation(
-        latitude: _center.latitude,
-        longitude: _center.longitude,
-        address: _address,
-      ),
-      providerId: _selectedProviderId,
-    ).then((completed) {
-      if (completed == true && mounted) {
-        context.goNamed(Routes.home);
-      }
-    });
-  }
-
   List<Marker> _providerMarkers(TaalaTokens tokens) {
     return _providers.map((provider) {
       final point = provider.mapPoint;
@@ -279,7 +260,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   elevation: 0,
                   shadowColor: Colors.transparent,
                   child: InkWell(
-                    onTap: () => _openLogin(),
+                    onTap: () => context.pushNamed(Routes.register),
                     borderRadius: BorderRadius.circular(14.r),
                     child: Container(
                       decoration: BoxDecoration(
@@ -291,7 +272,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                         vertical: 12,
                       ),
                       child: Text(
-                        AppStrings.login.tr(),
+                        AppStrings.register.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: tokens.primary,
@@ -378,7 +359,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     16.height,
                     TaalaButton(
                       label: AppStrings.requestHelp.tr(),
-                      onPressed: _requestHelp,
+                      onPressed: () {},
                       height: 48,
                     ),
                     12.height,
@@ -442,8 +423,6 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                         (provider) => _GuestProviderTile(
                           provider: provider,
                           isSelected: provider.id == _selectedProviderId,
-                          clientLatitude: _center.latitude,
-                          clientLongitude: _center.longitude,
                           onTap: () {
                             setState(() => _selectedProviderId = provider.id);
                             final point = provider.mapPoint;
@@ -468,15 +447,11 @@ class _GuestProviderTile extends StatelessWidget {
   const _GuestProviderTile({
     required this.provider,
     required this.isSelected,
-    required this.clientLatitude,
-    required this.clientLongitude,
     required this.onTap,
   });
 
   final ServiceProviderModel provider;
   final bool isSelected;
-  final double clientLatitude;
-  final double clientLongitude;
   final VoidCallback onTap;
 
   @override
@@ -548,14 +523,33 @@ class _GuestProviderTile extends StatelessWidget {
                               ),
                         ),
                       ],
-                      if (provider.callAvailable && provider.id != null) ...[
-                        10.height,
-                        ProviderCallButton(
-                          providerId: provider.id!,
-                          latitude: clientLatitude,
-                          longitude: clientLongitude,
-                        ),
-                      ],
+                      10.height,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TaalaButton(
+                              label: AppStrings.callShort.tr(),
+                              height: 36,
+                              onPressed: () {},
+                            ),
+                          ),
+                          6.width,
+                          Expanded(
+                            child: TaalaButton(
+                              label: AppStrings.whatsapp.tr(),
+                              variant: TaalaButtonVariant.secondary,
+                              height: 36,
+                              onPressed: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                      6.height,
+                      TaalaButton(
+                        label: AppStrings.requestHelp.tr(),
+                        height: 36,
+                        onPressed: () {},
+                      ),
                     ],
                   ),
                 ),

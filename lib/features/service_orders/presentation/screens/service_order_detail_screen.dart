@@ -525,17 +525,20 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
-  Future<void> _updateStatus(String status, {double? agreedPrice}) async {
+  Future<bool> _updateStatus(String status, {double? agreedPrice}) async {
     final result = await _repository.updateStatus(
       orderId: widget.orderId,
       status: status,
       agreedPrice: agreedPrice,
     );
-    if (!mounted) return;
-    result.fold(
-      (error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      ),
+    if (!mounted) return false;
+    return result.fold(
+      (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+        return false;
+      },
       (order) {
         setState(() => _order = order);
         _syncTripTracking(order);
@@ -545,6 +548,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
         if (status == 'completed' || status == 'cancelled') {
           _handleTerminalStatus(order, remote: false);
         }
+        return true;
       },
     );
   }
@@ -659,8 +663,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   }
 
   Future<void> _markArrivedAtBreakdown(ServiceOrderModel order) async {
-    await _updateStatus('arrived');
-    if (!mounted) return;
+    final ok = await _updateStatus('arrived');
+    if (!ok || !mounted) return;
+    final updated = _order ?? order;
+    final hasDestination = updated.destinationLatitude != null &&
+        updated.destinationLongitude != null;
+    if (!hasDestination) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppStrings.arrivedAtBreakdownMessage.tr())),
+    );
     await _openDestinationNavigationAfterArrival();
   }
 
@@ -885,8 +896,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     order != null &&
                     _canOpenInAppNavigation(order) &&
                     ((order.status == 'accepted' && order.clientReadyAt != null) ||
-                        order.status == 'en_route' ||
-                        order.status == 'arrived'))
+                        order.status == 'en_route'))
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: Column(
@@ -896,8 +906,8 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           label: AppStrings.departInApp.tr(),
                           onPressed: () async {
                             if (order.status == 'accepted') {
-                              await _updateStatus('en_route');
-                              if (!mounted) return;
+                              final ok = await _updateStatus('en_route');
+                              if (!ok || !mounted) return;
                             }
                             final current = _order;
                             if (current != null) _openInAppNavigation(current);
@@ -917,6 +927,35 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                                 unawaited(_markArrivedAtBreakdown(order)),
                           ),
                         ],
+                      ],
+                    ),
+                  ),
+                if (_isProvider &&
+                    order != null &&
+                    order.status == 'arrived' &&
+                    order.destinationLatitude != null &&
+                    order.destinationLongitude != null)
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TaalaButton(
+                          label: AppStrings.proceedToDestinationPhase.tr(),
+                          onPressed: () {
+                            if (GoogleMapsConfig.isEnabled) {
+                              _openInAppNavigation(order);
+                            } else {
+                              unawaited(_openWazeNavigation(order));
+                            }
+                          },
+                        ),
+                        8.height,
+                        TaalaButton(
+                          label: AppStrings.openInWaze.tr(),
+                          variant: TaalaButtonVariant.secondary,
+                          onPressed: () => _openWazeNavigation(order),
+                        ),
                       ],
                     ),
                   ),
@@ -1174,6 +1213,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ),
                 ],
+                if (_isProvider && order?.status == 'arrived')
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.completeOrder.tr(),
+                      onPressed: () => _updateStatus('completed'),
+                    ),
+                  ),
                 if (!_isProvider && order?.status == 'arrived')
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),

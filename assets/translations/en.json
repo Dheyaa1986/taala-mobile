@@ -289,7 +289,7 @@
   "guestRegistrationRequiredMessage": "You need an account to continue. Go to registration?",
   "guestGoToRegister": "Register",
   "guestContinueBrowsing": "Keep browsing",
-  "guestLoginOrRegister": "Sign in or create an account for full access",
+  "guestLoginOrRegister": "Create an account for full access",
   "completeProfileTitle": "Complete your registration",
   "completeProfileOptionalHint": "You can update your details later in settings",
   "completeProfileRequiredHint": "Add your name, email, phone, and password before your second request",

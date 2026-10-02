@@ -3,17 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/core/extensions/space_extension.dart';
-import 'package:taal/core/widgets/buttons/custom_icon_button.dart';
 import 'package:taal/features/rating/client/data/model/client_ratings.dart';
 import 'package:taal/features/rating/client/presentation/widget/rate_provider_sheet.dart';
 import 'package:taal/features/rating/client/presentation/widget/view_profile.dart';
 
 import '../../../../../core/app_config/app_colors.dart';
 import '../../../../../design_system/theme/taala_tokens.dart';
-import '../../../../../core/app_config/app_icons.dart';
 import '../../../../../core/app_config/app_strings.dart';
-import '../../../../../core/custom_launcher/custom_launcher.dart';
-import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/cached_network_image/custom_cached_network_image.dart';
 import '../../../../../core/widgets/shimmer/custom_shimmer_widget.dart';
 import '../../../../home/client/presentation/widgets/rating_bar.dart';
@@ -74,40 +70,8 @@ class ClientRatingsCard extends StatelessWidget {
             _divider(),
             8.height,
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    CustomIconButton(
-                      onTap: () async {
-                        await getIt<CustomLauncher>().call(
-                          model.serviceProviderModel?.phone ?? '',
-                          model.serviceProviderModel?.name ?? '',
-                        );
-                      },
-                      iconSize: 24.r,
-                      padding: 12.r,
-                      border: Border.all(color: AppColors.iconBorderColor),
-                      bgColor: Theme.of(context).scaffoldBackgroundColor,
-                      icon: AppIcons.call,
-                      shape: BoxShape.circle,
-                    ),
-                    14.width,
-                    CustomIconButton(
-                      onTap: () async {
-                        await getIt<CustomLauncher>().openWhatsApp(
-                          model.serviceProviderModel?.phone ?? '',
-                        );
-                      },
-                      iconSize: 24.r,
-                      padding: 12.r,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.iconBorderColor),
-                      bgColor: Theme.of(context).scaffoldBackgroundColor,
-                      icon: AppIcons.whatsapp,
-                    ),
-                  ],
-                ),
                 ViewProfileButton(
                   profileId: model.serviceProviderModel?.id,
                 ),

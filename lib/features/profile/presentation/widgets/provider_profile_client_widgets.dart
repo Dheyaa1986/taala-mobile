@@ -7,6 +7,7 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
+import 'package:taal/features/home/client/presentation/utils/start_provider_service_order.dart';
 import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 import 'package:taal/features/profile/data/models/portfolio_model.dart';
 import 'package:taal/features/profile/presentation/cubit/provider_profile_cubit.dart';
@@ -14,11 +15,7 @@ import 'package:taal/features/profile/presentation/widgets/portfolio_list_sectio
 import 'package:taal/features/profile/presentation/widgets/services_list.dart';
 import 'package:taal/features/rating/client/presentation/widget/rate_provider_sheet.dart';
 
-import '../../../../core/app_config/app_icons.dart';
 import '../../../../core/app_config/app_strings.dart';
-import '../../../../core/custom_launcher/custom_launcher.dart';
-import '../../../../core/di/service_locator.dart';
-import '../../../../core/widgets/buttons/custom_icon_button.dart';
 
 class ProviderProfileClientWidgets extends StatelessWidget {
   const ProviderProfileClientWidgets({
@@ -32,7 +29,6 @@ class ProviderProfileClientWidgets extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = TaalaTokens.of(context);
     final services = provider.services;
-    final phone = provider.phone ?? '';
 
     return Column(
       children: [
@@ -55,53 +51,53 @@ class ProviderProfileClientWidgets extends StatelessWidget {
           children: [
             Expanded(
               child: TaalaButton(
-                label: AppStrings.rateProvider.tr(),
+                label: AppStrings.callNow.tr(),
                 height: 44,
-                onPressed: () {
-                  showRateProviderSheet(
-                    context,
-                    providerId: provider.id ?? '',
-                    providerName: provider.name ?? '',
-                    onRated: () =>
-                        context.read<ProviderProfileCubit>().refresh(),
-                  );
-                },
+                onPressed: () => startProviderServiceOrder(
+                  context,
+                  provider,
+                  silentIfGuest: true,
+                ),
               ),
             ),
-            if (phone.isNotEmpty) ...[
-              16.width,
-              Row(
-                children: [
-                  CustomIconButton(
-                    onTap: () async {
-                      await getIt<CustomLauncher>().openWhatsApp(phone);
-                    },
-                    iconSize: 24.r,
-                    padding: 12.r,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: tokens.borderSubtle),
-                    bgColor: tokens.surface,
-                    icon: AppIcons.whatsapp,
-                  ),
-                  14.width,
-                  CustomIconButton(
-                    onTap: () async {
-                      await getIt<CustomLauncher>().call(
-                        phone,
-                        provider.name ?? '',
-                      );
-                    },
-                    iconSize: 24.r,
-                    padding: 12.r,
-                    border: Border.all(color: tokens.borderSubtle),
-                    bgColor: tokens.surface,
-                    icon: AppIcons.call,
-                    shape: BoxShape.circle,
-                  ),
-                ],
+            8.width,
+            Expanded(
+              child: TaalaButton(
+                label: AppStrings.whatsapp.tr(),
+                variant: TaalaButtonVariant.secondary,
+                height: 44,
+                onPressed: () => startProviderServiceOrder(
+                  context,
+                  provider,
+                  silentIfGuest: true,
+                ),
               ),
-            ],
+            ),
           ],
+        ),
+        8.height,
+        TaalaButton(
+          label: AppStrings.openChat.tr(),
+          height: 44,
+          onPressed: () => startProviderServiceOrder(
+            context,
+            provider,
+            silentIfGuest: true,
+          ),
+        ),
+        12.height,
+        TaalaButton(
+          label: AppStrings.rateProvider.tr(),
+          height: 44,
+          onPressed: () {
+            showRateProviderSheet(
+              context,
+              providerId: provider.id ?? '',
+              providerName: provider.name ?? '',
+              onRated: () =>
+                  context.read<ProviderProfileCubit>().refresh(),
+            );
+          },
         ),
         32.height,
         if (services.isNotEmpty) ...[

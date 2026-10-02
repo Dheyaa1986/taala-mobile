@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
-import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
@@ -127,10 +125,7 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
                 child: TaalaButton(
                   label: AppStrings.callNow.tr(),
                   height: 44,
-                  onPressed: () => getIt<CustomLauncher>().call(
-                    provider.phone ?? '',
-                    provider.name ?? '',
-                  ),
+                  onPressed: _openChat,
                 ),
               ),
               8.width,
@@ -139,9 +134,7 @@ class _ProviderContactSheetState extends State<ProviderContactSheet> {
                   label: AppStrings.whatsapp.tr(),
                   variant: TaalaButtonVariant.secondary,
                   height: 44,
-                  onPressed: () => getIt<CustomLauncher>().openWhatsApp(
-                    provider.phone ?? '',
-                  ),
+                  onPressed: _openChat,
                 ),
               ),
             ],

@@ -464,7 +464,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
           title: AppStrings.departurePointHint.tr(),
           confirmLabel: AppStrings.confirmDeparturePoint.tr(),
           initial: _clientLocation,
-          followLiveLocation: true,
+          followLiveLocation: false,
           onConfirmed: _onDepartureConfirmed,
         ),
       _stepService => _buildServiceStep(context),

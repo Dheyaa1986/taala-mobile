@@ -60,14 +60,6 @@ class ClientSettingsScreen extends StatelessWidget {
                 ),
                 12.height,
                 SettingsTile(
-                  title: AppStrings.login.tr(),
-                  icon: Icons.login_rounded,
-                  iconColor: tokens.primary,
-                  iconBackgroundColor: tokens.primary.withValues(alpha: 0.12),
-                  onTap: () => context.pushNamed(Routes.login),
-                ),
-                10.height,
-                SettingsTile(
                   title: AppStrings.register.tr(),
                   icon: Icons.person_add_alt_1_outlined,
                   iconColor: _teal,

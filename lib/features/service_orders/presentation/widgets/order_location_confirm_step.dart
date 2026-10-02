@@ -72,6 +72,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
   bool _searching = false;
   bool _bootstrapping = false;
   bool _confirming = false;
+  bool _userMovedMap = false;
   Timer? _debounce;
   StreamSubscription<LocationData>? _liveLocationSub;
   final _location = Location();
@@ -85,7 +86,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     _address = widget.initial?.address;
     _searchController.addListener(_onSearchChanged);
     unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
-    if (widget.followLiveLocation || widget.autoGpsOnStart) {
+    if (widget.followLiveLocation) {
       unawaited(_startLiveLocationStream());
     }
   }
@@ -112,15 +113,15 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     );
 
     _liveLocationSub?.cancel();
-    _liveLocationSub = _location.onLocationChanged.listen((data) {
+      _liveLocationSub = _location.onLocationChanged.listen((data) {
       final lat = data.latitude;
       final lng = data.longitude;
       if (lat == null || lng == null || !mounted) return;
       if (_searchFocus.hasFocus) return;
+      if (_userMovedMap) return;
 
       final gpsPoint = LatLng(lat, lng);
       const distance = Distance();
-      // Stop auto-follow when the user moved the pin away from GPS.
       if (distance(_center, gpsPoint) > 120) return;
 
       _center = gpsPoint;
@@ -232,6 +233,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
 
   Future<void> _selectSuggestion(PlaceSuggestion item) async {
     _center = LatLng(item.latitude, item.longitude);
+    _userMovedMap = true;
     _safeMap.move(_center, 16);
     setState(() {
       _address = item.displayName;
@@ -360,6 +362,9 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
                       initialZoom: 15,
                       onMapReady: _onMapReady,
                       onMapEvent: (event) {
+                        if (event is MapEventMoveStart) {
+                          _userMovedMap = true;
+                        }
                         if (event is MapEventMoveEnd) {
                           setState(
                             () => _center = _mapController.camera.center,
@@ -394,7 +399,12 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
                       heroTag: 'gps_${widget.title}',
                       backgroundColor: Colors.white,
                       foregroundColor: AppColors.primaryColor,
-                      onPressed: _loadingGps ? null : () => _goToCurrentLocation(),
+                      onPressed: _loadingGps
+                          ? null
+                          : () {
+                              _userMovedMap = false;
+                              _goToCurrentLocation();
+                            },
                       child: _loadingGps
                           ? SizedBox(
                               width: 18.r,

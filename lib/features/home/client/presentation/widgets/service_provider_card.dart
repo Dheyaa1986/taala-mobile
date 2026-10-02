@@ -11,19 +11,14 @@ import 'package:taal/features/home/client/presentation/widgets/rating_bar.dart';
 
 import '../../../../../core/app_config/app_colors.dart';
 import '../../../../../core/app_config/app_strings.dart';
-import '../../../../../core/custom_launcher/custom_launcher.dart';
 import '../../../../../core/guest/guest_action_guard.dart';
-import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/widgets/buttons/view_map_button.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
-import 'package:taal/core/provider_offering/provider_offering_mode.dart';
-import 'package:taal/features/service_orders/presentation/models/create_service_order_args.dart';
-import 'package:taal/features/service_orders/presentation/widgets/provider_visit_choice_sheet.dart';
+import 'package:taal/features/home/client/presentation/utils/start_provider_service_order.dart';
 import 'package:taal/features/rating/client/presentation/widget/rate_provider_sheet.dart';
 import 'package:taal/features/rating/client/presentation/widget/view_profile.dart';
 import '../../data/model/service_provider_model/service_provider_model.dart';
-import '../../data/model/service_provider_model/service_type_model.dart';
 
 class ServiceProviderCard extends StatelessWidget {
   const ServiceProviderCard({
@@ -40,93 +35,11 @@ class ServiceProviderCard extends StatelessWidget {
   final bool browseOnly;
   final VoidCallback? onRated;
 
-  Future<void> _openChat(BuildContext context) async {
-    if (!await GuestActionGuard.ensureRegistered(context)) return;
-    if (!canStartOrder) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.activeOrderBlockingSearch.tr())),
-      );
-      return;
-    }
-    final types = model.serviceTypes
-        .where((type) => type.id != null && type.id!.isNotEmpty)
-        .toList();
-
-    if (types.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.noServiceTypesAvailable.tr())),
-      );
-      return;
-    }
-
-    ServiceTypeModel selected = types.first;
-    if (types.length > 1) {
-      final picked = await showModalBottomSheet<ServiceTypeModel>(
-        context: context,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (sheetContext) => SafeArea(
-          child: Padding(
-            padding: REdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  AppStrings.selectServiceType.tr(),
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                12.height,
-                ...types.map(
-                  (type) => ListTile(
-                    title: Text(type.name ?? ''),
-                    onTap: () => Navigator.of(sheetContext).pop(type),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-      if (picked == null) return;
-      selected = picked;
-    }
-
-    if (!selected.isEnabled) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.serviceUnavailable.tr())),
-      );
-      return;
-    }
-
-    if (!context.mounted) return;
-
-    final offering = model.offeringForServiceType(selected.id);
-    final isCrane = isMobileOnlyServiceCategory(selected.categoryCode);
-
-    if (isCrane ||
-        offering?.offeringMode == ProviderOfferingMode.mobile) {
-      context.pushNamed(
-        Routes.createServiceOrder,
-        extra: CreateServiceOrderArgs(
-          provider: model,
-          serviceTypeId: selected.id,
-          visitType: ServiceOrderVisitType.mobileOnSite,
-        ),
-      );
-      return;
-    }
-
-    await showProviderVisitChoiceSheet(
+  Future<void> _openChat(BuildContext context) {
+    return startProviderServiceOrder(
       context,
-      provider: model,
-      serviceType: selected,
-      offering: offering,
+      model,
+      canStartOrder: canStartOrder,
     );
   }
 
@@ -307,41 +220,38 @@ class ServiceProviderCard extends StatelessWidget {
               ],
             ),
           ],
-          if (!browseOnly) ...[
-            10.height,
-            Row(
-              children: [
-                Expanded(
-                  child: TaalaButton(
-                    label: AppStrings.callNow.tr(),
-                    height: 44,
-                    onPressed: () async {
-                      await getIt<CustomLauncher>()
-                          .call(model.phone ?? '', model.name ?? '');
-                    },
-                  ),
+          10.height,
+          Row(
+            children: [
+              Expanded(
+                child: TaalaButton(
+                  label: AppStrings.callNow.tr(),
+                  height: 44,
+                  onPressed: browseOnly
+                      ? () {}
+                      : (canStartOrder ? () => _openChat(context) : null),
                 ),
-                8.width,
-                Expanded(
-                  child: TaalaButton(
-                    label: AppStrings.whatsapp.tr(),
-                    variant: TaalaButtonVariant.secondary,
-                    height: 44,
-                    onPressed: () async {
-                      await getIt<CustomLauncher>()
-                          .openWhatsApp(model.phone ?? '');
-                    },
-                  ),
+              ),
+              8.width,
+              Expanded(
+                child: TaalaButton(
+                  label: AppStrings.whatsapp.tr(),
+                  variant: TaalaButtonVariant.secondary,
+                  height: 44,
+                  onPressed: browseOnly
+                      ? () {}
+                      : (canStartOrder ? () => _openChat(context) : null),
                 ),
-              ],
-            ),
-            8.height,
-            TaalaButton(
-              label: AppStrings.openChat.tr(),
-              onPressed: canStartOrder ? () => _openChat(context) : null,
-              enabled: canStartOrder,
-            ),
-          ],
+              ),
+            ],
+          ),
+          8.height,
+          TaalaButton(
+            label: AppStrings.openChat.tr(),
+            onPressed: browseOnly
+                ? () {}
+                : (canStartOrder ? () => _openChat(context) : null),
+          ),
         ]),
     );
   }
