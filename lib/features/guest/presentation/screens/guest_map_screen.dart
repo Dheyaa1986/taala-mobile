@@ -260,7 +260,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   elevation: 0,
                   shadowColor: Colors.transparent,
                   child: InkWell(
-                    onTap: () => context.pushNamed(Routes.register),
+                    onTap: () =>
+                        context.pushNamed(Routes.register, extra: true),
                     borderRadius: BorderRadius.circular(14.r),
                     child: Container(
                       decoration: BoxDecoration(

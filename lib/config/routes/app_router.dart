@@ -272,7 +272,9 @@ class AppRouter {
           pageBuilder: (context, state) => screenWithFadeTransition(
             context: context,
             state: state,
-            child: const RegisterScreen(),
+            child: RegisterScreen(
+              hideLoginLink: state.extra == true,
+            ),
           ),
           routes: const [],
         ),

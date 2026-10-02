@@ -12,7 +12,11 @@ import '../widgets/register_form.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({
     super.key,
+    this.hideLoginLink = false,
   });
+
+  /// Guest flows should register only — no email/password login shortcut.
+  final bool hideLoginLink;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -45,8 +49,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ],
       child: Builder(
         builder: (context) {
-          return const Scaffold(
-            body: RegisterForm(),
+          return Scaffold(
+            body: RegisterForm(hideLoginLink: widget.hideLoginLink),
           );
         },
       ),

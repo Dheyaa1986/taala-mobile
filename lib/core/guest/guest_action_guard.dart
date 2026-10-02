@@ -42,7 +42,7 @@ class GuestActionGuard {
     );
 
     if (goRegister == true && context.mounted) {
-      context.pushNamed(Routes.register);
+      context.pushNamed(Routes.register, extra: true);
     }
     return false;
   }

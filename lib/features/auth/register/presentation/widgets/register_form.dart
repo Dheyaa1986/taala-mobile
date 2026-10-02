@@ -32,7 +32,9 @@ import '../../data/model/register_options.dart';
 import '../cubit/register_cubit.dart';
 
 class RegisterForm extends StatefulWidget {
-  const RegisterForm({super.key});
+  const RegisterForm({super.key, this.hideLoginLink = false});
+
+  final bool hideLoginLink;
 
   @override
   State<RegisterForm> createState() => _RegisterFormState();
@@ -265,25 +267,28 @@ class _RegisterFormState extends State<RegisterForm> {
                     label: AppStrings.next.tr(),
                     onPressed: _register,
                   ),
-                  16.height,
-                  Center(
-                    child: ClickableTextWidget(
-                      textStyle: Theme.of(context).textTheme.labelSmall,
-                      clickableTextStyle: Theme.of(context)
-                          .textTheme
-                          .labelSmall!
-                          .copyWith(
-                              color: TaalaTokens.of(context).primary,
-                              decoration: TextDecoration.underline,
-                              decorationThickness: 1,
-                              decorationColor: TaalaTokens.of(context).primary),
-                      text: "  ${AppStrings.alreadyHaveAccount.tr()}  ",
-                      clickableText: AppStrings.login.tr(),
-                      onTap: () {
-                        context.pushReplacementNamed(Routes.login);
-                      },
+                  if (!widget.hideLoginLink) ...[
+                    16.height,
+                    Center(
+                      child: ClickableTextWidget(
+                        textStyle: Theme.of(context).textTheme.labelSmall,
+                        clickableTextStyle: Theme.of(context)
+                            .textTheme
+                            .labelSmall!
+                            .copyWith(
+                                color: TaalaTokens.of(context).primary,
+                                decoration: TextDecoration.underline,
+                                decorationThickness: 1,
+                                decorationColor:
+                                    TaalaTokens.of(context).primary),
+                        text: "  ${AppStrings.alreadyHaveAccount.tr()}  ",
+                        clickableText: AppStrings.login.tr(),
+                        onTap: () {
+                          context.pushReplacementNamed(Routes.login);
+                        },
+                      ),
                     ),
-                  ),
+                  ],
                   16.height,
                 ],
               ),

@@ -64,7 +64,8 @@ class ClientSettingsScreen extends StatelessWidget {
                   icon: Icons.person_add_alt_1_outlined,
                   iconColor: _teal,
                   iconBackgroundColor: _teal.withValues(alpha: 0.12),
-                  onTap: () => context.pushNamed(Routes.register),
+                  onTap: () =>
+                      context.pushNamed(Routes.register, extra: true),
                 ),
                 20.height,
               ] else ...[
