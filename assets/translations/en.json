@@ -285,6 +285,7 @@
   "clientUseGuestMap": "No account? Request help from the map",
   "browseAsGuest": "Browse as guest",
   "guestWelcomeBanner": "Welcome, guest",
+  "guestReturnToStart": "Back to start",
   "guestRegistrationRequiredTitle": "Registration required",
   "guestRegistrationRequiredMessage": "You need an account to continue. Go to registration?",
   "guestGoToRegister": "Register",

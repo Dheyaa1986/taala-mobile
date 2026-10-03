@@ -66,6 +66,14 @@ class ClientSettingsScreen extends StatelessWidget {
                   onTap: () =>
                       context.pushNamed(Routes.register, extra: true),
                 ),
+                10.height,
+                SettingsTile(
+                  title: AppStrings.guestReturnToStart.tr(),
+                  icon: Icons.home_outlined,
+                  iconColor: _blue,
+                  iconBackgroundColor: _blue.withValues(alpha: 0.12),
+                  onTap: () => GuestSessionHelper.returnToStart(context),
+                ),
                 20.height,
               ] else ...[
                 const ConversationHistoryPanel(),

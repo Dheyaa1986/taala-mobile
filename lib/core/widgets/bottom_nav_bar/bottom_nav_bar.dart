@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/guest/guest_welcome_banner.dart';
+import '../../../core/helpers/guest_session_helper.dart';
 import '../../../design_system/components/taala_bottom_nav.dart';
 import '../../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../dialog/exit_app_dialog.dart';
@@ -80,13 +81,19 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        if (!didPop && widget.shell.currentIndex != 0) {
+        if (didPop) return;
+        if (widget.shell.currentIndex != 0) {
           widget.shell.goBranch(0);
-        } else if (!didPop && widget.shell.currentIndex == 0) {
-          final bool shouldPop = await showExitAppDialog(context);
-          if (shouldPop) {
-            SystemNavigator.pop();
-          }
+          return;
+        }
+        if (await GuestSessionHelper.isGuestBrowsing()) {
+          if (!context.mounted) return;
+          await GuestSessionHelper.returnToStart(context);
+          return;
+        }
+        final bool shouldPop = await showExitAppDialog(context);
+        if (shouldPop) {
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(

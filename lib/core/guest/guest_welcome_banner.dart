@@ -50,6 +50,16 @@ class _GuestWelcomeBannerBody extends StatelessWidget {
                       ),
                 ),
               ),
+              TextButton(
+                onPressed: () => GuestSessionHelper.returnToStart(context),
+                child: Text(
+                  AppStrings.guestReturnToStart.tr(),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: tokens.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
             ],
           ),
         ),

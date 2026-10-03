@@ -309,6 +309,7 @@
   "clientUseGuestMap": "ليس لديك حساب؟ اطلب المساعدة من الخريطة",
   "browseAsGuest": "تصفح كزائر",
   "guestWelcomeBanner": "أهلًا بك زائر",
+  "guestReturnToStart": "العودة للبداية",
   "guestRegistrationRequiredTitle": "التسجيل مطلوب",
   "guestRegistrationRequiredMessage": "يجب إنشاء حساب للمتابعة. هل تريد الانتقال إلى صفحة التسجيل؟",
   "guestGoToRegister": "التسجيل",

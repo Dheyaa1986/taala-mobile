@@ -331,6 +331,7 @@ class AppStrings {
   static const String clientUseGuestMap = 'clientUseGuestMap';
   static const String browseAsGuest = 'browseAsGuest';
   static const String guestWelcomeBanner = 'guestWelcomeBanner';
+  static const String guestReturnToStart = 'guestReturnToStart';
   static const String guestRegistrationRequiredTitle =
       'guestRegistrationRequiredTitle';
   static const String guestRegistrationRequiredMessage =

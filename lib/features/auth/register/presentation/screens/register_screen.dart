@@ -15,7 +15,6 @@ class RegisterScreen extends StatefulWidget {
     this.hideLoginLink = false,
   });
 
-  /// Guest flows should register only — no email/password login shortcut.
   final bool hideLoginLink;
 
   @override

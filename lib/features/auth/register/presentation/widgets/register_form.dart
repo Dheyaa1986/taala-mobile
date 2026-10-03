@@ -267,8 +267,8 @@ class _RegisterFormState extends State<RegisterForm> {
                     label: AppStrings.next.tr(),
                     onPressed: _register,
                   ),
+                  16.height,
                   if (!widget.hideLoginLink) ...[
-                    16.height,
                     Center(
                       child: ClickableTextWidget(
                         textStyle: Theme.of(context).textTheme.labelSmall,
@@ -288,8 +288,8 @@ class _RegisterFormState extends State<RegisterForm> {
                         },
                       ),
                     ),
+                    16.height,
                   ],
-                  16.height,
                 ],
               ),
             ),
