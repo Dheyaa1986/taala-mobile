@@ -18,8 +18,10 @@ import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/offline/map_offline_manager.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/features/guest/presentation/widgets/guest_help_request_sheet.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
@@ -153,6 +155,19 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
 
   void _openLogin({bool? asProvider}) {
     context.pushNamed(Routes.login, extra: asProvider);
+  }
+
+  Future<void> _requestHelp({String? providerId}) async {
+    final location = PickedLocation(
+      latitude: _center.latitude,
+      longitude: _center.longitude,
+      address: _address,
+    );
+    await showGuestHelpRequestSheet(
+      context,
+      location: location,
+      providerId: providerId,
+    );
   }
 
   Future<void> _browseAsGuest() async {
@@ -360,7 +375,14 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     16.height,
                     TaalaButton(
                       label: AppStrings.requestHelp.tr(),
-                      onPressed: () {},
+                      onPressed: () => _requestHelp(),
+                      height: 48,
+                    ),
+                    12.height,
+                    TaalaButton(
+                      label: AppStrings.login.tr(),
+                      variant: TaalaButtonVariant.secondary,
+                      onPressed: () => _openLogin(asProvider: false),
                       height: 48,
                     ),
                     12.height,
@@ -431,6 +453,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                               _mapController.move(point, 15);
                             }
                           },
+                          onRequestHelp: () =>
+                              _requestHelp(providerId: provider.id),
                         ),
                       ),
                   ],
@@ -449,11 +473,13 @@ class _GuestProviderTile extends StatelessWidget {
     required this.provider,
     required this.isSelected,
     required this.onTap,
+    required this.onRequestHelp,
   });
 
   final ServiceProviderModel provider;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback onRequestHelp;
 
   @override
   Widget build(BuildContext context) {
@@ -531,7 +557,7 @@ class _GuestProviderTile extends StatelessWidget {
                             child: TaalaButton(
                               label: AppStrings.callShort.tr(),
                               height: 36,
-                              onPressed: () {},
+                              onPressed: onRequestHelp,
                             ),
                           ),
                           6.width,
@@ -540,7 +566,7 @@ class _GuestProviderTile extends StatelessWidget {
                               label: AppStrings.whatsapp.tr(),
                               variant: TaalaButtonVariant.secondary,
                               height: 36,
-                              onPressed: () {},
+                              onPressed: onRequestHelp,
                             ),
                           ),
                         ],
@@ -549,7 +575,7 @@ class _GuestProviderTile extends StatelessWidget {
                       TaalaButton(
                         label: AppStrings.requestHelp.tr(),
                         height: 36,
-                        onPressed: () {},
+                        onPressed: onRequestHelp,
                       ),
                     ],
                   ),

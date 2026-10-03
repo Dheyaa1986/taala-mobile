@@ -91,6 +91,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           await GuestSessionHelper.returnToStart(context);
           return;
         }
+        if (!context.mounted) return;
         final bool shouldPop = await showExitAppDialog(context);
         if (shouldPop) {
           SystemNavigator.pop();

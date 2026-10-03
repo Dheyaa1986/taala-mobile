@@ -245,14 +245,13 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                   ),
             ),
             24.height,
-            if (!_isGuest)
-              TaalaButton(
-                label: AppStrings.requestHelp.tr(),
-                onPressed: hasActiveOrder
-                    ? _showActiveOrderBlockedMessage
-                    : _openCreateOrder,
-                enabled: !hasActiveOrder,
-              ),
+            TaalaButton(
+              label: AppStrings.requestHelp.tr(),
+              onPressed: hasActiveOrder
+                  ? _showActiveOrderBlockedMessage
+                  : _openCreateOrder,
+              enabled: !hasActiveOrder,
+            ),
             if (widget.clientLocation != null) ...[
               24.height,
               Text(

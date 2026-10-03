@@ -16,33 +16,40 @@ class GuestActionGuard {
     final isGuest = await GuestSessionHelper.isGuestBrowsing();
     if (!isGuest) {
       if (context.mounted) {
-        context.pushNamed(Routes.login);
+        context.pushNamed(Routes.login, extra: false);
       }
       return false;
     }
 
     if (!context.mounted) return false;
 
-    final goRegister = await showDialog<bool>(
+    final choice = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(AppStrings.guestRegistrationRequiredTitle.tr()),
         content: Text(AppStrings.guestRegistrationRequiredMessage.tr()),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop('browse'),
             child: Text(AppStrings.guestContinueBrowsing.tr()),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop('login'),
+            child: Text(AppStrings.login.tr()),
+          ),
           FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop('register'),
             child: Text(AppStrings.guestGoToRegister.tr()),
           ),
         ],
       ),
     );
 
-    if (goRegister == true && context.mounted) {
+    if (!context.mounted) return false;
+    if (choice == 'register') {
       context.pushNamed(Routes.register, extra: true);
+    } else if (choice == 'login') {
+      context.pushNamed(Routes.login, extra: false);
     }
     return false;
   }
