@@ -21,7 +21,6 @@ import 'package:taal/features/profile/client/presentation/widgets/settings_theme
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/conversation_history_panel.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
-import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 
 class ClientSettingsScreen extends StatelessWidget {
   const ClientSettingsScreen({super.key});
@@ -95,18 +94,6 @@ class ClientSettingsScreen extends StatelessWidget {
                   if (!await GuestActionGuard.ensureRegistered(context)) return;
                   if (!context.mounted) return;
                   context.pushNamed(Routes.supportTickets);
-                },
-              ),
-              10.height,
-              SettingsTile(
-                title: AppStrings.submitSupportTicket,
-                icon: Icons.edit_note_outlined,
-                iconColor: _teal,
-                iconBackgroundColor: _teal.withValues(alpha: 0.12),
-                onTap: () async {
-                  if (!await GuestActionGuard.ensureRegistered(context)) return;
-                  if (!context.mounted) return;
-                  showSupportTicketSheet(context);
                 },
               ),
               10.height,

@@ -49,6 +49,13 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
     }
   }
 
+  Future<void> _openNewTicket() async {
+    await showSupportTicketSheet(context);
+    if (mounted) {
+      context.read<SupportTicketCubit>().loadTickets(reset: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,12 +63,8 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
         title: AppStrings.mySupportTickets.tr(),
         actions: [
           IconButton(
-            onPressed: () async {
-              await showSupportTicketSheet(context);
-              if (context.mounted) {
-                context.read<SupportTicketCubit>().loadTickets(reset: true);
-              }
-            },
+            tooltip: AppStrings.submitSupportTicket.tr(),
+            onPressed: _openNewTicket,
             icon: const Icon(Icons.add),
           ),
         ],
@@ -76,7 +79,26 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
           }
           if (state is SupportTicketsLoaded) {
             if (state.items.isEmpty) {
-              return Center(child: Text(AppStrings.noSupportTickets.tr()));
+              return Center(
+                child: Padding(
+                  padding: REdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AppStrings.noSupportTickets.tr(),
+                        textAlign: TextAlign.center,
+                      ),
+                      16.height,
+                      FilledButton.icon(
+                        onPressed: _openNewTicket,
+                        icon: const Icon(Icons.add),
+                        label: Text(AppStrings.submitSupportTicket.tr()),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
             return ListView.separated(
               padding: REdgeInsets.all(16),

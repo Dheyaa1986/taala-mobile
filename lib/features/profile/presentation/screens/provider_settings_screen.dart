@@ -19,13 +19,11 @@ import 'package:taal/features/profile/client/presentation/widgets/settings_theme
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/conversation_history_panel.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
-import 'package:taal/features/support/presentation/widgets/support_ticket_sheet.dart';
 
 class ProviderSettingsScreen extends StatelessWidget {
   const ProviderSettingsScreen({super.key});
 
   static const _purple = Color(0xFF7C4DFF);
-  static const _teal = Color(0xFF00897B);
   static const _amber = Color(0xFFF9A825);
   static const _orange = Color(0xFFFB8C00);
   static const _indigo = Color(0xFF3949AB);
@@ -67,14 +65,6 @@ class ProviderSettingsScreen extends StatelessWidget {
             iconColor: _purple,
             iconBackgroundColor: _purple.withValues(alpha: 0.12),
             onTap: () => context.pushNamed(Routes.supportTickets),
-          ),
-          10.height,
-          SettingsTile(
-            title: AppStrings.submitSupportTicket,
-            icon: Icons.edit_note_outlined,
-            iconColor: _teal,
-            iconBackgroundColor: _teal.withValues(alpha: 0.12),
-            onTap: () => showSupportTicketSheet(context),
           ),
           10.height,
           SettingsTile(
