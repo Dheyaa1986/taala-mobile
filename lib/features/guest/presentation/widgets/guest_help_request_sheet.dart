@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/alerts/alert_delivery_bootstrap.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/app_config/service_types_audience.dart';
@@ -13,6 +15,8 @@ import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/validations/validators.dart';
 import 'package:taal/design_system/components/taala_button.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
+import 'package:taal/core/widgets/texts/clickable_text_widget.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/password_field.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
@@ -170,6 +174,12 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(ApiErrorMessage.from(message))),
     );
+  }
+
+  void _openClientLogin() {
+    final router = GoRouter.of(context);
+    Navigator.of(context).pop();
+    router.pushNamed(Routes.login, extra: false);
   }
 
   void _showGuestHelpError(String message) {
@@ -567,9 +577,29 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 
   Widget _buildStepActions() {
     if (_step == 0) {
-      return TaalaButton(
-        label: AppStrings.continueKey.tr(),
-        onPressed: _continueContact,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TaalaButton(
+            label: AppStrings.continueKey.tr(),
+            onPressed: _continueContact,
+          ),
+          ClickableTextWidget(
+            text: '${AppStrings.alreadyHaveAccount.tr()}  ',
+            clickableText: AppStrings.login.tr(),
+            onTap: _openClientLogin,
+            textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: TaalaTokens.of(context).primary,
+                  fontWeight: FontWeight.w600,
+                ),
+            clickableTextStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: TaalaTokens.of(context).error,
+                  fontWeight: FontWeight.w700,
+                  decoration: TextDecoration.underline,
+                  decorationColor: TaalaTokens.of(context).error,
+                ),
+          ),
+        ],
       );
     }
 

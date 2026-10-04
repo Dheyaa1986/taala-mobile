@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -60,13 +61,18 @@ class PushNotificationService {
             AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.createNotificationChannel(
-      const AndroidNotificationChannel(
-        'taala_urgent_orders',
+      AndroidNotificationChannel(
+        'taala_urgent_orders_v2',
         'طلبات ورسائل عاجلة',
         description: 'تنبيهات الطلبات والرسائل',
         importance: Importance.max,
         playSound: true,
         enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 800]),
+        sound: const UriAndroidNotificationSound(
+          'content://settings/system/ringtone',
+        ),
+        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
       ),
     );
 
@@ -284,13 +290,18 @@ class PushNotificationService {
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'taala_urgent_orders',
+        'taala_urgent_orders_v2',
         'طلبات ورسائل عاجلة',
         channelDescription: 'تنبيهات الطلبات والرسائل',
         importance: Importance.max,
         priority: Priority.max,
         playSound: true,
         enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 500, 200, 500, 200, 800]),
+        sound: const UriAndroidNotificationSound(
+          'content://settings/system/ringtone',
+        ),
+        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
         category: AndroidNotificationCategory.message,
         visibility: NotificationVisibility.public,
       ),

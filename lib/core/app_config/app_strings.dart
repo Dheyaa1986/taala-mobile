@@ -395,6 +395,8 @@ class AppStrings {
   static const String arrived = 'arrived';
   static const String cancelOrder = 'cancelOrder';
   static const String cancelOrderConfirm = 'cancelOrderConfirm';
+  static const String selectProvidersToCompare = 'selectProvidersToCompare';
+  static const String quotesSentToProviders = 'quotesSentToProviders';
   static const String cancelOrderActiveHint = 'cancelOrderActiveHint';
   static const String confirmStillNeedService = 'confirmStillNeedService';
   static const String confirmStillNeedServiceHint = 'confirmStillNeedServiceHint';

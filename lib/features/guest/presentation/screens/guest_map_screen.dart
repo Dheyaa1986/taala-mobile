@@ -25,6 +25,7 @@ import 'package:taal/features/guest/presentation/widgets/guest_help_request_shee
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/widgets/svg_image/lang_popup.dart';
+import 'package:taal/core/widgets/texts/clickable_text_widget.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_map_point.dart';
 import 'package:taal/features/home/client/data/model/service_provider_model/service_provider_model.dart';
 import 'package:taal/features/home/client/data/repository/providers_repository.dart';
@@ -334,26 +335,26 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
                   boxShadow: TaalaShadows.soft(Theme.of(context).brightness),
                 ),
-                child: ListView(
-                  controller: scrollController,
-                  padding: REdgeInsets.fromLTRB(
-                    16,
-                    12,
-                    16,
-                    24 + context.safeBottomInset,
-                  ),
+                child: Column(
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40.w,
-                        height: 4.h,
-                        decoration: BoxDecoration(
-                          color: tokens.borderSubtle,
-                          borderRadius: BorderRadius.circular(4.r),
+                    Padding(
+                      padding: REdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: Center(
+                        child: Container(
+                          width: 40.w,
+                          height: 4.h,
+                          decoration: BoxDecoration(
+                            color: tokens.borderSubtle,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
                         ),
                       ),
                     ),
-                    16.height,
+                    Expanded(
+                      child: ListView(
+                        controller: scrollController,
+                        padding: REdgeInsets.fromLTRB(16, 16, 16, 8),
+                        children: [
                     Text(
                       AppStrings.guestMapTitle.tr(),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -376,13 +377,6 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                     TaalaButton(
                       label: AppStrings.requestHelp.tr(),
                       onPressed: () => _requestHelp(),
-                      height: 48,
-                    ),
-                    12.height,
-                    TaalaButton(
-                      label: AppStrings.login.tr(),
-                      variant: TaalaButtonVariant.secondary,
-                      onPressed: () => _openLogin(asProvider: false),
                       height: 48,
                     ),
                     12.height,
@@ -457,6 +451,35 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                               _requestHelp(providerId: provider.id),
                         ),
                       ),
+                  ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16.w,
+                        0,
+                        16.w,
+                        8.h + context.safeBottomInset,
+                      ),
+                      child: ClickableTextWidget(
+                        text: '${AppStrings.alreadyHaveAccount.tr()}  ',
+                        clickableText: AppStrings.login.tr(),
+                        onTap: () => _openLogin(asProvider: false),
+                        textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: tokens.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                        clickableTextStyle: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(
+                              color: tokens.error,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                              decorationColor: tokens.error,
+                            ),
+                      ),
+                    ),
                   ],
                 ),
               );

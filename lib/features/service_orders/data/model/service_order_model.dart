@@ -48,7 +48,9 @@ class ServiceOrderModel {
   final double? distanceKm;
   final int? etaMinutes;
   final String? providerName;
+  final String? providerPhone;
   final String? clientName;
+  final String? clientPhone;
   final ServiceTypeModel? serviceType;
   final List<ServiceOrderMessageModel> messages;
 
@@ -71,7 +73,9 @@ class ServiceOrderModel {
     this.distanceKm,
     this.etaMinutes,
     this.providerName,
+    this.providerPhone,
     this.clientName,
+    this.clientPhone,
     this.serviceType,
     this.messages = const [],
   });
@@ -105,7 +109,9 @@ class ServiceOrderModel {
       distanceKm: ApiResponseHelper.parseDouble(json['distanceKm']),
       etaMinutes: ApiResponseHelper.parseInt(json['etaMinutes']),
       providerName: json['provider']?['name']?.toString(),
+      providerPhone: json['provider']?['phone']?.toString(),
       clientName: json['client']?['name']?.toString(),
+      clientPhone: json['client']?['phone']?.toString(),
       serviceType: json['serviceType'] != null
           ? ServiceTypeModel.fromJson(
               json['serviceType'] as Map<String, dynamic>,

@@ -422,32 +422,20 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
 
   bool _isPriceLocked(ServiceOrderModel order) => order.priceLockedAt != null;
 
-  bool _canClientCancelBecauseProviderNotMoving(ServiceOrderModel order) =>
-      !_isProvider &&
-      _isPriceLocked(order) &&
-      order.status == 'accepted' &&
-      order.providerEnRouteAt == null;
+  bool _canCancelOrder(ServiceOrderModel? order) =>
+      order != null &&
+      order.status != 'cancelled' &&
+      order.status != 'completed';
 
   Future<void> _confirmCancelOrder() async {
     final order = _order;
-    if (order != null &&
-        order.priceLockedAt != null &&
-        order.providerEnRouteAt != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.cancelOrderActiveHint.tr())),
-      );
-      return;
-    }
+    if (!_canCancelOrder(order)) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppStrings.cancelOrder.tr()),
-        content: Text(
-          order != null && _canClientCancelBecauseProviderNotMoving(order)
-              ? AppStrings.cancelOnlyIfProviderNotMoving.tr()
-              : AppStrings.cancelOrderConfirm.tr(),
-        ),
+        content: Text(AppStrings.cancelOrderConfirm.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -488,22 +476,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       ),
     );
     return confirmed == true;
-  }
-
-  Future<void> _confirmClientReady() async {
-    final loc = await getIt<DeviceLocationService>().getCurrentLocation();
-    final result = await _repository.confirmClientReady(
-      orderId: widget.orderId,
-      clientLatitude: loc?.latitude,
-      clientLongitude: loc?.longitude,
-    );
-    if (!mounted) return;
-    result.fold(
-      (error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      ),
-      (order) => setState(() => _order = order),
-    );
   }
 
   Future<void> _performAction(String action, {bool terminal = true}) async {
@@ -701,10 +673,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     }
 
     await _updateStatus('accepted');
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.confirmStillNeedServiceHint.tr())),
-    );
   }
 
   String _statusLabel(String? status) {
@@ -799,6 +767,35 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                             ),
                           ),
                         ],
+                        if (_isProvider &&
+                            canChat &&
+                            (order.clientPhone ?? '').trim().isNotEmpty) ...[
+                          12.height,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TaalaButton(
+                                  label: AppStrings.callShort.tr(),
+                                  height: 40,
+                                  onPressed: () => getIt<CustomLauncher>().call(
+                                    order.clientPhone!,
+                                    order.clientName ?? '',
+                                  ),
+                                ),
+                              ),
+                              8.width,
+                              Expanded(
+                                child: TaalaButton(
+                                  label: AppStrings.whatsapp.tr(),
+                                  variant: TaalaButtonVariant.secondary,
+                                  height: 40,
+                                  onPressed: () => getIt<CustomLauncher>()
+                                      .openWhatsApp(order.clientPhone!),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -879,24 +876,30 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                 if (_isProvider &&
                     order != null &&
                     order.status == 'accepted' &&
-                    order.clientReadyAt == null)
+                    !_canOpenInAppNavigation(order))
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      AppStrings.waitForClientReady.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: TaalaTokens.of(context).textSecondary,
-                        height: 1.4,
-                      ),
+                    child: TaalaButton(
+                      label: AppStrings.startTrip.tr(),
+                      onPressed: () => _updateStatus('en_route'),
+                    ),
+                  ),
+                if (_isProvider &&
+                    order != null &&
+                    order.status == 'en_route' &&
+                    !_canOpenInAppNavigation(order))
+                  Padding(
+                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    child: TaalaButton(
+                      label: AppStrings.arrived.tr(),
+                      onPressed: () =>
+                          unawaited(_markArrivedAtBreakdown(order)),
                     ),
                   ),
                 if (_isProvider &&
                     order != null &&
                     _canOpenInAppNavigation(order) &&
-                    ((order.status == 'accepted' && order.clientReadyAt != null) ||
-                        order.status == 'en_route'))
+                    (order.status == 'accepted' || order.status == 'en_route'))
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),
                     child: Column(
@@ -957,29 +960,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                           onPressed: () => _openWazeNavigation(order),
                         ),
                       ],
-                    ),
-                  ),
-                if (_isProvider &&
-                    order != null &&
-                    _isPriceLocked(order) &&
-                    (order.status == 'accepted' ||
-                        order.status == 'en_route' ||
-                        order.status == 'arrived'))
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: TaalaButton(
-                      label: AppStrings.vehicleBreakdown.tr(),
-                      variant: TaalaButtonVariant.secondary,
-                      onPressed: () async {
-                        final ok = await _confirmActionDialog(
-                          titleKey: AppStrings.vehicleBreakdown,
-                          bodyKey: AppStrings.vehicleBreakdownConfirm,
-                          confirmKey: AppStrings.vehicleBreakdown,
-                        );
-                        if (ok && mounted) {
-                          await _performAction('vehicle_breakdown');
-                        }
-                      },
                     ),
                   ),
                 if (_isProvider &&
@@ -1102,117 +1082,15 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                     ),
                   ],
                 ],
-                if (!_isProvider &&
-                    order != null &&
-                    _isPriceLocked(order) &&
-                    order.status == 'accepted' &&
-                    order.clientReadyAt == null) ...[
+                if (_canCancelOrder(order) && order?.status != 'pending')
                   Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      AppStrings.confirmStillNeedServiceHint.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: TaalaTokens.of(context).textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                  12.height,
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: TaalaButton(
-                      label: AppStrings.confirmStillNeedService.tr(),
-                      onPressed: _confirmClientReady,
-                    ),
-                  ),
-                  8.height,
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: TaalaButton(
-                      label: AppStrings.problemSolved.tr(),
-                      variant: TaalaButtonVariant.secondary,
-                      onPressed: () async {
-                        final ok = await _confirmActionDialog(
-                          titleKey: AppStrings.problemSolved,
-                          bodyKey: AppStrings.problemSolvedConfirm,
-                          confirmKey: AppStrings.problemSolved,
-                        );
-                        if (ok && mounted) {
-                          await _performAction('problem_solved');
-                        }
-                      },
-                    ),
-                  ),
-                ],
-                if (!_isProvider &&
-                    order != null &&
-                    _canClientCancelBecauseProviderNotMoving(order)) ...[
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      AppStrings.cancelOnlyIfProviderNotMoving.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: TaalaTokens.of(context).textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                  12.height,
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
+                    padding: REdgeInsets.fromLTRB(12, 8, 12, 0),
                     child: TaalaButton(
                       label: AppStrings.cancelOrder.tr(),
                       variant: TaalaButtonVariant.secondary,
                       onPressed: _confirmCancelOrder,
                     ),
                   ),
-                  8.height,
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: TaalaButton(
-                      label: AppStrings.problemSolved.tr(),
-                      variant: TaalaButtonVariant.secondary,
-                      onPressed: () async {
-                        final ok = await _confirmActionDialog(
-                          titleKey: AppStrings.problemSolved,
-                          bodyKey: AppStrings.problemSolvedConfirm,
-                          confirmKey: AppStrings.problemSolved,
-                        );
-                        if (ok && mounted) {
-                          await _performAction('problem_solved');
-                        }
-                      },
-                    ),
-                  ),
-                ],
-                if (!_isProvider &&
-                    order != null &&
-                    _isPriceLocked(order) &&
-                    (order.status == 'accepted' || order.status == 'en_route') &&
-                    order.clientReadyAt != null &&
-                    order.providerEnRouteAt != null) ...[
-                  Padding(
-                    padding: REdgeInsets.symmetric(horizontal: 12),
-                    child: TaalaButton(
-                      label: AppStrings.problemSolved.tr(),
-                      variant: TaalaButtonVariant.secondary,
-                      onPressed: () async {
-                        final ok = await _confirmActionDialog(
-                          titleKey: AppStrings.problemSolved,
-                          bodyKey: AppStrings.problemSolvedConfirm,
-                          confirmKey: AppStrings.problemSolved,
-                        );
-                        if (ok && mounted) {
-                          await _performAction('problem_solved');
-                        }
-                      },
-                    ),
-                  ),
-                ],
                 if (_isProvider && order?.status == 'arrived')
                   Padding(
                     padding: REdgeInsets.symmetric(horizontal: 12),

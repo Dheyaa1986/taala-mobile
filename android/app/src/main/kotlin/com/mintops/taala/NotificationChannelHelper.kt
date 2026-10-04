@@ -9,7 +9,10 @@ import android.os.Build
 import android.provider.Settings
 
 object NotificationChannelHelper {
-    const val URGENT_CHANNEL_ID = "taala_urgent_orders"
+    const val URGENT_CHANNEL_ID = "taala_urgent_orders_v2"
+    private const val LEGACY_CHANNEL_ID = "taala_urgent_orders"
+
+    private val vibrationPattern = longArrayOf(0, 500, 200, 500, 200, 800)
 
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -17,30 +20,27 @@ object NotificationChannelHelper {
         val manager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+
+        val ringtoneAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
         val urgent = NotificationChannel(
             URGENT_CHANNEL_ID,
             "طلبات ورسائل عاجلة",
-            NotificationManager.IMPORTANCE_HIGH,
+            NotificationManager.IMPORTANCE_MAX,
         ).apply {
             description = "تنبيهات الطلبات والرسائل — مثل المكالمة"
             enableVibration(true)
-            vibrationPattern = longArrayOf(0, 300, 120, 300, 120, 400)
+            setVibrationPattern(this@NotificationChannelHelper.vibrationPattern)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setShowBadge(true)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 setAllowBubbles(true)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                setBypassDnd(true)
-            }
-            val soundUri = Settings.System.DEFAULT_NOTIFICATION_URI
-            setSound(
-                soundUri,
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-            )
+            setSound(Settings.System.DEFAULT_RINGTONE_URI, ringtoneAttributes)
         }
 
         manager.createNotificationChannel(urgent)

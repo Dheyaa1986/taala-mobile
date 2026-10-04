@@ -4,6 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/routes.dart';
+import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/service_orders/data/model/service_order_model.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
@@ -70,6 +73,9 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
   bool _submitting = false;
   bool _highlightServiceStep = false;
   bool _skippedDepartureStep = false;
+  List<ServiceProviderModel> _nearbyProviders = [];
+  final Set<String> _selectedProviderIds = {};
+  bool _loadingProviders = false;
 
   ServiceProviderModel? get _presetProvider => widget.args?.provider;
 
@@ -118,6 +124,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         _skippedDepartureStep = true;
         _highlightServiceStep = true;
       });
+      unawaited(_loadNearbyProviders());
     }
   }
 
@@ -142,11 +149,14 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         _loadingCatalog = false;
         _catalogError = error.message;
       }),
-      (data) => setState(() {
-        _catalog = data;
-        _loadingCatalog = false;
-        _catalogError = null;
-      }),
+      (data) {
+        setState(() {
+          _catalog = data;
+          _loadingCatalog = false;
+          _catalogError = null;
+        });
+        unawaited(_loadNearbyProviders());
+      },
     );
   }
 
@@ -157,6 +167,50 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       }
     }
     return null;
+  }
+
+  Future<void> _loadNearbyProviders() async {
+    final typeId = _selectedServiceTypeId;
+    final location = _clientLocation;
+    if (typeId == null || location == null) return;
+
+    setState(() => _loadingProviders = true);
+    final profileResult = await getIt<ProfileRepository>().getMyProfile();
+    final clientId = profileResult.fold((_) => null, (p) => p.id);
+    if (!mounted) return;
+    if (clientId == null) {
+      setState(() => _loadingProviders = false);
+      return;
+    }
+
+    final result = await getIt<ProviderRepository>().getProviders(
+      clientId: clientId,
+      options: ProvidersPaginationOptions(
+        page: 1,
+        limit: 15,
+        filter: FilterProvidersModel(
+          serviceTypeId: typeId,
+          active: true,
+        ),
+        clientLatitude: location.latitude,
+        clientLongitude: location.longitude,
+      ),
+    );
+    if (!mounted) return;
+    result.fold(
+      (_) => setState(() => _loadingProviders = false),
+      (providers) {
+        final presetId = _presetProvider?.id;
+        setState(() {
+          _nearbyProviders = providers;
+          if (presetId != null &&
+              providers.any((provider) => provider.id == presetId)) {
+            _selectedProviderIds.add(presetId);
+          }
+          _loadingProviders = false;
+        });
+      },
+    );
   }
 
   Future<void> _onDepartureConfirmed(PickedLocation location) async {
@@ -177,6 +231,7 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       _step = _stepService;
       _highlightServiceStep = true;
     });
+    unawaited(_loadNearbyProviders());
   }
 
   Future<void> _onDestinationConfirmed(PickedLocation location) async {
@@ -294,82 +349,82 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
         ? AppStrings.chatRequestDefault.tr()
         : description;
 
-    ServiceProviderModel? selectedProvider = _presetProvider;
-
-    if (selectedProvider == null) {
-      final profileResult = await getIt<ProfileRepository>().getMyProfile();
-      final clientId = profileResult.fold((_) => null, (p) => p.id);
-      if (clientId == null) {
-        if (!mounted) return;
-        setState(() => _submitting = false);
-        AppMessages.showError(context, AppStrings.loginRequiredForHelp.tr());
-        return;
-      }
-
-      final providersResult = await getIt<ProviderRepository>().getProviders(
-        clientId: clientId,
-        options: ProvidersPaginationOptions(
-          page: 1,
-          limit: 1,
-          filter: FilterProvidersModel(
-            serviceTypeId: _selectedServiceTypeId,
-            active: true,
-          ),
-          clientLatitude: client.latitude,
-          clientLongitude: client.longitude,
-        ),
-      );
-
+    final providerIds = _selectedProviderIds
+        .where((id) => id.trim().isNotEmpty)
+        .toList();
+    if (providerIds.isEmpty && _presetProvider?.id != null) {
+      providerIds.add(_presetProvider!.id!);
+    }
+    if (providerIds.isEmpty && _nearbyProviders.isNotEmpty) {
       if (!mounted) return;
-
-      selectedProvider = providersResult.fold(
-        (_) => null,
-        (providers) => providers.isEmpty ? null : providers.first,
-      );
+      setState(() => _submitting = false);
+      AppMessages.showError(context, AppStrings.selectProvidersToCompare.tr());
+      return;
     }
 
-    final providerId = selectedProvider?.id?.trim();
+    final createdOrders = <ServiceOrderModel>[];
+    String? lastError;
+    final idsToCreate = providerIds.isEmpty ? <String?>[null] : providerIds;
 
-    final createResult = await getIt<ServiceOrderRepository>().createOrder(
-      serviceTypeId: _selectedServiceTypeId!,
-      description: orderDescription,
-      providerId: (providerId == null || providerId.isEmpty) ? null : providerId,
-      clientAddress: client.address,
-      clientLatitude: client.latitude,
-      clientLongitude: client.longitude,
-      destinationAddress: destination?.address,
-      destinationLatitude: destination?.latitude,
-      destinationLongitude: destination?.longitude,
-      visitType: _visitType,
-    );
+    for (final providerId in idsToCreate) {
+      final createResult = await getIt<ServiceOrderRepository>().createOrder(
+        serviceTypeId: _selectedServiceTypeId!,
+        description: orderDescription,
+        providerId: providerId,
+        clientAddress: client.address,
+        clientLatitude: client.latitude,
+        clientLongitude: client.longitude,
+        destinationAddress: destination?.address,
+        destinationLatitude: destination?.latitude,
+        destinationLongitude: destination?.longitude,
+        visitType: _visitType,
+      );
+      if (!mounted) return;
+      createResult.fold(
+        (error) => lastError = error.message,
+        createdOrders.add,
+      );
+    }
 
     if (!mounted) return;
     setState(() => _submitting = false);
 
-    createResult.fold(
-      (error) {
-        if (error.message.contains('ملفك')) {
-          ClientProfileGuard.ensureReadyForNewOrder(context);
-          return;
-        }
-        AppMessages.showError(context, error.message);
-      },
-      (order) {
-        final orderId = order.id;
-        if (orderId == null || orderId.isEmpty) {
-          AppMessages.showError(context, AppStrings.chatOpenFailed.tr());
-          return;
-        }
-        getIt<ActiveOrderRefreshNotifier>().notifyChanged();
-        setState(() {
-          _trackingOrderId = orderId;
-          _trackingOrder = order;
-          _step = _stepTracking;
-        });
-        _startTrackingPoll(orderId);
-        AppMessages.showSuccess(context, AppStrings.orderSubmittedTrackOnMap.tr());
-      },
-    );
+    if (createdOrders.isEmpty) {
+      final message = lastError ?? AppStrings.chatOpenFailed.tr();
+      if (message.contains('ملفك')) {
+        ClientProfileGuard.ensureReadyForNewOrder(context);
+        return;
+      }
+      AppMessages.showError(context, message);
+      return;
+    }
+
+    getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+    if (createdOrders.length > 1) {
+      AppMessages.showSuccess(
+        context,
+        AppStrings.quotesSentToProviders.tr(
+          namedArgs: {'count': '${createdOrders.length}'},
+        ),
+      );
+      if (!mounted) return;
+      context.goNamed(Routes.serviceOrders);
+      return;
+    }
+
+    final order = createdOrders.first;
+    final orderId = order.id;
+    if (orderId == null || orderId.isEmpty) {
+      AppMessages.showError(context, AppStrings.chatOpenFailed.tr());
+      return;
+    }
+    setState(() {
+      _trackingOrderId = orderId;
+      _trackingOrder = order;
+      _step = _stepTracking;
+    });
+    _startTrackingPoll(orderId);
+    AppMessages.showSuccess(context, AppStrings.orderSubmittedTrackOnMap.tr());
   }
 
   void _startTrackingPoll(String orderId) {
@@ -669,7 +724,10 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
               onChanged: (ids) {
                 setState(() {
                   _selectedServiceTypeId = ids.isEmpty ? null : ids.first;
+                  _selectedProviderIds.clear();
+                  _nearbyProviders = [];
                 });
+                unawaited(_loadNearbyProviders());
               },
             )
           else ...[
@@ -692,6 +750,52 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             hint: AppStrings.enterDescription.tr(),
             maxLines: 3,
           ),
+          20.height,
+          Text(
+            AppStrings.selectProvidersToCompare.tr(),
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+          ),
+          8.height,
+          if (_loadingProviders)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_nearbyProviders.isEmpty)
+            Text(
+              AppStrings.noProvidersNearby.tr(),
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: TaalaTokens.of(context).textSecondary,
+              ),
+            )
+          else
+            ..._nearbyProviders.map((provider) {
+              final id = provider.id;
+              if (id == null) return const SizedBox.shrink();
+              final selected = _selectedProviderIds.contains(id);
+              return CheckboxListTile(
+                value: selected,
+                contentPadding: EdgeInsets.zero,
+                title: Text(provider.name ?? ''),
+                subtitle: Text(
+                  [
+                    if (provider.distanceKm != null)
+                      '${provider.distanceKm!.toStringAsFixed(1)} ${AppStrings.distanceKm.tr()}',
+                    ...provider.services.take(2),
+                  ].join(' • '),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    if (value == true) {
+                      _selectedProviderIds.add(id);
+                    } else {
+                      _selectedProviderIds.remove(id);
+                    }
+                  });
+                },
+              );
+            }),
           28.height,
           TaalaButton(
             label: _needsDestinationStep

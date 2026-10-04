@@ -1,4 +1,3 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -6,12 +5,6 @@ import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:vibration/vibration.dart';
 
 class AppAlertSoundService {
-  AppAlertSoundService() {
-    _player.setReleaseMode(ReleaseMode.stop);
-    _player.setPlayerMode(PlayerMode.mediaPlayer);
-  }
-
-  final AudioPlayer _player = AudioPlayer();
   DateTime? _lastPlayedAt;
 
   bool get isEnabled {
@@ -71,12 +64,7 @@ class AppAlertSoundService {
 
   Future<void> _playSound() async {
     try {
-      await _player.stop();
-      await _player.setVolume(1.0);
-      await _player.play(
-        AssetSource('sounds/notification.wav'),
-        volume: volume,
-      );
+      await SystemSound.play(SystemSoundType.alert);
     } catch (_) {}
   }
 
@@ -87,12 +75,12 @@ class AppAlertSoundService {
         final hasAmplitude = await Vibration.hasAmplitudeControl();
         if (hasAmplitude == true) {
           await Vibration.vibrate(
-            pattern: [0, 220, 90, 280, 90, 320],
+            pattern: [0, 500, 200, 500, 200, 800],
             intensities: [0, 255, 0, 255, 0, 255],
           );
         } else {
           await Vibration.vibrate(
-            pattern: [0, 220, 90, 280, 90, 320],
+            pattern: [0, 500, 200, 500, 200, 800],
           );
         }
         return;
@@ -100,11 +88,11 @@ class AppAlertSoundService {
     } catch (_) {}
 
     await HapticFeedback.heavyImpact();
-    await Future<void>.delayed(const Duration(milliseconds: 120));
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    await HapticFeedback.heavyImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 180));
     await HapticFeedback.heavyImpact();
   }
 
-  Future<void> dispose() async {
-    await _player.dispose();
-  }
+  Future<void> dispose() async {}
 }
