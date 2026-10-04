@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
+import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/core/di/service_locator.dart';
@@ -24,7 +25,6 @@ import 'package:taal/features/service_orders/data/model/service_order_model.dart
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 import 'package:taal/features/service_orders/presentation/helpers/active_order_refresh_notifier.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
-import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 import 'package:taal/core/guest/guest_action_guard.dart';
 import 'package:taal/core/helpers/guest_session_helper.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
@@ -97,14 +97,26 @@ class _ClientHomeBody extends StatefulWidget {
 }
 
 class _ClientHomeBodyState extends State<_ClientHomeBody> {
-  ServiceOrderModel? _activeOrder;
+  List<ServiceOrderModel> _liveOrders = [];
   final _activeOrderRefresh = getIt<ActiveOrderRefreshNotifier>();
+  late final AppAlertMonitor _alertMonitor;
   bool _isGuest = false;
+
+  bool _isBlockingStatus(String? status) =>
+      status == 'accepted' || status == 'en_route' || status == 'arrived';
+
+  bool _isLiveStatus(String? status) =>
+      status == 'pending' || _isBlockingStatus(status);
+
+  bool get _hasBlockingOrder =>
+      _liveOrders.any((order) => _isBlockingStatus(order.status));
 
   @override
   void initState() {
     super.initState();
-    _activeOrderRefresh.addListener(_loadActiveOrder);
+    _alertMonitor = getIt<AppAlertMonitor>();
+    _activeOrderRefresh.addListener(_loadLiveOrders);
+    _alertMonitor.ordersRefreshTick.addListener(_loadLiveOrders);
     _bootstrap();
   }
 
@@ -113,14 +125,15 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
     if (!mounted) return;
     setState(() => _isGuest = isGuest);
     if (!isGuest) {
-      _loadActiveOrder();
+      _loadLiveOrders();
     }
     _loadProvidersIfNeeded(widget.clientLocation);
   }
 
   @override
   void dispose() {
-    _activeOrderRefresh.removeListener(_loadActiveOrder);
+    _activeOrderRefresh.removeListener(_loadLiveOrders);
+    _alertMonitor.ordersRefreshTick.removeListener(_loadLiveOrders);
     super.dispose();
   }
 
@@ -132,12 +145,15 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
     }
   }
 
-  Future<void> _loadActiveOrder() async {
-    final result = await getIt<ServiceOrderRepository>().getActiveOrder();
+  Future<void> _loadLiveOrders() async {
+    final result = await getIt<ServiceOrderRepository>().getMyOrders(limit: 30);
     if (!mounted) return;
     result.fold(
-      (_) => setState(() => _activeOrder = null),
-      (order) => setState(() => _activeOrder = order),
+      (_) => setState(() => _liveOrders = []),
+      (orders) => setState(
+        () => _liveOrders =
+            orders.where((order) => _isLiveStatus(order.status)).toList(),
+      ),
     );
   }
 
@@ -160,17 +176,60 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
 
   Future<void> _openCreateOrder() async {
     if (!await GuestActionGuard.ensureRegistered(context)) return;
+    if (!mounted) return;
     await context.pushNamed(Routes.createServiceOrder);
     if (!mounted) return;
+    await _loadLiveOrders();
     final saved = await OrderLocationPrefs.readClient(getIt<SharedPref>());
     if (saved != null) {
       widget.onLocationLoaded(saved);
     }
   }
 
+  Future<void> _openLiveOrder(
+    ServiceOrderModel order, {
+    bool openChat = false,
+  }) async {
+    final id = order.id;
+    if (id == null) return;
+    await context.pushNamed(
+      Routes.serviceOrderDetail,
+      pathParameters: {'id': id},
+      extra: openChat,
+    );
+    if (!mounted) return;
+    await _loadLiveOrders();
+  }
+
+  String _liveOrderTitle(ServiceOrderModel order) {
+    if (order.status == 'pending') {
+      if (order.agreedPrice == null) {
+        return AppStrings.waitForProviderPrice.tr();
+      }
+      return '${AppStrings.proposedPrice.tr()}: ${order.agreedPrice}';
+    }
+    if (order.status == 'en_route' || order.status == 'arrived') {
+      return AppStrings.trackProviderOnMap.tr();
+    }
+    return AppStrings.approveOrderMapHint.tr();
+  }
+
+  String _liveOrderAction(ServiceOrderModel order) {
+    if (order.status == 'pending' && order.agreedPrice != null) {
+      return AppStrings.approveOrder.tr();
+    }
+    if (order.status == 'pending') {
+      return AppStrings.openActiveOrder.tr();
+    }
+    if (order.status == 'arrived') {
+      return AppStrings.completeOrder.tr();
+    }
+    return AppStrings.trackLiveOrder.tr();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasActiveOrder = _activeOrder?.id != null;
+    final hasBlockingOrder = _hasBlockingOrder;
     final tokens = TaalaTokens.of(context);
 
     return Scaffold(
@@ -203,31 +262,53 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (hasActiveOrder && !_isGuest) ...[
-              YellowHighlightCard(
-                isHighlighted: true,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      AppStrings.activeOrderBlockingSearch.tr(),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: tokens.textPrimary,
+            if (_liveOrders.isNotEmpty && !_isGuest) ...[
+              ..._liveOrders.map(
+                (order) => Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: YellowHighlightCard(
+                    isHighlighted: true,
+                    onTap: () => _openLiveOrder(
+                      order,
+                      openChat: order.status != 'pending',
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          order.providerName ??
+                              order.serviceType?.name ??
+                              AppStrings.serviceOrder.tr(),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: tokens.textPrimary,
+                                  ),
+                        ),
+                        6.height,
+                        Text(
+                          _liveOrderTitle(order),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: tokens.textSecondary,
+                                    height: 1.4,
+                                  ),
+                        ),
+                        12.height,
+                        TaalaButton(
+                          label: _liveOrderAction(order),
+                          onPressed: () => _openLiveOrder(
+                            order,
+                            openChat: order.status != 'pending' ||
+                                order.agreedPrice != null,
                           ),
+                        ),
+                      ],
                     ),
-                    12.height,
-                    TaalaButton(
-                      label: AppStrings.openActiveOrder.tr(),
-                      onPressed: () => ServiceOrderNavigation.openDetail(
-                        _activeOrder!.id!,
-                        openChat: true,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              20.height,
+              8.height,
             ],
             Text(
               AppStrings.clientHomeWelcome.tr(),
@@ -247,10 +328,10 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
             24.height,
             TaalaButton(
               label: AppStrings.requestHelp.tr(),
-              onPressed: hasActiveOrder
+              onPressed: hasBlockingOrder
                   ? _showActiveOrderBlockedMessage
                   : _openCreateOrder,
-              enabled: !hasActiveOrder,
+              enabled: !hasBlockingOrder,
             ),
             if (widget.clientLocation != null) ...[
               24.height,
@@ -295,7 +376,7 @@ class _ClientHomeBodyState extends State<_ClientHomeBody> {
                               padding: EdgeInsets.only(bottom: 12.h),
                               child: ServiceProviderCard(
                                 model: provider,
-                                canStartOrder: !hasActiveOrder,
+                                canStartOrder: !hasBlockingOrder,
                                 browseOnly: _isGuest,
                               ),
                             ),

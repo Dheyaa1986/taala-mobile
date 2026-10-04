@@ -448,6 +448,32 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
     });
   }
 
+  Future<void> _updateTrackingStatus(String status) async {
+    final orderId = _trackingOrderId;
+    if (orderId == null) return;
+    final result = await getIt<ServiceOrderRepository>().updateStatus(
+      orderId: orderId,
+      status: status,
+    );
+    if (!mounted) return;
+    result.fold(
+      (error) => AppMessages.showError(context, error.message),
+      (order) {
+        setState(() => _trackingOrder = order);
+        getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+        if (status == 'accepted') {
+          AppMessages.showSuccess(
+            context,
+            AppStrings.orderApprovedLaunchMap.tr(),
+          );
+        }
+        if (status == 'completed' || status == 'cancelled') {
+          context.pop();
+        }
+      },
+    );
+  }
+
   String _stepTitle() {
     switch (_step) {
       case _stepDeparture:
@@ -457,7 +483,25 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
       case _stepDestination:
         return AppStrings.orderStepDestination.tr();
       default:
+        return AppStrings.trackLiveOrder.tr();
+    }
+  }
+
+  String _trackingHeadline(ServiceOrderModel? order) {
+    switch (order?.status) {
+      case 'accepted':
+        return AppStrings.approveOrderMapHint.tr();
+      case 'en_route':
         return AppStrings.trackProviderOnMap.tr();
+      case 'arrived':
+        return AppStrings.orderStatusArrived.tr();
+      case 'completed':
+        return AppStrings.orderStatusCompleted.tr();
+      default:
+        if (order?.agreedPrice != null) {
+          return AppStrings.proposedPrice.tr();
+        }
+        return AppStrings.waitForProviderPrice.tr();
     }
   }
 
@@ -575,17 +619,27 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
             12 + context.safeBottomInset,
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                providerLat == null
-                    ? AppStrings.orderTrackingWaitingProvider.tr()
-                    : AppStrings.trackProviderOnMap.tr(),
+                _trackingHeadline(order),
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              if (order?.agreedPrice != null) ...[
+                6.height,
+                Text(
+                  '${AppStrings.proposedPrice.tr()}: ${order!.agreedPrice}',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              ],
               if (_trackingInfo?.etaMinutes != null) ...[
                 6.height,
                 Text(
@@ -598,8 +652,41 @@ class _CreateServiceOrderScreenState extends State<CreateServiceOrderScreen> {
                 ),
               ],
               12.height,
+              if (order?.status == 'pending' && order?.agreedPrice == null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: Text(
+                    AppStrings.waitForProviderPrice.tr(),
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      height: 1.4,
+                      color: TaalaTokens.of(context).textSecondary,
+                    ),
+                  ),
+                ),
+              if (order?.status == 'pending' && order?.agreedPrice != null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: TaalaButton(
+                    label: AppStrings.approveOrder.tr(),
+                    onPressed: () => _updateTrackingStatus('accepted'),
+                    height: 48,
+                  ),
+                ),
+              if (order?.status == 'arrived')
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: TaalaButton(
+                    label: AppStrings.completeOrder.tr(),
+                    onPressed: () => _updateTrackingStatus('completed'),
+                    height: 48,
+                  ),
+                ),
               TaalaButton(
-                label: AppStrings.openChat.tr(),
+                label: AppStrings.trackLiveOrder.tr(),
+                variant: order?.status == 'pending' && order?.agreedPrice == null
+                    ? TaalaButtonVariant.primary
+                    : TaalaButtonVariant.secondary,
                 onPressed: _trackingOrderId == null
                     ? null
                     : () {

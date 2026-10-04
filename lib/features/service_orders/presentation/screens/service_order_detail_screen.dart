@@ -420,8 +420,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     );
   }
 
-  bool _isPriceLocked(ServiceOrderModel order) => order.priceLockedAt != null;
-
   bool _canCancelOrder(ServiceOrderModel? order) =>
       order != null &&
       order.status != 'cancelled' &&
@@ -514,8 +512,14 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
       (order) {
         setState(() => _order = order);
         _syncTripTracking(order);
-        if (_isProvider && status == 'accepted') {
+        if (status == 'accepted') {
+          getIt<ActiveOrderRefreshNotifier>().notifyChanged();
           _focusChat();
+          if (!_isProvider) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(AppStrings.orderApprovedLaunchMap.tr())),
+            );
+          }
         }
         if (status == 'completed' || status == 'cancelled') {
           _handleTerminalStatus(order, remote: false);
@@ -796,11 +800,39 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                             ],
                           ),
                         ],
+                        if (!_isProvider &&
+                            canChat &&
+                            (order.providerPhone ?? '').trim().isNotEmpty) ...[
+                          12.height,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TaalaButton(
+                                  label: AppStrings.callShort.tr(),
+                                  height: 40,
+                                  onPressed: () => getIt<CustomLauncher>().call(
+                                    order.providerPhone!,
+                                    order.providerName ?? '',
+                                  ),
+                                ),
+                              ),
+                              8.width,
+                              Expanded(
+                                child: TaalaButton(
+                                  label: AppStrings.whatsapp.tr(),
+                                  variant: TaalaButtonVariant.secondary,
+                                  height: 40,
+                                  onPressed: () => getIt<CustomLauncher>()
+                                      .openWhatsApp(order.providerPhone!),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 if (_tracking != null &&
-                    order?.status != 'pending' &&
                     (_tracking!.distanceKm != null ||
                         _tracking!.etaMinutes != null))
                   Container(

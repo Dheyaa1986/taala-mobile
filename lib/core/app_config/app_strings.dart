@@ -531,6 +531,7 @@ class AppStrings {
   static const String cantOpenMaps = 'cantOpenMaps';
   static const String activeOrderBlockingSearch = 'activeOrderBlockingSearch';
   static const String openActiveOrder = 'openActiveOrder';
+  static const String trackLiveOrder = 'trackLiveOrder';
   static const String back = 'back';
 
   static const String providerRegisterStepOfferings = 'providerRegisterStepOfferings';

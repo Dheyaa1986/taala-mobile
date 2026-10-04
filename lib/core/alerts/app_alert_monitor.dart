@@ -39,6 +39,7 @@ class AppAlertMonitor {
   final Set<String> _knownNotificationIds = {};
   final Set<String> _knownOrderIds = {};
   final Map<String, String> _knownOrderStatuses = {};
+  final Map<String, double> _knownAgreedPrices = {};
   final Map<String, int> _knownMessageCounts = {};
   final Map<String, int> _knownSupportMessageCounts = {};
 
@@ -57,6 +58,7 @@ class AppAlertMonitor {
     _knownNotificationIds.clear();
     _knownOrderIds.clear();
     _knownOrderStatuses.clear();
+    _knownAgreedPrices.clear();
     _knownMessageCounts.clear();
     _knownSupportMessageCounts.clear();
     _lastUnreadInboxCount = 0;
@@ -161,32 +163,56 @@ class AppAlertMonitor {
         final isNewOrder = !_knownOrderIds.contains(id);
         final status = order.status ?? '';
         final previousStatus = _knownOrderStatuses[id];
+        final previousPrice = _knownAgreedPrices[id];
+        final currentPrice = order.agreedPrice;
 
         if (isNewOrder) {
           if (_initialized && _isProvider && status == 'pending') {
             changed = true;
           }
           _knownOrderIds.add(id);
-        } else if (_initialized &&
-            _isProvider &&
-            previousStatus == 'pending' &&
-            status == 'en_route') {
-          changed = true;
-          _lastAlertTitle = 'تمت الموافقة على السعر';
-          _lastAlertBody = 'العميل وافق — توجه إليه الآن';
-          await getIt<ProviderLiveLocationService>().startTripTracking();
-        } else if (_initialized &&
-            !_isProvider &&
-            previousStatus != null &&
-            previousStatus != 'cancelled' &&
-            status == 'cancelled') {
-          changed = true;
-          _lastAlertTitle = 'تم رفض الطلب';
-          _lastAlertBody = 'رفض المزود طلبك';
-          getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+        } else if (_initialized) {
+          if (_isProvider &&
+              previousStatus == 'pending' &&
+              status == 'accepted') {
+            changed = true;
+            _lastAlertTitle = 'تمت الموافقة على السعر';
+            _lastAlertBody = 'العميل وافق على السعر — يمكنك التوجه الآن';
+            getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+          } else if (_isProvider && status == 'en_route') {
+            await getIt<ProviderLiveLocationService>().startTripTracking();
+          } else if (!_isProvider &&
+              previousPrice == null &&
+              currentPrice != null) {
+            changed = true;
+            _lastAlertTitle = 'عرض سعر من المزود';
+            _lastAlertBody =
+                'السعر المقترح: $currentPrice — افتح الطلب للموافقة والنقاش';
+            getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+          } else if (!_isProvider &&
+              previousStatus != null &&
+              previousStatus != status) {
+            if (status == 'cancelled') {
+              changed = true;
+              _lastAlertTitle = 'تم إلغاء الطلب';
+              _lastAlertBody = 'الطلب لم يعد نشطاً';
+            } else if (status == 'en_route') {
+              changed = true;
+              _lastAlertTitle = 'المزود في الطريق';
+              _lastAlertBody = 'يمكنك تتبع الطلب الآن';
+            } else if (status == 'arrived') {
+              changed = true;
+              _lastAlertTitle = 'وصل المزود';
+              _lastAlertBody = 'يمكنك النقاش ثم إتمام الطلب';
+            }
+            getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+          }
         }
 
         _knownOrderStatuses[id] = status;
+        if (currentPrice != null) {
+          _knownAgreedPrices[id] = currentPrice;
+        }
 
         if (order.status == 'completed' ||
             order.status == 'cancelled' ||
