@@ -63,7 +63,6 @@ class _LoginFormState extends State<LoginForm> {
   late TextEditingController _passwordController;
   final _formKey = GlobalKey<FormState>();
   UserRole? _role;
-  bool _rememberMe = true;
 
   @override
   void initState() {
@@ -93,16 +92,8 @@ class _LoginFormState extends State<LoginForm> {
 
   void addPostFrameCallBack() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      bool? rememberMe = getIt<SharedPref>().get(key: PrefsKeys.rememberMe);
-
-      if (rememberMe is bool) {
-        _rememberMe = rememberMe;
-      }
-
-      if (_rememberMe) {
-        _identifierController.text =
-            await SecureLocalStorage.read(PrefsKeys.mailOrPhone) ?? '';
-      }
+      _identifierController.text =
+          await SecureLocalStorage.read(PrefsKeys.mailOrPhone) ?? '';
       await SecureLocalStorage.delete(PrefsKeys.password);
     });
   }
@@ -212,29 +203,6 @@ class _LoginFormState extends State<LoginForm> {
                           onTap: () => setState(() => _role = UserRole.client),
                           role: UserRole.client,
                           value: _role,
-                        ),
-                      ],
-                      if (_role == UserRole.provider) ...[
-                        14.height,
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _rememberMe,
-                              activeColor: TaalaTokens.of(context).primary,
-                              onChanged: (value) {
-                                setState(() => _rememberMe = value ?? true);
-                                context
-                                    .read<LoginCubit>()
-                                    .toggleRememberMe(_rememberMe);
-                              },
-                            ),
-                            Expanded(
-                              child: Text(
-                                AppStrings.rememberMe.tr(),
-                                style: Theme.of(context).textTheme.labelMedium,
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                       14.height,
@@ -347,7 +315,6 @@ class _LoginFormState extends State<LoginForm> {
           email: _normalizeLoginIdentifier(_identifierController.text),
           password: _passwordController.text,
           isProvider: isProvider,
-          rememberMe: _rememberMe,
         );
   }
 }

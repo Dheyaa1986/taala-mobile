@@ -26,7 +26,6 @@ class LoginCubit extends Cubit<LoginState> {
     required String email,
     required String password,
     bool isProvider = false,
-    bool rememberMe = true,
   }) async {
     emit(LoginLoading());
 
@@ -53,15 +52,7 @@ class LoginCubit extends Cubit<LoginState> {
         await SecureLocalStorage.write(PrefsKeys.token, response.token);
         await SecureLocalStorage.write(
             PrefsKeys.refreshToken, response.refreshToken);
-        await getIt<SharedPref>().set(
-          key: PrefsKeys.rememberMe,
-          value: rememberMe,
-        );
-        if (rememberMe) {
-          await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
-        } else {
-          await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
-        }
+        await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
         await SecureLocalStorage.delete(PrefsKeys.password);
         await GuestSessionHelper.clearGuestBrowsing();
         await getIt<ProfileCubit>().loadProfile();
@@ -93,7 +84,6 @@ class LoginCubit extends Cubit<LoginState> {
           PrefsKeys.refreshToken,
           response.refreshToken,
         );
-        await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: false);
         await GuestSessionHelper.clearGuestBrowsing();
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
@@ -130,7 +120,6 @@ class LoginCubit extends Cubit<LoginState> {
           PrefsKeys.refreshToken,
           response.refreshToken,
         );
-        await getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: false);
         await GuestSessionHelper.clearGuestBrowsing();
         await getIt<ProfileCubit>().loadProfile();
         await getIt<NotificationCubit>().refreshInbox(reloadList: true);
@@ -150,7 +139,4 @@ class LoginCubit extends Cubit<LoginState> {
       (debugOtp) => (debugOtp: debugOtp, error: null),
     );
   }
-
-  toggleRememberMe(bool value) =>
-      getIt<SharedPref>().set(key: PrefsKeys.rememberMe, value: value);
 }

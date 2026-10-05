@@ -179,7 +179,6 @@ class AppStrings {
   static const String appAlertSoundVolume = 'appAlertSoundVolume';
   static const String testAlertSound = 'testAlertSound';
   static const String appAlertVibration = 'appAlertVibration';
-  static const String rememberMe = 'rememberMe';
   static const String conversationHistory = 'conversationHistory';
   static const String conversationHistorySubtitle = 'conversationHistorySubtitle';
   static const String noConversationHistory = 'noConversationHistory';
