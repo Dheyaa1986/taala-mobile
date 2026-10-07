@@ -55,6 +55,7 @@ class ProviderSubscriptionGate {
     return location == Routes.splashScreen ||
         location == Routes.guestMap ||
         location == Routes.login ||
+        location == Routes.biometricUnlock ||
         location == Routes.register ||
         location == Routes.selectRoleScreen ||
         location == Routes.providerRegisterSteps ||

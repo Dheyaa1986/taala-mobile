@@ -11,8 +11,8 @@ import 'package:taal/core/widgets/svg_image/lang_popup.dart';
 
 import '../../core/app_config/prefs_keys.dart';
 import '../../core/helpers/auth_session_helper.dart';
+import '../../core/helpers/biometric_auth.dart';
 import '../../core/helpers/guest_session_helper.dart';
-import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../../core/helpers/secure_local_storage.dart';
 import '../../core/updates/app_update_prompt.dart';
 import '../../core/updates/force_update_screen.dart';
@@ -79,18 +79,21 @@ class _SplashScreenState extends State<SplashScreen>
         (await SecureLocalStorage.read(PrefsKeys.token))?.isNotEmpty == true;
 
     if (await AuthSessionHelper.hasActiveSession()) {
-      final isProviderAccount = await AuthSessionHelper.isProviderSession();
-      context.read<BottomNavigationCubit>().isProvider = isProviderAccount;
-      if (isProviderAccount) {
-        await ProviderSubscriptionGate.navigateAfterAuth(context);
-      } else {
-        context.goNamed(Routes.home);
+      if (await BiometricAuth.isEnabled() &&
+          await BiometricAuth.canUseDeviceKey()) {
+        if (!context.mounted) return;
+        context.goNamed(Routes.biometricUnlock);
+        return;
       }
+      if (!context.mounted) return;
+      await AuthSessionHelper.openAuthenticatedApp(context);
     } else {
       if (hadStoredToken) {
         await AuthSessionHelper.clearSession();
       }
+      if (!context.mounted) return;
       if (await GuestSessionHelper.isGuestBrowsing()) {
+        if (!context.mounted) return;
         context.read<BottomNavigationCubit>().isProvider = false;
         context.goNamed(Routes.home);
       } else {

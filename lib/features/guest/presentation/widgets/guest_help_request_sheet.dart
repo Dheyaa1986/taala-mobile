@@ -35,6 +35,7 @@ import 'package:taal/features/service_orders/presentation/utils/service_order_na
 import 'package:taal/features/service_orders/presentation/widgets/order_destination_picker_section.dart';
 
 import '../../../../core/helpers/auth_session_helper.dart';
+import '../../../auth/login/presentation/biometric_enrollment.dart';
 
 Future<bool?> showGuestHelpRequestSheet(
   BuildContext context, {
@@ -351,6 +352,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           token: response.token,
           refreshToken: response.refreshToken,
         );
+        if (mounted) {
+          await BiometricEnrollment.handleAfterPasswordLogin(context);
+        }
 
         final prefs = getIt<SharedPref>();
         await prefs.set(

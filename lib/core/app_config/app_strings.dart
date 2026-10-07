@@ -565,4 +565,17 @@ class AppStrings {
   static const String usageGuidesPromptBody = 'usageGuidesPromptBody';
   static const String usageGuidesOpen = 'usageGuidesOpen';
   static const String usageGuidesLater = 'usageGuidesLater';
+  static const String biometricUnlockTitle = 'biometricUnlockTitle';
+  static const String biometricUnlockSubtitle = 'biometricUnlockSubtitle';
+  static const String biometricUnlockReason = 'biometricUnlockReason';
+  static const String biometricUsePassword = 'biometricUsePassword';
+  static const String biometricUseAvailable = 'biometricUseAvailable';
+  static const String biometricUnavailable = 'biometricUnavailable';
+  static const String biometricSessionExpired = 'biometricSessionExpired';
+  static const String biometricEnableTitle = 'biometricEnableTitle';
+  static const String biometricEnableBody = 'biometricEnableBody';
+  static const String biometricEnableAction = 'biometricEnableAction';
+  static const String biometricNotNow = 'biometricNotNow';
+  static const String biometricArmHint = 'biometricArmHint';
+  static const String biometricSettingsTitle = 'biometricSettingsTitle';
 }

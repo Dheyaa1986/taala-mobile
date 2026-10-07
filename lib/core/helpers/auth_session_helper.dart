@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -136,5 +137,17 @@ class AuthSessionHelper {
       context.read<BottomNavigationCubit>().isProvider = false;
       context.goNamed(Routes.guestMap);
     }
+  }
+
+  static Future<void> openAuthenticatedApp(BuildContext context) async {
+    if (!context.mounted) return;
+    final isProviderAccount = await isProviderSession();
+    if (!context.mounted) return;
+    syncNavigationRole(isProviderAccount);
+    if (isProviderAccount) {
+      await ProviderSubscriptionGate.navigateAfterAuth(context);
+      return;
+    }
+    context.goNamed(Routes.home);
   }
 }

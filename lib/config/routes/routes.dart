@@ -3,6 +3,7 @@ class Routes {
   static const String splashScreen = '/';
   static const String welcomeScreen = '/welcome';
   static const String login = '/login';
+  static const String biometricUnlock = '/biometricUnlock';
   static const String register = '/register';
   static const String selectRoleScreen = '/selectRoleScreen';
   static const String providerRegisterSteps = '/providerRegisterSteps';

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/config/routes/routing_observer.dart';
+import 'package:taal/features/auth/login/presentation/screens/biometric_unlock_screen.dart';
 import 'package:taal/features/auth/login/presentation/screens/login_screen.dart';
 import 'package:taal/features/auth/register/presentation/screens/register_screen.dart';
 import 'package:taal/features/home/client/presentation/screens/client_services_screen.dart';
@@ -241,6 +242,16 @@ class AppRouter {
             context: context,
             state: state,
             child: const ProviderSubscriptionScreen(isRequiredGate: true),
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: appNavigatorKey,
+          path: Routes.biometricUnlock,
+          name: Routes.biometricUnlock,
+          pageBuilder: (context, state) => screenWithFadeTransition(
+            context: context,
+            state: state,
+            child: const BiometricUnlockScreen(),
           ),
         ),
         GoRoute(

@@ -20,6 +20,7 @@ import 'package:taal/features/profile/client/presentation/widgets/settings_secti
 import 'package:taal/features/profile/client/presentation/widgets/settings_theme_mode_section.dart';
 import 'package:taal/features/profile/client/presentation/widgets/settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/conversation_history_panel.dart';
+import 'package:taal/features/profile/presentation/widgets/biometric_settings_tile.dart';
 import 'package:taal/features/profile/presentation/widgets/delete_account_action.dart';
 
 class ClientSettingsScreen extends StatelessWidget {
@@ -82,6 +83,10 @@ class ClientSettingsScreen extends StatelessWidget {
               SettingsSectionHeader(title: AppStrings.settings),
               10.height,
               const SettingsThemeModeSection(),
+              if (!isGuest) ...[
+                10.height,
+                const BiometricSettingsTile(),
+              ],
               20.height,
               SettingsSectionHeader(title: AppStrings.settingsSectionHelp),
               10.height,

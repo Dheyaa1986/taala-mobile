@@ -14,7 +14,6 @@ import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/validations/validators.dart';
 
 import '../../../../../config/routes/routes.dart';
-import '../../../../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 
 import '../../../../../core/app_config/app_icons.dart';
 
@@ -26,7 +25,11 @@ import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/extensions/device_insets_extension.dart';
 import '../../../../../core/helpers/messages.dart';
 
+import '../../../../../core/helpers/auth_session_helper.dart';
+import '../../../../../core/helpers/biometric_auth.dart';
 import '../../../../../core/helpers/guest_session_helper.dart';
+import '../biometric_enrollment.dart';
+import 'device_key_button.dart';
 import '../../../../../core/helpers/secure_local_storage.dart';
 
 import '../../../../../core/helpers/shared_pref_local_storage.dart';
@@ -63,6 +66,7 @@ class _LoginFormState extends State<LoginForm> {
   late TextEditingController _passwordController;
   final _formKey = GlobalKey<FormState>();
   UserRole? _role;
+  bool _showDeviceKey = false;
 
   @override
   void initState() {
@@ -95,6 +99,10 @@ class _LoginFormState extends State<LoginForm> {
       _identifierController.text =
           await SecureLocalStorage.read(PrefsKeys.mailOrPhone) ?? '';
       await SecureLocalStorage.delete(PrefsKeys.password);
+      final showKey = await BiometricAuth.isEnabled() &&
+          await BiometricAuth.canUseDeviceKey() &&
+          await AuthSessionHelper.hasActiveSession();
+      if (mounted) setState(() => _showDeviceKey = showKey);
     });
   }
 
@@ -108,7 +116,7 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<LoginCubit, LoginState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is LoginLoading) {
           AppMessages.showLoading(context);
         } else {
@@ -118,14 +126,9 @@ class _LoginFormState extends State<LoginForm> {
             final isProvider = _role == UserRole.provider;
             context.read<BottomNavigationCubit>().isProvider = isProvider;
             PushNotificationService.instance.syncTokenIfLoggedIn();
-            if (isProvider) {
-              ProviderSubscriptionGate.navigateAfterAuth(context);
-            } else {
-              context.pushNamedAndRemoveUntil(
-                Routes.home,
-                predicate: (_) => false,
-              );
-            }
+            await BiometricEnrollment.handleAfterPasswordLogin(context);
+            if (!context.mounted) return;
+            await AuthSessionHelper.openAuthenticatedApp(context);
           } else if (state is LoginError) {
             AppMessages.showError(context, state.error);
           } else if (state is AccountNotVerified) {
@@ -210,10 +213,29 @@ class _LoginFormState extends State<LoginForm> {
                   ),
                 ),
               ),
-              TaalaButton(
-                label: AppStrings.login.tr(),
-                onPressed: _login,
+              Row(
+                children: [
+                  if (_showDeviceKey) ...[
+                    DeviceKeyButton(onPressed: _openDeviceKey),
+                    12.width,
+                  ],
+                  Expanded(
+                    child: TaalaButton(
+                      label: AppStrings.login.tr(),
+                      onPressed: _login,
+                    ),
+                  ),
+                ],
               ),
+              if (_showDeviceKey) ...[
+                8.height,
+                Center(
+                  child: TextButton(
+                    onPressed: _openDeviceKey,
+                    child: Text(AppStrings.biometricUseAvailable.tr()),
+                  ),
+                ),
+              ],
               16.height,
               if (_role == UserRole.provider)
                 Center(
@@ -258,19 +280,21 @@ class _LoginFormState extends State<LoginForm> {
                     },
                   ),
                 ),
-                12.height,
-                Center(
-                  child: TextButton(
-                    onPressed: _browseAsGuest,
-                    child: Text(
-                      AppStrings.browseAsGuest.tr(),
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: TaalaTokens.of(context).primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                if (!_showDeviceKey) ...[
+                  12.height,
+                  Center(
+                    child: TextButton(
+                      onPressed: _browseAsGuest,
+                      child: Text(
+                        AppStrings.browseAsGuest.tr(),
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: TaalaTokens.of(context).primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
               SizedBox(height: context.safeBottomInset + 16.h),
             ],
@@ -286,6 +310,10 @@ class _LoginFormState extends State<LoginForm> {
       return trimmed;
     }
     return PhoneFormatterHelper.normalizeForApi(trimmed);
+  }
+
+  void _openDeviceKey() {
+    context.go(Routes.biometricUnlock);
   }
 
   Future<void> _browseAsGuest() async {

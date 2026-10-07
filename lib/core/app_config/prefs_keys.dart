@@ -26,4 +26,7 @@ class PrefsKeys {
   static const String appAlertVibrationEnabled = 'app_alert_vibration_enabled';
   static const String alertVendorSetupDone = 'alert_vendor_setup_done';
   static const String usageGuidesRevision = 'usage_guides_revision';
+  static const String biometricUnlockEnabled = 'biometric_unlock_enabled';
+  static const String biometricUnlockOfferHandled =
+      'biometric_unlock_offer_handled';
 }

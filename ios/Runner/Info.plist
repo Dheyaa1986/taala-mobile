@@ -50,6 +50,8 @@
 	<string>نحتاج موقعك لتحديد مكانك على الخريطة وطلب المساعدة بسرعة.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>نحتاج موقعك أثناء استخدام التطبيق لتتبع الطلبات النشطة وعرض موقعك على الخريطة للعميل أو مزود الخدمة.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>نستخدم Face ID أو مفتاح الجهاز لفتح حسابك بسرعة دون إعادة إدخال كلمة المرور.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>نحتاج الوصول للكاميرا لالتقاط صور للملف الشخصي أو الطلب.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
