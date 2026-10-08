@@ -227,15 +227,6 @@ class _LoginFormState extends State<LoginForm> {
                   ),
                 ],
               ),
-              if (_showDeviceKey) ...[
-                8.height,
-                Center(
-                  child: TextButton(
-                    onPressed: _openDeviceKey,
-                    child: Text(AppStrings.biometricUseAvailable.tr()),
-                  ),
-                ),
-              ],
               16.height,
               if (_role == UserRole.provider)
                 Center(
