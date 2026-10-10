@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>ar</string>
 	<key>CFBundleLocalizations</key>
 	<array>
-		<string>en</string>
 		<string>ar</string>
+		<string>en</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>taal</string>
