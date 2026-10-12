@@ -21,13 +21,24 @@ import 'core/helpers/locale_helper.dart';
 import 'core/package_info_helper/package_info_helper.dart';
 import 'core/remote_config_helper/remote_config_helper.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
+void _applyPreferredOrientations() {
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  final shortestSide =
+      view.physicalSize.shortestSide / view.devicePixelRatio;
+  if (shortestSide >= 600) {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    return;
+  }
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  _applyPreferredOrientations();
   Bloc.observer = MyBlocObserver();
 
   await EasyLocalization.ensureInitialized();
