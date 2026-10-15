@@ -62,10 +62,26 @@ class _LiveMapMarkerState extends State<LiveMapMarker>
               );
             },
           ),
-          Icon(
-            widget.icon,
-            color: widget.color,
-            size: widget.size,
+          Container(
+            width: widget.size + 6,
+            height: widget.size + 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: widget.color, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Icon(
+              widget.icon,
+              color: widget.color,
+              size: widget.size * 0.62,
+            ),
           ),
         ],
       ),

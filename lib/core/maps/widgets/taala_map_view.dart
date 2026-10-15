@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
 import 'package:taal/core/maps/widgets/live_map_marker.dart';
@@ -118,23 +119,44 @@ class _TaalaMapViewState extends State<TaalaMapView> {
       ),
       children: [
         HybridMapTileLayer(offlineMapPath: widget.offlineMapPath),
-        ...widget.polylines.map(
-          (line) {
-            if (line.points.length < 2) return const SizedBox.shrink();
-            return PolylineLayer(
+        ...widget.polylines.expand((line) {
+          if (line.points.length < 2) {
+            return const <Widget>[];
+          }
+          final pattern = line.dashed
+              ? StrokePattern.dashed(segments: [8, 10])
+              : StrokePattern.solid();
+          final layers = <Widget>[];
+          if (!line.dashed) {
+            layers.add(
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: line.points,
+                    color: MapStyleConfig.routeCasingColor,
+                    strokeWidth: MapStyleConfig.routeCasingWidth,
+                    pattern: pattern,
+                  ),
+                ],
+              ),
+            );
+          }
+          layers.add(
+            PolylineLayer(
               polylines: [
                 Polyline(
                   points: line.points,
-                  color: line.color,
-                  strokeWidth: line.width,
-                  pattern: line.dashed
-                      ? StrokePattern.dashed(segments: [8, 10])
-                      : StrokePattern.solid(),
+                  color: line.dashed ? line.color : MapStyleConfig.routeColor,
+                  strokeWidth: line.dashed
+                      ? line.width
+                      : MapStyleConfig.routeWidth,
+                  pattern: pattern,
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+          return layers;
+        }),
         MarkerLayer(
           markers: widget.markers
               .map(

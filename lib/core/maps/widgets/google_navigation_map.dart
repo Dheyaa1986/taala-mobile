@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
+import 'package:taal/core/maps/map_style_config.dart';
 
 /// Google Maps view for provider in-app navigation.
 class GoogleNavigationMap extends StatefulWidget {
@@ -74,12 +75,19 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
 
   Set<gmaps.Polyline> _buildPolylines() {
     if (widget.routePoints.length < 2) return const {};
+    final points = widget.routePoints.map(_toGoogle).toList();
     return {
       gmaps.Polyline(
+        polylineId: const gmaps.PolylineId('route_casing'),
+        points: points,
+        color: MapStyleConfig.routeCasingColor,
+        width: MapStyleConfig.routeCasingWidth.round(),
+      ),
+      gmaps.Polyline(
         polylineId: const gmaps.PolylineId('route'),
-        points: widget.routePoints.map(_toGoogle).toList(),
-        color: const Color(0xFFFFC107),
-        width: 6,
+        points: points,
+        color: MapStyleConfig.routeColor,
+        width: MapStyleConfig.routeWidth.round(),
       ),
     };
   }
@@ -148,6 +156,7 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
         target: _toGoogle(initial),
         zoom: 14,
       ),
+      style: MapStyleConfig.googleNavigationMapStyle,
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
