@@ -360,20 +360,22 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
     final hasDestination = order.destinationLatitude != null &&
         order.destinationLongitude != null;
 
-    context.pushNamed(
-      Routes.providerInAppNavigation,
-      pathParameters: {'id': widget.orderId},
-      extra: ProviderInAppNavigationArgs(
-        targetLatitude: targetLat,
-        targetLongitude: targetLng,
-        targetTitle: navigateToDestination
-            ? AppStrings.navigateToDestination.tr()
-            : AppStrings.navigateToClient.tr(),
-        orderId: widget.orderId,
-        isBreakdownLeg: !navigateToDestination && hasDestination,
-        destinationLatitude: order.destinationLatitude,
-        destinationLongitude: order.destinationLongitude,
-        destinationTitle: order.destinationAddress,
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderInAppNavigationScreen(
+          args: ProviderInAppNavigationArgs(
+            targetLatitude: targetLat,
+            targetLongitude: targetLng,
+            targetTitle: navigateToDestination
+                ? AppStrings.navigateToDestination.tr()
+                : AppStrings.navigateToClient.tr(),
+            orderId: widget.orderId,
+            isBreakdownLeg: !navigateToDestination && hasDestination,
+            destinationLatitude: order.destinationLatitude,
+            destinationLongitude: order.destinationLongitude,
+            destinationTitle: order.destinationAddress,
+          ),
+        ),
       ),
     );
   }
@@ -970,13 +972,7 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
                       children: [
                         TaalaButton(
                           label: AppStrings.proceedToDestinationPhase.tr(),
-                          onPressed: () {
-                            if (GoogleMapsConfig.isEnabled) {
-                              _openInAppNavigation(order);
-                            } else {
-                              unawaited(_openWazeNavigation(order));
-                            }
-                          },
+                          onPressed: () => _openInAppNavigation(order),
                         ),
                         8.height,
                         TaalaButton(

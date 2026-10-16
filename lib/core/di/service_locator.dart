@@ -6,6 +6,7 @@ import 'package:taal/core/maps/emergency/emergency_sync_service.dart';
 import 'package:taal/core/maps/offline/map_offline_manager.dart';
 import 'package:taal/core/maps/offline/map_offline_repository.dart';
 import 'package:taal/core/maps/google/google_directions_service.dart';
+import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/provider_live_location_service.dart';
@@ -84,6 +85,7 @@ Future<void> setupServiceLocator() async {
 
 Future<void> _initExternals() async {
   await SharedPref.init();
+  await GoogleMapsConfig.hydrateNativeKey();
 
   getIt.registerLazySingleton<SharedPref>(() => SharedPref());
   getIt.registerLazySingleton<CustomLauncher>(() => CustomLauncher());

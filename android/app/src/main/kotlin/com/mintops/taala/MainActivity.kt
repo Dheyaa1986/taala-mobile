@@ -2,6 +2,7 @@ package com.mintops.taala
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -14,6 +15,17 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         NotificationChannelHelper.ensureChannels(this)
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            MAPS_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "googleMapsApiKey") {
+                result.success(readGoogleMapsApiKey())
+            } else {
+                result.notImplemented()
+            }
+        }
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -72,6 +84,18 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    private fun readGoogleMapsApiKey(): String {
+        return try {
+            val info = packageManager.getApplicationInfo(
+                packageName,
+                PackageManager.GET_META_DATA,
+            )
+            info.metaData?.getString("com.google.android.geo.API_KEY").orEmpty()
+        } catch (_: Exception) {
+            ""
+        }
+    }
+
     private fun consumePendingFcmToken(): String? {
         val prefs = getSharedPreferences(TaalaFirebaseMessagingService.PREFS_NAME, Context.MODE_PRIVATE)
         val token = prefs.getString(TaalaFirebaseMessagingService.PENDING_FCM_TOKEN, null)
@@ -83,5 +107,6 @@ class MainActivity : FlutterFragmentActivity() {
 
     companion object {
         private const val ALERTS_CHANNEL = "com.mintops.taala/alerts"
+        private const val MAPS_CHANNEL = "com.mintops.taala/maps"
     }
 }

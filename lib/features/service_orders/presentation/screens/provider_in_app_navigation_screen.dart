@@ -85,6 +85,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   late String? _targetTitle;
   bool _breakdownLegComplete = false;
   bool _transitioningToDestination = false;
+  bool _overlayActionsEnabled = false;
 
   @override
   void initState() {
@@ -94,9 +95,13 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       widget.args.targetLongitude,
     );
     _targetTitle = widget.args.targetTitle;
+    unawaited(GoogleMapsConfig.hydrateNativeKey());
     unawaited(_tts.initialize());
     _locationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       unawaited(_refreshLocation());
+    });
+    Future<void>.delayed(const Duration(milliseconds: 700), () {
+      if (mounted) setState(() => _overlayActionsEnabled = true);
     });
   }
 
@@ -113,6 +118,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   }
 
   Future<void> _bootstrap() async {
+    await GoogleMapsConfig.hydrateNativeKey();
     await _refreshLocation(updateRoute: false);
     if (!mounted) return;
     await _loadRoute(startNavigationAfter: true);
@@ -327,7 +333,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     final tokens = TaalaTokens.of(context);
     final brightness = Theme.of(context).brightness;
 
-    final useGoogle = GoogleMapsConfig.isEnabled;
+    final useGoogle = GoogleMapsConfig.useGoogleMapWidget;
 
     return Scaffold(
       backgroundColor: const Color(0xFFECECEC),
@@ -378,36 +384,40 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                   ),
           ),
           Positioned.fill(
-            child: WazeNavOverlay(
-              instruction: instruction.isNotEmpty ? instruction : _statusText(),
-              nextInstruction: _guidanceSnapshot.nextInstruction,
-              maneuverDistanceMeters:
-                  _guidanceSnapshot.nextManeuverDistanceMeters,
-              remainingDistanceMeters: remainingDistance,
-              remainingMinutes: remainingMinutes,
-              speedKmh: _speedKmh,
-              active: _navigationActive || _route != null,
-              arrived: _guidanceSnapshot.arrived,
-              offRoute: _guidanceSnapshot.offRoute,
-              voiceOn: _voiceOn,
-              onToggleVoice: () {
-                setState(() {
-                  _voiceOn = !_voiceOn;
-                  _tts.muted = !_voiceOn;
-                });
-              },
-              onOpenWaze: () {
-                unawaited(
-                  getIt<CustomLauncher>().openWazeDirections(
-                    destinationLat: _targetPoint.latitude,
-                    destinationLng: _targetPoint.longitude,
-                    destinationTitle: _targetTitle,
-                    originLat: _providerPoint?.latitude,
-                    originLng: _providerPoint?.longitude,
-                  ),
-                );
-              },
-              onReport: () => unawaited(_reportAlongRoute()),
+            child: IgnorePointer(
+              ignoring: !_overlayActionsEnabled,
+              child: WazeNavOverlay(
+                instruction:
+                    instruction.isNotEmpty ? instruction : _statusText(),
+                nextInstruction: _guidanceSnapshot.nextInstruction,
+                maneuverDistanceMeters:
+                    _guidanceSnapshot.nextManeuverDistanceMeters,
+                remainingDistanceMeters: remainingDistance,
+                remainingMinutes: remainingMinutes,
+                speedKmh: _speedKmh,
+                active: _navigationActive || _route != null,
+                arrived: _guidanceSnapshot.arrived,
+                offRoute: _guidanceSnapshot.offRoute,
+                voiceOn: _voiceOn,
+                onToggleVoice: () {
+                  setState(() {
+                    _voiceOn = !_voiceOn;
+                    _tts.muted = !_voiceOn;
+                  });
+                },
+                onOpenWaze: () {
+                  unawaited(
+                    getIt<CustomLauncher>().openWazeDirections(
+                      destinationLat: _targetPoint.latitude,
+                      destinationLng: _targetPoint.longitude,
+                      destinationTitle: _targetTitle,
+                      originLat: _providerPoint?.latitude,
+                      originLng: _providerPoint?.longitude,
+                    ),
+                  );
+                },
+                onReport: () => unawaited(_reportAlongRoute()),
+              ),
             ),
           ),
           if (_loadingRoute)
