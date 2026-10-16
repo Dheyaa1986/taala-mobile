@@ -39,6 +39,29 @@ class MyPlacesRepository {
     return items;
   }
 
+  Future<List<MyPlaceItem>> upsert(MyPlaceItem item) async {
+    final items = await loadAll();
+    final index = items.indexWhere((entry) => entry.id == item.id);
+    if (index >= 0) {
+      items[index] = item;
+    } else {
+      final sameCategory = items.indexWhere(
+        (entry) =>
+            !item.isAlert &&
+            (item.category == MyPlaceCategories.home ||
+                item.category == MyPlaceCategories.work) &&
+            entry.category == item.category,
+      );
+      if (sameCategory >= 0) {
+        items[sameCategory] = item;
+      } else {
+        items.add(item);
+      }
+    }
+    await saveAll(items);
+    return items;
+  }
+
   Future<List<MyPlaceItem>> remove(String id) async {
     final items = await loadAll();
     items.removeWhere((item) => item.id == id);

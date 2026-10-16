@@ -82,9 +82,9 @@ double _distanceToSegmentMeters(LatLng p, LatLng a, LatLng b) {
 
 String formatNavigationDistance(double meters) {
   if (meters >= 1000) {
-    return '${(meters / 1000).toStringAsFixed(1)} km';
+    return '${(meters / 1000).toStringAsFixed(1)} كم';
   }
-  return '${meters.round()} m';
+  return '${meters.round()} م';
 }
 
 int formatNavigationDurationMinutes(double seconds) {

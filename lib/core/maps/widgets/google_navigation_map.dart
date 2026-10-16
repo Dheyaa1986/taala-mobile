@@ -63,6 +63,9 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
         gmaps.Marker(
           markerId: const gmaps.MarkerId('provider'),
           position: _toGoogle(provider),
+          rotation: widget.bearing ?? 0,
+          flat: true,
+          anchor: const Offset(0.5, 0.5),
           icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
             gmaps.BitmapDescriptor.hueAzure,
           ),
@@ -102,9 +105,9 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
         gmaps.CameraUpdate.newCameraPosition(
           gmaps.CameraPosition(
             target: _toGoogle(provider),
-            zoom: 17,
+            zoom: 17.6,
             bearing: widget.bearing ?? 0,
-            tilt: 45,
+            tilt: 58,
           ),
         ),
       );
@@ -157,11 +160,13 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
         zoom: 14,
       ),
       style: MapStyleConfig.googleNavigationMapStyle,
-      myLocationEnabled: true,
+      myLocationEnabled: false,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
-      compassEnabled: true,
-      trafficEnabled: true,
+      compassEnabled: false,
+      mapToolbarEnabled: false,
+      trafficEnabled: false,
+      padding: const EdgeInsets.only(top: 118, bottom: 118),
       markers: _buildMarkers(),
       polylines: _buildPolylines(),
       onMapCreated: (controller) async {

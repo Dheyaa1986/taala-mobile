@@ -12,6 +12,8 @@ class RouteGuidanceSnapshot {
     required this.currentInstruction,
     required this.remainingDistanceMeters,
     required this.remainingDurationSeconds,
+    required this.nextManeuverDistanceMeters,
+    required this.nextInstruction,
     required this.arrived,
     required this.offRoute,
   });
@@ -21,6 +23,8 @@ class RouteGuidanceSnapshot {
   final String currentInstruction;
   final double remainingDistanceMeters;
   final double remainingDurationSeconds;
+  final double nextManeuverDistanceMeters;
+  final String nextInstruction;
   final bool arrived;
   final bool offRoute;
 
@@ -30,6 +34,8 @@ class RouteGuidanceSnapshot {
     currentInstruction: '',
     remainingDistanceMeters: 0,
     remainingDurationSeconds: 0,
+    nextManeuverDistanceMeters: 0,
+    nextInstruction: '',
     arrived: false,
     offRoute: false,
   );
@@ -148,12 +154,22 @@ class RouteGuidanceController {
         : (remainingDistance / route.totalDistanceMeters).clamp(0.0, 1.0);
     final remainingDuration = route.totalDurationSeconds * ratio;
 
+    final nextManeuverDistance = position != null
+        ? navigationDistanceMeters(position, step.maneuverLocation)
+        : step.distanceMeters;
+    final nextStepIndex = _stepIndex + 1;
+    final nextInstruction = nextStepIndex < route.steps.length
+        ? route.steps[nextStepIndex].instruction
+        : '';
+
     _snapshot = RouteGuidanceSnapshot(
       active: _active,
       stepIndex: _stepIndex,
       currentInstruction: step.instruction,
       remainingDistanceMeters: remainingDistance,
       remainingDurationSeconds: remainingDuration,
+      nextManeuverDistanceMeters: nextManeuverDistance,
+      nextInstruction: nextInstruction,
       arrived: _arrived,
       offRoute: _offRoute,
     );

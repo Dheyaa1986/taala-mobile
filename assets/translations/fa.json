@@ -164,5 +164,14 @@
   "myPlacesAccident": "ڕووداو",
   "myPlacesClosure": "داخستن",
   "myPlacesHazard": "مەترسی",
-  "myPlacesNote": "ئاگاداری"
+  "myPlacesNote": "ئاگاداری",
+  "myPlacesList": "لیستی شوێنەکانم",
+  "myPlacesFilterAll": "هەموو",
+  "myPlacesFilterPlaces": "شوێنەکان",
+  "myPlacesFilterAlerts": "ڕاپۆرتەکان",
+  "myPlacesEdit": "دەستکاری",
+  "myPlacesOpenWaze": "Waze",
+  "myPlacesSaveHere": "لێرە هەڵبگرە",
+  "myPlacesDeleteConfirm": "ئەمە بسڕدرێتەوە؟",
+  "myPlacesEmpty": "هێشتا شوێن نییە. بگەڕێ یان بە درێژی لەسەر نەخشە دابگرە."
 }

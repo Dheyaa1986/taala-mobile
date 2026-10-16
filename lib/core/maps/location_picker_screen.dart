@@ -15,10 +15,10 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/maps_helper.dart';
-import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
+import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({super.key, this.initial});
@@ -133,11 +133,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               },
             ),
             children: [
-              TileLayer(
-                urlTemplate: MapStyleConfig.tileUrlTemplate,
-                subdomains: MapStyleConfig.tileSubdomains,
-                userAgentPackageName: MapStyleConfig.userAgentPackageName,
-              ),
+              HybridMapTileLayer(),
             ],
           ),
           IgnorePointer(

@@ -544,5 +544,14 @@
   "myPlacesAccident": "حادث",
   "myPlacesClosure": "إغلاق",
   "myPlacesHazard": "خطر",
-  "myPlacesNote": "تنبيه"
+  "myPlacesNote": "تنبيه",
+  "myPlacesList": "قائمة أماكني",
+  "myPlacesFilterAll": "الكل",
+  "myPlacesFilterPlaces": "أماكن",
+  "myPlacesFilterAlerts": "إضافات",
+  "myPlacesEdit": "تعديل",
+  "myPlacesOpenWaze": "Waze",
+  "myPlacesSaveHere": "حفظ هنا",
+  "myPlacesDeleteConfirm": "حذف هذا العنصر؟",
+  "myPlacesEmpty": "لا أماكن محفوظة بعد. ابحث أو اضغط مطولاً على الخريطة."
 }

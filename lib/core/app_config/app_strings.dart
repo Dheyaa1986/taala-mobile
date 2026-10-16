@@ -592,4 +592,13 @@ class AppStrings {
   static const String myPlacesClosure = 'myPlacesClosure';
   static const String myPlacesHazard = 'myPlacesHazard';
   static const String myPlacesNote = 'myPlacesNote';
+  static const String myPlacesList = 'myPlacesList';
+  static const String myPlacesFilterAll = 'myPlacesFilterAll';
+  static const String myPlacesFilterPlaces = 'myPlacesFilterPlaces';
+  static const String myPlacesFilterAlerts = 'myPlacesFilterAlerts';
+  static const String myPlacesEdit = 'myPlacesEdit';
+  static const String myPlacesOpenWaze = 'myPlacesOpenWaze';
+  static const String myPlacesSaveHere = 'myPlacesSaveHere';
+  static const String myPlacesDeleteConfirm = 'myPlacesDeleteConfirm';
+  static const String myPlacesEmpty = 'myPlacesEmpty';
 }

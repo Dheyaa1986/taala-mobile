@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
 import 'package:taal/core/maps/widgets/taala_map_view.dart';
@@ -186,8 +187,8 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
       if (provider != null)
         TaalaMapMarker(
           point: provider,
-          color: AppColors.primaryColor,
-          icon: Icons.local_shipping_rounded,
+          color: MapStyleConfig.routeColor,
+          icon: Icons.navigation_rounded,
           iconSize: 30,
           livePulse: true,
         ),

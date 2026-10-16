@@ -520,5 +520,14 @@
   "myPlacesAccident": "Accident",
   "myPlacesClosure": "Closure",
   "myPlacesHazard": "Hazard",
-  "myPlacesNote": "Alert"
+  "myPlacesNote": "Alert",
+  "myPlacesList": "My places list",
+  "myPlacesFilterAll": "All",
+  "myPlacesFilterPlaces": "Places",
+  "myPlacesFilterAlerts": "Reports",
+  "myPlacesEdit": "Edit",
+  "myPlacesOpenWaze": "Waze",
+  "myPlacesSaveHere": "Save here",
+  "myPlacesDeleteConfirm": "Delete this item?",
+  "myPlacesEmpty": "No saved places yet. Search or long-press the map."
 }

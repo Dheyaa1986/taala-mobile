@@ -344,13 +344,6 @@ class _ServiceOrderDetailScreenState extends State<ServiceOrderDetailScreen> {
   }
 
   void _openInAppNavigation(ServiceOrderModel order) {
-    if (!GoogleMapsConfig.isEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.googleMapsRequired.tr())),
-      );
-      return;
-    }
-
     final navigateToDestination = order.status == 'arrived' &&
         order.destinationLatitude != null &&
         order.destinationLongitude != null;

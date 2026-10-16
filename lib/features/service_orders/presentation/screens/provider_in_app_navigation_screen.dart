@@ -5,18 +5,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/custom_launcher/custom_launcher.dart';
+import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/features/my_places/data/my_place_item.dart';
+import 'package:taal/features/my_places/data/my_places_repository.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
+import 'package:taal/core/maps/google/google_maps_config.dart';
+import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/navigation/navigation_geometry.dart';
 import 'package:taal/core/maps/navigation/navigation_tts_service.dart';
 import 'package:taal/core/maps/navigation/route_guidance_controller.dart';
 import 'package:taal/core/maps/navigation/taala_navigation_route.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/widgets/google_navigation_map.dart';
+import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
+import 'package:taal/core/maps/widgets/waze_nav_overlay.dart';
 import 'package:taal/features/service_orders/data/repository/service_order_repository.dart';
 
 class ProviderInAppNavigationArgs {
@@ -62,6 +71,8 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
 
   LatLng? _providerPoint;
   double? _heading;
+  double _speedKmh = 0;
+  bool _voiceOn = true;
   TaalaNavigationRoute? _route;
   RouteGuidanceSnapshot _guidanceSnapshot = RouteGuidanceSnapshot.idle;
   bool _loadingRoute = false;
@@ -84,7 +95,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     );
     _targetTitle = widget.args.targetTitle;
     unawaited(_tts.initialize());
-    _locationTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+    _locationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       unawaited(_refreshLocation());
     });
   }
@@ -117,6 +128,10 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       if (reading.hasValidHeading) {
         _heading = reading.heading;
       }
+      final speed = reading.speedMps;
+      if (speed != null && speed >= 0) {
+        _speedKmh = speed * 3.6;
+      }
     });
 
     if (!_navigationActive &&
@@ -136,7 +151,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
         unawaited(_proceedToDestinationLeg());
         return;
       }
-      if (snapshot.offRoute && updateRoute && _canReroute()) {
+      if ((snapshot.offRoute || _guidance.shouldReroute(point)) &&
+          updateRoute &&
+          _canReroute()) {
         await _loadRoute(startNavigationAfter: true);
         return;
       }
@@ -182,7 +199,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   bool _canReroute() {
     final last = _lastRerouteAt;
     if (last == null) return true;
-    return DateTime.now().difference(last) >= const Duration(seconds: 15);
+    return DateTime.now().difference(last) >= const Duration(seconds: 8);
   }
 
   Future<void> _loadRoute({required bool startNavigationAfter}) async {
@@ -233,6 +250,56 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     });
   }
 
+  Future<void> _reportAlongRoute() async {
+    final point = _providerPoint;
+    if (point == null) return;
+    final category = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.traffic),
+                title: const Text('ازدحام'),
+                onTap: () => Navigator.pop(context, MyPlaceCategories.traffic),
+              ),
+              ListTile(
+                leading: const Icon(Icons.car_crash),
+                title: const Text('حادث'),
+                onTap: () => Navigator.pop(context, MyPlaceCategories.accident),
+              ),
+              ListTile(
+                leading: const Icon(Icons.block),
+                title: const Text('إغلاق'),
+                onTap: () => Navigator.pop(context, MyPlaceCategories.closure),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (category == null || !mounted) return;
+    await getIt<MyPlacesRepository>().add(
+      MyPlaceItem(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        kind: MyPlaceKinds.alert,
+        category: category,
+        title: switch (category) {
+          MyPlaceCategories.accident => 'حادث',
+          MyPlaceCategories.closure => 'إغلاق',
+          _ => 'ازدحام',
+        },
+        latitude: point.latitude,
+        longitude: point.longitude,
+        createdAtMs: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    if (!mounted) return;
+    AppMessages.showSuccess(context, AppStrings.save.tr());
+  }
+
   String _statusText() {
     if (_loadingRoute) return AppStrings.navigationBuildingRoute.tr();
     if (_routeFailed) return AppStrings.navigationRouteFailed.tr();
@@ -260,22 +327,87 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     final tokens = TaalaTokens.of(context);
     final brightness = Theme.of(context).brightness;
 
+    final useGoogle = GoogleMapsConfig.isEnabled;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.departInApp.tr()),
-        centerTitle: true,
-      ),
+      backgroundColor: const Color(0xFFECECEC),
       body: Stack(
         children: [
           Positioned.fill(
-            child: GoogleNavigationMap(
-              target: _targetPoint,
-              provider: provider,
-              routePoints: routePolyline,
-              followNavigation: _navigationActive,
-              bearing: _heading,
-              cameraRevision: _cameraRevision,
-              onMapReady: _onMapReady,
+            child: useGoogle
+                ? GoogleNavigationMap(
+                    target: _targetPoint,
+                    provider: provider,
+                    routePoints: routePolyline,
+                    followNavigation: _navigationActive,
+                    bearing: _heading,
+                    cameraRevision: _cameraRevision,
+                    onMapReady: _onMapReady,
+                  )
+                : TaalaMapView(
+                    initialCenter: provider ?? _targetPoint,
+                    initialZoom: 16,
+                    markers: [
+                      TaalaMapMarker(
+                        point: _targetPoint,
+                        color: const Color(0xFFE53935),
+                        icon: Icons.flag_rounded,
+                        iconSize: 34,
+                      ),
+                      if (provider != null)
+                        TaalaMapMarker(
+                          point: provider,
+                          color: MapStyleConfig.routeColor,
+                          headingDegrees: _heading ?? 0,
+                        ),
+                    ],
+                    polylines: [
+                      if (routePolyline.length >= 2)
+                        TaalaMapPolyline(
+                          points: routePolyline,
+                          color: MapStyleConfig.routeColor,
+                          width: MapStyleConfig.routeWidth,
+                        ),
+                    ],
+                    followPoint: provider,
+                    followBearing: _heading,
+                    navigationFollow: _navigationActive,
+                    allowRotate: true,
+                    cameraRevision: _cameraRevision,
+                    onMapReady: _onMapReady,
+                  ),
+          ),
+          Positioned.fill(
+            child: WazeNavOverlay(
+              instruction: instruction.isNotEmpty ? instruction : _statusText(),
+              nextInstruction: _guidanceSnapshot.nextInstruction,
+              maneuverDistanceMeters:
+                  _guidanceSnapshot.nextManeuverDistanceMeters,
+              remainingDistanceMeters: remainingDistance,
+              remainingMinutes: remainingMinutes,
+              speedKmh: _speedKmh,
+              active: _navigationActive || _route != null,
+              arrived: _guidanceSnapshot.arrived,
+              offRoute: _guidanceSnapshot.offRoute,
+              voiceOn: _voiceOn,
+              onToggleVoice: () {
+                setState(() {
+                  _voiceOn = !_voiceOn;
+                  _tts.muted = !_voiceOn;
+                });
+              },
+              onOpenWaze: () {
+                unawaited(
+                  getIt<CustomLauncher>().openWazeDirections(
+                    destinationLat: _targetPoint.latitude,
+                    destinationLng: _targetPoint.longitude,
+                    destinationTitle: _targetTitle,
+                    originLat: _providerPoint?.latitude,
+                    originLng: _providerPoint?.longitude,
+                  ),
+                );
+              },
+              onReport: () => unawaited(_reportAlongRoute()),
             ),
           ),
           if (_loadingRoute)
@@ -300,159 +432,48 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
             ),
           Positioned(
             right: 12.w,
-            bottom: 180.h + context.safeBottomInset,
-            child: FloatingActionButton(
+            bottom: 128.h + context.safeBottomInset,
+            child: FloatingActionButton.small(
               heroTag: 'provider_nav_gps',
               backgroundColor: tokens.surface,
-              foregroundColor: tokens.primary,
+              foregroundColor: MapStyleConfig.routeCasingColor,
               onPressed: () {
                 if (_providerPoint != null) {
                   setState(() => _cameraRevision++);
                 }
               },
-              child: const Icon(Icons.my_location),
+              child: const Icon(Icons.navigation),
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: REdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                16 + context.safeBottomInset,
-              ),
-              decoration: BoxDecoration(
-                color: tokens.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-                boxShadow: TaalaShadows.soft(brightness),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _targetTitle ?? AppStrings.navigateToClient.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: tokens.textPrimary,
-                        ),
-                  ),
-                  8.height,
-                  if (_navigationActive && instruction.isNotEmpty) ...[
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.turn_right,
-                          color: tokens.primary,
-                          size: 28.r,
-                        ),
-                        8.width,
-                        Expanded(
-                          child: Text(
-                            instruction,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    8.height,
-                    Row(
-                      children: [
-                        _InfoChip(
-                          icon: Icons.straighten,
-                          label: formatNavigationDistance(remainingDistance),
-                        ),
-                        8.width,
-                        _InfoChip(
-                          icon: Icons.schedule,
-                          label: AppStrings.navigationRemainingMinutes.tr(
-                            namedArgs: {
-                              'minutes': '$remainingMinutes',
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    8.height,
-                  ],
-                  Text(
-                    _statusText(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: tokens.textSecondary,
-                          height: 1.35,
-                        ),
-                  ),
-                  if (!_navigationActive && _route != null) ...[
-                    12.height,
-                    FilledButton.icon(
-                      onPressed: _startNavigation,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: tokens.primary,
-                        foregroundColor: tokens.onPrimary,
-                      ),
-                      icon: const Icon(Icons.navigation),
-                      label: Text(AppStrings.navigationStart.tr()),
-                    ),
-                  ],
-                  if (_routeFailed) ...[
-                    12.height,
-                    OutlinedButton.icon(
-                      onPressed: () => unawaited(
-                        _loadRoute(startNavigationAfter: false),
-                      ),
-                      icon: const Icon(Icons.refresh),
-                      label: Text(AppStrings.navigationRecenter.tr()),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-  });
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = TaalaTokens.of(context);
-
-    return Container(
-      padding: REdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: tokens.primarySoft,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16.r, color: tokens.primary),
-          6.width,
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: tokens.primary,
+          if (!_navigationActive && _route != null)
+            Positioned(
+              left: 16.w,
+              right: 16.w,
+              bottom: 88.h + context.safeBottomInset,
+              child: FilledButton.icon(
+                onPressed: _startNavigation,
+                style: FilledButton.styleFrom(
+                  backgroundColor: MapStyleConfig.routeCasingColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
                 ),
-          ),
+                icon: const Icon(Icons.navigation),
+                label: Text(AppStrings.navigationStart.tr()),
+              ),
+            ),
+          if (_routeFailed)
+            Positioned(
+              left: 16.w,
+              right: 16.w,
+              bottom: 88.h + context.safeBottomInset,
+              child: OutlinedButton.icon(
+                onPressed: () => unawaited(
+                  _loadRoute(startNavigationAfter: false),
+                ),
+                icon: const Icon(Icons.refresh),
+                label: Text(AppStrings.navigationRecenter.tr()),
+              ),
+            ),
         ],
       ),
     );

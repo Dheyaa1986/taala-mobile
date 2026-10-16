@@ -5,30 +5,36 @@ class MapStyleConfig {
 
   static const String userAgentPackageName = 'com.mintops.taala';
 
-  /// Carto Positron — pale streets, closer to a navigation / Waze daytime look.
+  /// Esri light-gray canvas — pale navigation look; Carto free tiles now require a key.
   static const String tileUrlTemplate =
-      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 
-  static const List<String> tileSubdomains = ['a', 'b', 'c', 'd'];
+  static const List<String> tileSubdomains = <String>[];
 
   static const Color routeColor = Color(0xFF33B5E5);
   static const Color routeCasingColor = Color(0xFF0D47A1);
-  static const double routeWidth = 7;
-  static const double routeCasingWidth = 11;
+  static const double routeWidth = 9;
+  static const double routeCasingWidth = 14;
 
-  /// Muted Google basemap so the cyan route reads like in-app navigation.
+  /// Daytime navigation basemap: pale land, white roads, muted POIs.
   static const String googleNavigationMapStyle = '''
 [
-  {"elementType":"geometry","stylers":[{"color":"#f2f2f2"}]},
-  {"elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},
-  {"elementType":"labels.text.stroke","stylers":[{"color":"#f5f5f5"}]},
-  {"featureType":"poi","stylers":[{"visibility":"simplified"}]},
-  {"featureType":"poi.business","stylers":[{"visibility":"off"}]},
+  {"elementType":"geometry","stylers":[{"color":"#ececec"}]},
+  {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#6b6b6b"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#f7f7f7"}]},
+  {"featureType":"administrative","elementType":"geometry","stylers":[{"visibility":"off"}]},
+  {"featureType":"poi","stylers":[{"visibility":"off"}]},
+  {"featureType":"poi.park","stylers":[{"visibility":"simplified"},{"color":"#d7ead2"}]},
   {"featureType":"road","elementType":"geometry","stylers":[{"color":"#ffffff"}]},
-  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#e6e6e6"}]},
-  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#dadada"}]},
+  {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#d4d4d4"}]},
+  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"}]},
+  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#f3f3f3"}]},
+  {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#dadada"}]},
+  {"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"simplified"}]},
   {"featureType":"transit","stylers":[{"visibility":"off"}]},
-  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#c9e4f5"}]}
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#b7dff2"}]},
+  {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#5a9bb8"}]}
 ]
 ''';
 

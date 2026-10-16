@@ -6,6 +6,7 @@ import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
 import 'package:taal/core/maps/widgets/live_map_marker.dart';
+import 'package:taal/core/maps/widgets/nav_vehicle_marker.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
 
 class TaalaMapView extends StatefulWidget {
@@ -162,19 +163,31 @@ class _TaalaMapViewState extends State<TaalaMapView> {
               .map(
                 (marker) => Marker(
                   point: marker.point,
-                  width: marker.livePulse ? 52 : 44,
-                  height: marker.livePulse ? 52 : 44,
-                  child: marker.livePulse && marker.icon != null
-                      ? LiveMapMarker(
-                          icon: marker.icon!,
-                          color: marker.color,
-                          size: marker.iconSize,
+                  width: marker.headingDegrees != null
+                      ? 52
+                      : marker.livePulse
+                          ? 52
+                          : 44,
+                  height: marker.headingDegrees != null
+                      ? 52
+                      : marker.livePulse
+                          ? 52
+                          : 44,
+                  child: marker.headingDegrees != null
+                      ? NavVehicleMarker(
+                          headingDegrees: marker.headingDegrees!,
                         )
-                      : Icon(
-                          marker.icon ?? Icons.location_on,
-                          color: marker.color,
-                          size: marker.iconSize,
-                        ),
+                      : marker.livePulse && marker.icon != null
+                          ? LiveMapMarker(
+                              icon: marker.icon!,
+                              color: marker.color,
+                              size: marker.iconSize,
+                            )
+                          : Icon(
+                              marker.icon ?? Icons.location_on,
+                              color: marker.color,
+                              size: marker.iconSize,
+                            ),
                 ),
               )
               .toList(),

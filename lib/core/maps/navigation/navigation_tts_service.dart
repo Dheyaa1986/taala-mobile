@@ -6,6 +6,7 @@ class NavigationTtsService {
 
   final FlutterTts _tts;
   var _ready = false;
+  var muted = false;
   String? _lastSpoken;
 
   Future<void> initialize() async {
@@ -26,6 +27,7 @@ class NavigationTtsService {
   }
 
   Future<void> speak(String text) async {
+    if (muted) return;
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
     if (!_ready) await initialize();
