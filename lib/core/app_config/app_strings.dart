@@ -578,4 +578,18 @@ class AppStrings {
   static const String biometricNotNow = 'biometricNotNow';
   static const String biometricArmHint = 'biometricArmHint';
   static const String biometricSettingsTitle = 'biometricSettingsTitle';
+  static const String myPlaces = 'myPlaces';
+  static const String myPlacesSearchHint = 'myPlacesSearchHint';
+  static const String myPlacesAddPlace = 'myPlacesAddPlace';
+  static const String myPlacesAddAlert = 'myPlacesAddAlert';
+  static const String myPlacesNavigate = 'myPlacesNavigate';
+  static const String myPlacesDetails = 'myPlacesDetails';
+  static const String myPlacesHome = 'myPlacesHome';
+  static const String myPlacesWork = 'myPlacesWork';
+  static const String myPlacesOther = 'myPlacesOther';
+  static const String myPlacesTraffic = 'myPlacesTraffic';
+  static const String myPlacesAccident = 'myPlacesAccident';
+  static const String myPlacesClosure = 'myPlacesClosure';
+  static const String myPlacesHazard = 'myPlacesHazard';
+  static const String myPlacesNote = 'myPlacesNote';
 }

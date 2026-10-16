@@ -25,6 +25,7 @@ import 'package:taal/features/app_info/presentation/screens/legal_document_scree
 import 'package:taal/features/usage_guides/presentation/screens/usage_guides_screen.dart';
 import 'package:taal/features/guest/presentation/screens/guest_map_screen.dart';
 import 'package:taal/features/splash/splash_screen.dart';
+import 'package:taal/features/my_places/presentation/screens/my_places_screen.dart';
 import 'package:taal/features/support/presentation/cubit/support_ticket_cubit.dart';
 import 'package:taal/features/support/presentation/screens/support_ticket_detail_screen.dart';
 import 'package:taal/features/support/presentation/screens/support_tickets_screen.dart';
@@ -55,6 +56,8 @@ class AppRouter {
       GlobalKey<NavigatorState>();
 
   static final GlobalKey<NavigatorState> _settingsTabNavigatorKey =
+      GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> _myPlacesNavigatorKey =
       GlobalKey<NavigatorState>();
 
   static final List<StatefulShellBranch> _homeBranches = [
@@ -209,6 +212,7 @@ class AppRouter {
             ..._servicesBranches,
             ..._rateBranches,
             ..._settingsBranches,
+            ..._myPlacesBranches,
           ],
         ),
         GoRoute(
@@ -441,6 +445,23 @@ class AppRouter {
           ],
         ),
       ]);
+  static List<StatefulShellBranch> get _myPlacesBranches => [
+        StatefulShellBranch(
+          navigatorKey: _myPlacesNavigatorKey,
+          routes: [
+            GoRoute(
+              path: Routes.myPlaces,
+              name: Routes.myPlaces,
+              pageBuilder: (context, state) => screenWithFadeTransition(
+                context: context,
+                state: state,
+                child: const MyPlacesScreen(),
+              ),
+            ),
+          ],
+        ),
+      ];
+
   static List<StatefulShellBranch> get _rateBranches => [
         StatefulShellBranch(
           navigatorKey: _rateNavigatorKey,

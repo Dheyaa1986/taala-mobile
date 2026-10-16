@@ -169,3 +169,8 @@ TaalaBottomNavItem portfolioNavItem() => TaalaBottomNavItem(
       label: AppStrings.portfolio.tr(),
       materialIcon: Icons.photo_library_outlined,
     );
+
+TaalaBottomNavItem myPlacesNavItem() => TaalaBottomNavItem(
+      label: AppStrings.myPlaces.tr(),
+      materialIcon: Icons.place_outlined,
+    );

@@ -15,6 +15,7 @@ class Routes {
   static const String editProfile = '/editProfile';
 
   static const String menu = '/menu';
+  static const String myPlaces = '/myPlaces';
   static const String baseSettings = '/baseSettings';
   static const String clientSettings = '/clientSettings';
   static const String rate = '/rate';

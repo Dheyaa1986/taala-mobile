@@ -21,6 +21,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   static const int _menuBranchIndex = 3;
+  static const int _placesBranchIndex = 4;
   bool _usagePromptScheduled = false;
 
   @override
@@ -42,11 +43,19 @@ class _BottomNavBarState extends State<BottomNavBar> {
       return switch (navIndex) {
         0 => 0,
         1 => 2,
-        2 => _menuBranchIndex,
+        2 => _placesBranchIndex,
+        3 => _menuBranchIndex,
         _ => 0,
       };
     }
-    return navIndex;
+    return switch (navIndex) {
+      0 => 0,
+      1 => 1,
+      2 => 2,
+      3 => _placesBranchIndex,
+      4 => _menuBranchIndex,
+      _ => 0,
+    };
   }
 
   int _navIndexForBranch(int branchIndex) {
@@ -54,11 +63,19 @@ class _BottomNavBarState extends State<BottomNavBar> {
       return switch (branchIndex) {
         0 => 0,
         2 => 1,
-        _menuBranchIndex => 2,
+        _placesBranchIndex => 2,
+        _menuBranchIndex => 3,
         _ => 0,
       };
     }
-    return branchIndex;
+    return switch (branchIndex) {
+      0 => 0,
+      1 => 1,
+      2 => 2,
+      _placesBranchIndex => 3,
+      _menuBranchIndex => 4,
+      _ => 0,
+    };
   }
 
   void _onItemTapped(int navIndex) {
@@ -123,6 +140,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       return [
         homeNavItem(),
         portfolioNavItem(),
+        myPlacesNavItem(),
         menuNavItem(),
       ];
     }
@@ -130,6 +148,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       homeNavItem(),
       servicesNavItem(),
       providersNavItem(),
+      myPlacesNavItem(),
       menuNavItem(),
     ];
   }

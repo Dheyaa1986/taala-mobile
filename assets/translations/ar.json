@@ -530,5 +530,19 @@
   "clientRequestMobile": "اطلب أن يأتيني",
   "priceByAgreement": "السعر بالاتفاق (اتصال/واتساب)",
   "shopOpenNow": "مفتوح الآن",
-  "visitShopOrderDescription": "طلب زيارة / موعد في المحل"
+  "visitShopOrderDescription": "طلب زيارة / موعد في المحل",
+  "myPlaces": "أماكني",
+  "myPlacesSearchHint": "ابحث عن مكان",
+  "myPlacesAddPlace": "إضافة مكان",
+  "myPlacesAddAlert": "إضافة ملاحظة",
+  "myPlacesNavigate": "تنقّل",
+  "myPlacesDetails": "التفاصيل",
+  "myPlacesHome": "منزل",
+  "myPlacesWork": "عمل",
+  "myPlacesOther": "مكان",
+  "myPlacesTraffic": "ازدحام",
+  "myPlacesAccident": "حادث",
+  "myPlacesClosure": "إغلاق",
+  "myPlacesHazard": "خطر",
+  "myPlacesNote": "تنبيه"
 }

@@ -506,5 +506,19 @@
   "clientRequestMobile": "Request on-site service",
   "priceByAgreement": "Price by agreement (call/WhatsApp)",
   "shopOpenNow": "Open now",
-  "visitShopOrderDescription": "Shop visit / appointment request"
+  "visitShopOrderDescription": "Shop visit / appointment request",
+  "myPlaces": "My places",
+  "myPlacesSearchHint": "Search for a place",
+  "myPlacesAddPlace": "Add place",
+  "myPlacesAddAlert": "Add note",
+  "myPlacesNavigate": "Navigate",
+  "myPlacesDetails": "Details",
+  "myPlacesHome": "Home",
+  "myPlacesWork": "Work",
+  "myPlacesOther": "Place",
+  "myPlacesTraffic": "Traffic",
+  "myPlacesAccident": "Accident",
+  "myPlacesClosure": "Closure",
+  "myPlacesHazard": "Hazard",
+  "myPlacesNote": "Alert"
 }

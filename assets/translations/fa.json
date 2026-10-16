@@ -150,5 +150,19 @@
   "usageGuidesPromptTitle": "ڕێنمایی بەکارهێنان",
   "usageGuidesPromptBody": "ڕێنمایی نوێ زیادکرا. دەتەوێت ئێستا ببینیت؟",
   "usageGuidesOpen": "کردنەوەی ڕێنمایی",
-  "usageGuidesLater": "دواتر"
+  "usageGuidesLater": "دواتر",
+  "myPlaces": "شوێنەکانم",
+  "myPlacesSearchHint": "گەڕان بۆ شوێن",
+  "myPlacesAddPlace": "زیادکردنی شوێن",
+  "myPlacesAddAlert": "زیادکردنی تێبینی",
+  "myPlacesNavigate": "ڕێنیشاندەر",
+  "myPlacesDetails": "وردەکاری",
+  "myPlacesHome": "ماڵ",
+  "myPlacesWork": "کار",
+  "myPlacesOther": "شوێن",
+  "myPlacesTraffic": "قەرەباڵغی",
+  "myPlacesAccident": "ڕووداو",
+  "myPlacesClosure": "داخستن",
+  "myPlacesHazard": "مەترسی",
+  "myPlacesNote": "ئاگاداری"
 }

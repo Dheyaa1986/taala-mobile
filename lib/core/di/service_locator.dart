@@ -10,6 +10,7 @@ import 'package:taal/core/maps/osrm_routing_service.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/provider_live_location_service.dart';
 import 'package:taal/core/maps/place_search_service.dart';
+import 'package:taal/features/my_places/data/my_places_repository.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/countries/data/repository/countries_repo_impl.dart';
 import 'package:taal/core/countries/data/repository/countries_repository.dart';
@@ -95,6 +96,9 @@ Future<void> _initExternals() async {
   );
   getIt.registerLazySingleton<PlaceSearchService>(
     () => PlaceSearchService(),
+  );
+  getIt.registerLazySingleton<MyPlacesRepository>(
+    () => MyPlacesRepository(getIt()),
   );
   getIt.registerLazySingleton<OsrmRoutingService>(
     () => OsrmRoutingService(),

@@ -29,4 +29,5 @@ class PrefsKeys {
   static const String biometricUnlockEnabled = 'biometric_unlock_enabled';
   static const String biometricUnlockOfferHandled =
       'biometric_unlock_offer_handled';
+  static const String myPlacesPrefix = 'my_places_';
 }
