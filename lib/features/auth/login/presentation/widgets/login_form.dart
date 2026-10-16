@@ -67,6 +67,7 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   UserRole? _role;
   bool _showDeviceKey = false;
+  bool _loadingDialogOpen = false;
 
   @override
   void initState() {
@@ -118,22 +119,32 @@ class _LoginFormState extends State<LoginForm> {
     return BlocListener<LoginCubit, LoginState>(
       listener: (context, state) async {
         if (state is LoginLoading) {
-          AppMessages.showLoading(context);
-        } else {
-          context.pop();
-
-          if (state is LoginSuccess) {
-            final isProvider = _role == UserRole.provider;
-            context.read<BottomNavigationCubit>().isProvider = isProvider;
-            PushNotificationService.instance.syncTokenIfLoggedIn();
-            await BiometricEnrollment.handleAfterPasswordLogin(context);
-            if (!context.mounted) return;
-            await AuthSessionHelper.openAuthenticatedApp(context);
-          } else if (state is LoginError) {
-            AppMessages.showError(context, state.error);
-          } else if (state is AccountNotVerified) {
-            AppMessages.showError(context, state.error);
+          if (!_loadingDialogOpen) {
+            _loadingDialogOpen = true;
+            AppMessages.showLoading(context);
           }
+          return;
+        }
+
+        if (_loadingDialogOpen) {
+          _loadingDialogOpen = false;
+          final navigator = Navigator.of(context, rootNavigator: true);
+          if (navigator.canPop()) {
+            navigator.pop();
+          }
+        }
+
+        if (state is LoginSuccess) {
+          final isProvider = _role == UserRole.provider;
+          context.read<BottomNavigationCubit>().isProvider = isProvider;
+          PushNotificationService.instance.syncTokenIfLoggedIn();
+          await BiometricEnrollment.handleAfterPasswordLogin(context);
+          if (!context.mounted) return;
+          await AuthSessionHelper.openAuthenticatedApp(context);
+        } else if (state is LoginError) {
+          AppMessages.showError(context, state.error);
+        } else if (state is AccountNotVerified) {
+          AppMessages.showError(context, state.error);
         }
       },
       child: Padding(

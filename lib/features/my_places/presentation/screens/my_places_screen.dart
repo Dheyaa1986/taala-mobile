@@ -33,8 +33,8 @@ class MyPlacesScreen extends StatefulWidget {
 
 class _MyPlacesScreenState extends State<MyPlacesScreen>
     with TaalaOfflineMapMixin {
-  final _mapController = MapController();
-  late final SafeMapController _safeMap = SafeMapController(_mapController);
+  MapController? _mapController;
+  SafeMapController? _safeMap;
   final _searchController = TextEditingController();
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
@@ -46,6 +46,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   List<PlaceSuggestion> _suggestions = [];
   Timer? _searchDebounce;
   bool _searching = false;
+  bool _tabActive = false;
   LatLng _center = MapsHelper.defaultCenter;
   MyPlaceItem? _selected;
 
@@ -53,7 +54,22 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   void initState() {
     super.initState();
     unawaited(_load());
-    unawaited(_goToCurrentLocation(showError: false));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final active = TickerMode.of(context);
+    if (active && !_tabActive) {
+      _tabActive = true;
+      _mapController ??= MapController();
+      _safeMap ??= SafeMapController(_mapController!);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {});
+        unawaited(_goToCurrentLocation(showError: false));
+      });
+    }
   }
 
   @override
@@ -64,33 +80,37 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   }
 
   Future<void> _load() async {
-    final items = await _repository.loadAll();
-    if (!mounted) return;
-    setState(() => _items = items);
+    try {
+      final items = await _repository.loadAll();
+      if (!mounted) return;
+      setState(() => _items = items);
+    } catch (_) {}
   }
 
   void _onMapReady() {
-    _safeMap.markReady();
-    _safeMap.move(_center, 14);
+    _safeMap?.markReady();
+    _safeMap?.move(_center, 14);
     unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
   }
 
   Future<void> _goToCurrentLocation({bool showError = true}) async {
-    final current = await _deviceLocation.getCurrentLocation();
-    if (!mounted) return;
-    if (current == null) {
-      if (showError) {
-        AppMessages.showError(
-          context,
-          AppStrings.locationPermissionDenied.tr(),
-        );
+    try {
+      final current = await _deviceLocation.getCurrentLocation();
+      if (!mounted) return;
+      if (current == null) {
+        if (showError) {
+          AppMessages.showError(
+            context,
+            AppStrings.locationPermissionDenied.tr(),
+          );
+        }
+        return;
       }
-      return;
-    }
-    _center = LatLng(current.latitude, current.longitude);
-    _safeMap.move(_center, 16);
-    unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
-    setState(() {});
+      _center = LatLng(current.latitude, current.longitude);
+      _safeMap?.move(_center, 16);
+      unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
+      setState(() {});
+    } catch (_) {}
   }
 
   void _onSearchChanged(String value) {
@@ -119,7 +139,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
 
   void _applySuggestion(PlaceSuggestion suggestion) {
     _center = LatLng(suggestion.latitude, suggestion.longitude);
-    _safeMap.move(_center, 16);
+    _safeMap?.move(_center, 16);
     _searchController.text = suggestion.displayName;
     setState(() {
       _suggestions = [];
@@ -186,6 +206,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   @override
   Widget build(BuildContext context) {
     final tokens = TaalaTokens.of(context);
+    final mapController = _mapController;
 
     return Scaffold(
       appBar: AppBar(
@@ -193,10 +214,12 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: Stack(
+      body: mapController == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
         children: [
           FlutterMap(
-            mapController: _mapController,
+            mapController: mapController,
             options: MapOptions(
               initialCenter: _center,
               initialZoom: 14,

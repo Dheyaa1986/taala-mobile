@@ -45,24 +45,28 @@ class LoginCubit extends Cubit<LoginState> {
         }
       },
       (response) async {
-        await getIt<SharedPref>().set(
-          key: PrefsKeys.isProviderAccount,
-          value: isProvider,
-        );
-        await SecureLocalStorage.write(PrefsKeys.token, response.token);
-        await SecureLocalStorage.write(
-            PrefsKeys.refreshToken, response.refreshToken);
-        await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
-        await SecureLocalStorage.delete(PrefsKeys.password);
-        await GuestSessionHelper.clearGuestBrowsing();
-        await getIt<ProfileCubit>().loadProfile();
-        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
-        getIt<AppAlertMonitor>().start();
-        await AlertDeliveryBootstrap.ensureReady();
-        await PushNotificationService.instance.processLaunchNotifications();
-        await NotificationRouter.processPendingIfAny();
+        try {
+          await getIt<SharedPref>().set(
+            key: PrefsKeys.isProviderAccount,
+            value: isProvider,
+          );
+          await SecureLocalStorage.write(PrefsKeys.token, response.token);
+          await SecureLocalStorage.write(
+              PrefsKeys.refreshToken, response.refreshToken);
+          await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
+          await SecureLocalStorage.delete(PrefsKeys.password);
+          await GuestSessionHelper.clearGuestBrowsing();
+          await getIt<ProfileCubit>().loadProfile();
+          await getIt<NotificationCubit>().refreshInbox(reloadList: true);
+          getIt<AppAlertMonitor>().start();
+          await AlertDeliveryBootstrap.ensureReady();
+          await PushNotificationService.instance.processLaunchNotifications();
+          await NotificationRouter.processPendingIfAny();
 
-        emit(LoginSuccess(response: response));
+          emit(LoginSuccess(response: response));
+        } catch (_) {
+          emit(LoginError('حدث خطأ، يرجى المحاولة لاحقاً'));
+        }
       },
     );
   }
