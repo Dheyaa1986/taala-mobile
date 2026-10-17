@@ -86,10 +86,20 @@ class MainActivity : FlutterFragmentActivity() {
 
     private fun readGoogleMapsApiKey(): String {
         return try {
-            val info = packageManager.getApplicationInfo(
-                packageName,
-                PackageManager.GET_META_DATA,
-            )
+            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getApplicationInfo(
+                    packageName,
+                    PackageManager.ApplicationInfoFlags.of(
+                        PackageManager.GET_META_DATA.toLong(),
+                    ),
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getApplicationInfo(
+                    packageName,
+                    PackageManager.GET_META_DATA,
+                )
+            }
             info.metaData?.getString("com.google.android.geo.API_KEY").orEmpty()
         } catch (_: Exception) {
             ""

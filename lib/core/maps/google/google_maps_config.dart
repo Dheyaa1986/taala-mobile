@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -41,7 +39,9 @@ class GoogleMapsConfig {
   }
 
   static bool get useGoogleMapWidget =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.ios);
 
   static bool get isEnabled =>
       useGoogleMapWidget || (apiKey != null && apiKey!.trim().isNotEmpty);

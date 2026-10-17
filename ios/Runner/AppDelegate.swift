@@ -10,25 +10,28 @@ import UserNotifications
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
 
-    let mapsRegistrar = self.registrar(forPlugin: "TaalaMaps")
-    let mapsChannel = FlutterMethodChannel(
-      name: "com.mintops.taala/maps",
-      binaryMessenger: mapsRegistrar.messenger()
-    )
-    mapsChannel.setMethodCallHandler { call, result in
-      if call.method == "googleMapsApiKey" {
-        let key = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? ""
-        result(key)
-      } else {
-        result(FlutterMethodNotImplemented)
-      }
-    }
-
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
     }
 
     application.registerForRemoteNotifications()
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+
+    if let registrar = self.registrar(forPlugin: "TaalaMaps") {
+      let mapsChannel = FlutterMethodChannel(
+        name: "com.mintops.taala/maps",
+        binaryMessenger: registrar.messenger()
+      )
+      mapsChannel.setMethodCallHandler { call, result in
+        if call.method == "googleMapsApiKey" {
+          let key = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? ""
+          result(key)
+        } else {
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    }
+
+    return launched
   }
 }
