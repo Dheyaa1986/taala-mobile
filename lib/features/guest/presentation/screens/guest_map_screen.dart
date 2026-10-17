@@ -428,11 +428,15 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                           provider: provider,
                           isSelected: provider.id == _selectedProviderId,
                           onTap: () {
-                            setState(() => _selectedProviderId = provider.id);
                             final point = provider.mapPoint;
-                            if (point != null) {
-                              _mapController.move(point, 15);
-                            }
+                            setState(() {
+                              _selectedProviderId = provider.id;
+                              if (point != null) {
+                                _center = point;
+                                _followCamera = true;
+                                _cameraRevision++;
+                              }
+                            });
                           },
                           onRequestHelp: () =>
                               _requestHelp(providerId: provider.id),
