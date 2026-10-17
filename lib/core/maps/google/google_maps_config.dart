@@ -41,7 +41,7 @@ class GoogleMapsConfig {
   static bool get useGoogleMapWidget =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.ios);
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   static bool get isEnabled =>
       useGoogleMapWidget || (apiKey != null && apiKey!.trim().isNotEmpty);
