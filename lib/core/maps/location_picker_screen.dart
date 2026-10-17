@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -17,8 +16,7 @@ import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/maps_helper.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
-import 'package:taal/core/maps/safe_map_controller.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({super.key, this.initial});
@@ -41,8 +39,6 @@ class LocationPickerScreen extends StatefulWidget {
 }
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
-  final _mapController = MapController();
-  late final SafeMapController _safeMap = SafeMapController(_mapController);
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
 
@@ -50,6 +46,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   String? _address;
   bool _loadingGps = false;
   bool _loadingAddress = false;
+  int _cameraRevision = 0;
+  bool _followCamera = true;
 
   @override
   void initState() {
@@ -61,8 +59,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   void _onMapReady() {
-    _safeMap.markReady();
-    _safeMap.move(_center, 15);
     if (widget.initial == null) {
       unawaited(_resolveAddress());
     }
@@ -93,7 +89,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     }
 
     _center = LatLng(current.latitude, current.longitude);
-    _safeMap.move(_center, 16);
+    _followCamera = true;
+    _cameraRevision++;
+    setState(() {});
     await _resolveAddress();
   }
 
@@ -119,22 +117,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _center,
-              initialZoom: 14,
-              onMapReady: _onMapReady,
-              onMapEvent: (event) {
-                if (event is MapEventMoveEnd) {
-                  setState(() => _center = _mapController.camera.center);
-                  _resolveAddress();
-                }
-              },
-            ),
-            children: [
-              HybridMapTileLayer(),
-            ],
+          TaalaMapView(
+            initialCenter: _center,
+            initialZoom: 16,
+            cameraRevision: _cameraRevision,
+            followPoint: _followCamera ? _center : null,
+            onMapReady: _onMapReady,
+            onMoved: (point) {
+              _center = point;
+              _followCamera = false;
+              unawaited(_resolveAddress());
+            },
           ),
           IgnorePointer(
             child: Center(

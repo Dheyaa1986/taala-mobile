@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -17,7 +16,8 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/offline/map_offline_manager.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/design_system/components/taala_button.dart';
@@ -42,7 +42,6 @@ class GuestMapScreen extends StatefulWidget {
 }
 
 class _GuestMapScreenState extends State<GuestMapScreen> {
-  final _mapController = MapController();
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
   final _repository = getIt<ProviderRepository>();
@@ -56,6 +55,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   bool _loadingProviders = false;
   String? _error;
   String? _offlineMapPath;
+  int _cameraRevision = 0;
+  bool _followCamera = true;
 
   @override
   void initState() {
@@ -95,7 +96,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
 
     if (location != null) {
       _center = LatLng(location.latitude, location.longitude);
-      _mapController.move(_center, MapStyleConfig.defaultZoom);
+      _followCamera = true;
+      _cameraRevision++;
+      setState(() {});
       await _resolveAddress();
       await _refreshOfflineMapPath();
       await _loadProviders();
@@ -117,8 +120,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     });
   }
 
-  Future<void> _onMapMoved() async {
-    _center = _mapController.camera.center;
+  Future<void> _onMapMoved(LatLng point) async {
+    _center = point;
+    _followCamera = false;
     await Future.wait([
       _resolveAddress(),
       _refreshOfflineMapPath(),
@@ -178,29 +182,19 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     context.goNamed(Routes.home);
   }
 
-  List<Marker> _providerMarkers(TaalaTokens tokens) {
-    return _providers.map((provider) {
-      final point = provider.mapPoint;
-      if (point == null) return null;
+  List<TaalaMapMarker> _providerMarkers(TaalaTokens tokens) {
+    return _providers
+        .where((provider) => provider.mapPoint != null)
+        .map((provider) {
       final isSelected = provider.id == _selectedProviderId;
-
-      return Marker(
-        point: point,
-        width: 48,
-        height: 48,
-        child: GestureDetector(
-          onTap: () => setState(() => _selectedProviderId = provider.id),
-          child: Icon(
-            Icons.handyman_rounded,
-            size: isSelected ? 40 : 34,
-            color: isSelected ? tokens.primary : tokens.textPrimary,
-            shadows: const [
-              Shadow(blurRadius: 8, color: Colors.black26),
-            ],
-          ),
-        ),
+      return TaalaMapMarker(
+        point: provider.mapPoint!,
+        color: isSelected ? tokens.primary : tokens.textPrimary,
+        icon: Icons.handyman_rounded,
+        iconSize: isSelected ? 40 : 34,
+        onTap: () => setState(() => _selectedProviderId = provider.id),
       );
-    }).whereType<Marker>().toList();
+    }).toList();
   }
 
   @override
@@ -213,21 +207,14 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _center,
-              initialZoom: MapStyleConfig.defaultZoom,
-              onMapEvent: (event) {
-                if (event is MapEventMoveEnd) {
-                  _onMapMoved();
-                }
-              },
-            ),
-            children: [
-              HybridMapTileLayer(offlineMapPath: _offlineMapPath),
-              MarkerLayer(markers: _providerMarkers(tokens)),
-            ],
+          TaalaMapView(
+            initialCenter: _center,
+            initialZoom: MapStyleConfig.defaultZoom,
+            cameraRevision: _cameraRevision,
+            followPoint: _followCamera ? _center : null,
+            offlineMapPath: _offlineMapPath,
+            markers: _providerMarkers(tokens),
+            onMoved: (point) => unawaited(_onMapMoved(point)),
           ),
           IgnorePointer(
             child: Center(

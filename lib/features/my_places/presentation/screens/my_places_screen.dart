@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_strings.dart';
@@ -11,17 +10,13 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
-import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/maps_helper.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
-import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
-import 'package:taal/core/maps/widgets/google_browse_map.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
-import 'package:taal/core/maps/widgets/live_map_marker.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
@@ -39,8 +34,6 @@ class MyPlacesScreen extends StatefulWidget {
 
 class _MyPlacesScreenState extends State<MyPlacesScreen>
     with TaalaOfflineMapMixin {
-  MapController? _mapController;
-  SafeMapController? _safeMap;
   final _searchController = TextEditingController();
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
@@ -60,6 +53,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   LatLng? _myLocation;
   MyPlaceItem? _selected;
   int _cameraRevision = 0;
+  bool _followCamera = false;
 
   List<MyPlaceItem> get _visibleItems {
     return _items.where((item) {
@@ -83,8 +77,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     final active = TickerMode.of(context);
     if (active && !_tabActive) {
       _tabActive = true;
-      _mapController ??= MapController();
-      _safeMap ??= SafeMapController(_mapController!);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() {});
@@ -109,9 +101,13 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   }
 
   void _onMapReady() {
-    _safeMap?.markReady();
-    _safeMap?.move(_center, 14);
     unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
+  }
+
+  void _moveCameraTo(LatLng point) {
+    _center = point;
+    _followCamera = true;
+    _cameraRevision++;
   }
 
   Future<void> _goToCurrentLocation({bool showError = true}) async {
@@ -128,9 +124,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
         return;
       }
       _myLocation = LatLng(current.latitude, current.longitude);
-      _center = _myLocation!;
-      _cameraRevision++;
-      _safeMap?.move(_center, 16);
+      _moveCameraTo(_myLocation!);
       unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
       setState(() {});
     } catch (_) {}
@@ -161,8 +155,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   }
 
   void _applySuggestion(PlaceSuggestion suggestion, {bool save = false}) {
-    _center = LatLng(suggestion.latitude, suggestion.longitude);
-    _safeMap?.move(_center, 16);
+    _moveCameraTo(LatLng(suggestion.latitude, suggestion.longitude));
     _searchController.text = suggestion.displayName;
     setState(() {
       _suggestions = [];
@@ -208,10 +201,8 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
             setState(() {
               _items = next;
               _selected = item;
-              _center = LatLng(item.latitude, item.longitude);
-              _cameraRevision++;
+              _moveCameraTo(LatLng(item.latitude, item.longitude));
             });
-            _safeMap?.move(LatLng(item.latitude, item.longitude), 16);
             AppMessages.showSuccess(context, AppStrings.myPlacesSaved.tr());
             unawaited(_previewRouteTo(item));
           },
@@ -251,9 +242,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   }
 
   void _focusItem(MyPlaceItem item) {
-    _center = LatLng(item.latitude, item.longitude);
-    _cameraRevision++;
-    _safeMap?.move(_center, 16);
+    _moveCameraTo(LatLng(item.latitude, item.longitude));
     setState(() => _selected = item);
     unawaited(_previewRouteTo(item));
   }
@@ -376,7 +365,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   @override
   Widget build(BuildContext context) {
     final tokens = TaalaTokens.of(context);
-    final mapController = _mapController;
 
     return Scaffold(
       appBar: AppBar(
@@ -391,11 +379,11 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           ),
         ],
       ),
-      body: mapController == null
+      body: !_tabActive
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                _buildMap(tokens, mapController),
+                _buildMap(tokens),
                 Positioned(
                   top: 12.h,
                   left: 12.w,
@@ -603,132 +591,61 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     );
   }
 
-  Widget _buildMap(TaalaTokens tokens, MapController mapController) {
-    final placeMarkers = _visibleItems
-        .map(
+  Widget _buildMap(TaalaTokens tokens) {
+    return TaalaMapView(
+      initialCenter: _center,
+      initialZoom: 16,
+      cameraRevision: _cameraRevision,
+      followPoint: _followCamera ? _center : null,
+      offlineMapPath: offlineMapPath,
+      onMapReady: _onMapReady,
+      onTap: (_, point) {
+        setState(() {
+          _center = point;
+          _followCamera = false;
+          _selected = null;
+          _previewRoute = [];
+        });
+      },
+      onLongPress: (_, point) {
+        setState(() {
+          _center = point;
+          _followCamera = false;
+        });
+        unawaited(_openEditor(
+          isAlert: false,
+          latitude: point.latitude,
+          longitude: point.longitude,
+        ));
+      },
+      onMoved: (point) {
+        _center = point;
+        _followCamera = false;
+      },
+      polylines: [
+        if (_previewRoute.length >= 2)
+          TaalaMapPolyline(
+            points: _previewRoute,
+            color: MapStyleConfig.routeColor,
+            width: MapStyleConfig.routeWidth,
+          ),
+      ],
+      markers: [
+        TaalaMapMarker(
+          point: _center,
+          color: tokens.primary,
+          icon: Icons.add_location_alt,
+          iconSize: 36,
+        ),
+        ..._visibleItems.map(
           (item) => TaalaMapMarker(
             point: LatLng(item.latitude, item.longitude),
             color: myPlaceColor(item),
             icon: myPlaceIcon(item.category),
+            iconSize: 28,
+            livePulse: true,
+            onTap: () => _focusItem(item),
           ),
-        )
-        .toList();
-
-    if (GoogleMapsConfig.useGoogleMapWidget) {
-      return GoogleBrowseMap(
-        center: _center,
-        zoom: 16,
-        cameraRevision: _cameraRevision,
-        routePoints: _previewRoute,
-        markers: [
-          TaalaMapMarker(
-            point: _center,
-            color: tokens.primary,
-            icon: Icons.add_location_alt,
-          ),
-          ...placeMarkers,
-        ],
-        onMarkerTap: (point) {
-          final match = _visibleItems.cast<MyPlaceItem?>().firstWhere(
-                (item) =>
-                    item != null &&
-                    (item.latitude - point.latitude).abs() < 0.00015 &&
-                    (item.longitude - point.longitude).abs() < 0.00015,
-                orElse: () => null,
-              );
-          if (match != null) _focusItem(match);
-        },
-        onTap: (point) {
-          setState(() {
-            _center = point;
-            _selected = null;
-            _previewRoute = [];
-          });
-        },
-        onLongPress: (point) {
-          setState(() => _center = point);
-          unawaited(_openEditor(
-            isAlert: false,
-            latitude: point.latitude,
-            longitude: point.longitude,
-          ));
-        },
-        onCameraIdle: (point) {
-          _center = point;
-        },
-        onMapReady: () {
-          unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
-        },
-      );
-    }
-
-    return FlutterMap(
-      mapController: mapController,
-      options: MapOptions(
-        initialCenter: _center,
-        initialZoom: 14,
-        onMapReady: _onMapReady,
-        onTap: (_, point) {
-          setState(() {
-            _center = point;
-            _selected = null;
-            _previewRoute = [];
-          });
-        },
-        onLongPress: (_, point) {
-          setState(() => _center = point);
-          unawaited(_openEditor(
-            isAlert: false,
-            latitude: point.latitude,
-            longitude: point.longitude,
-          ));
-        },
-      ),
-      children: [
-        HybridMapTileLayer(offlineMapPath: offlineMapPath),
-        if (_previewRoute.length >= 2)
-          PolylineLayer(
-            polylines: [
-              Polyline(
-                points: _previewRoute,
-                color: MapStyleConfig.routeCasingColor,
-                strokeWidth: MapStyleConfig.routeCasingWidth,
-              ),
-              Polyline(
-                points: _previewRoute,
-                color: MapStyleConfig.routeColor,
-                strokeWidth: MapStyleConfig.routeWidth,
-              ),
-            ],
-          ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: _center,
-              width: 40,
-              height: 40,
-              child: Icon(
-                Icons.add_location_alt,
-                color: tokens.primary,
-                size: 36,
-              ),
-            ),
-            ..._visibleItems.map(
-              (item) => Marker(
-                point: LatLng(item.latitude, item.longitude),
-                width: 48,
-                height: 48,
-                child: GestureDetector(
-                  onTap: () => _focusItem(item),
-                  child: LiveMapMarker(
-                    icon: myPlaceIcon(item.category),
-                    color: myPlaceColor(item),
-                    size: 28,
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ],
     );

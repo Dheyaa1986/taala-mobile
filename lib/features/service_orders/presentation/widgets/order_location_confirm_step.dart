@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:location/location.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,12 +13,11 @@ import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/maps_helper.dart';
-import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
+import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
-import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/features/service_orders/presentation/utils/order_location_prefs.dart';
 
@@ -56,8 +54,6 @@ class OrderLocationConfirmStep extends StatefulWidget {
 
 class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     with TaalaOfflineMapMixin {
-  final _mapController = MapController();
-  late final SafeMapController _safeMap = SafeMapController(_mapController);
   final _deviceLocation = getIt<DeviceLocationService>();
   final _geocoding = getIt<ReverseGeocodingService>();
   final _placeSearch = getIt<PlaceSearchService>();
@@ -73,6 +69,8 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
   bool _bootstrapping = false;
   bool _confirming = false;
   bool _userMovedMap = false;
+  int _cameraRevision = 0;
+  bool _followCamera = true;
   Timer? _debounce;
   StreamSubscription<LocationData>? _liveLocationSub;
   final _location = Location();
@@ -125,13 +123,14 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
       if (distance(_center, gpsPoint) > 120) return;
 
       _center = gpsPoint;
-      _safeMap.move(_center, 16);
+      _followCamera = true;
+      _cameraRevision++;
+      if (mounted) setState(() {});
       unawaited(_resolveAddress());
     });
   }
 
   void _onMapReady() {
-    _safeMap.markReady();
     if (_bootstrapping) return;
     _bootstrapping = true;
     unawaited(_bootstrapAfterMapReady());
@@ -139,7 +138,9 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
 
   Future<void> _bootstrapAfterMapReady() async {
     if (widget.initial != null) {
-      _safeMap.move(_center, 15);
+      _followCamera = true;
+      _cameraRevision++;
+      if (mounted) setState(() {});
       return;
     }
     if (widget.autoGpsOnStart) {
@@ -150,7 +151,9 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     final reference = widget.referenceLocation;
     if (reference != null) {
       _center = LatLng(reference.latitude, reference.longitude);
-      _safeMap.move(_center, widget.initialZoomWhenReference);
+      _followCamera = true;
+      _cameraRevision++;
+      if (mounted) setState(() {});
       if (widget.searchHint != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _searchFocus.requestFocus();
@@ -209,7 +212,9 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
     }
 
     _center = LatLng(current.latitude, current.longitude);
-    _safeMap.move(_center, 16);
+    _followCamera = true;
+    _cameraRevision++;
+    setState(() {});
     await _resolveAddress();
   }
 
@@ -234,7 +239,8 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
   Future<void> _selectSuggestion(PlaceSuggestion item) async {
     _center = LatLng(item.latitude, item.longitude);
     _userMovedMap = true;
-    _safeMap.move(_center, 16);
+    _followCamera = true;
+    _cameraRevision++;
     setState(() {
       _address = item.displayName;
       _searchController.clear();
@@ -355,27 +361,19 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
               borderRadius: BorderRadius.circular(12.r),
               child: Stack(
                 children: [
-                  FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: _center,
-                      initialZoom: 15,
-                      onMapReady: _onMapReady,
-                      onMapEvent: (event) {
-                        if (event is MapEventMoveStart) {
-                          _userMovedMap = true;
-                        }
-                        if (event is MapEventMoveEnd) {
-                          setState(
-                            () => _center = _mapController.camera.center,
-                          );
-                          _resolveAddress();
-                        }
-                      },
-                    ),
-                    children: [
-                      HybridMapTileLayer(offlineMapPath: offlineMapPath),
-                    ],
+                  TaalaMapView(
+                    initialCenter: _center,
+                    initialZoom: 16,
+                    cameraRevision: _cameraRevision,
+                    followPoint: _followCamera ? _center : null,
+                    offlineMapPath: offlineMapPath,
+                    onMapReady: _onMapReady,
+                    onMoved: (point) {
+                      _userMovedMap = true;
+                      _followCamera = false;
+                      setState(() => _center = point);
+                      unawaited(_resolveAddress());
+                    },
                   ),
                   IgnorePointer(
                     child: Center(

@@ -9,6 +9,7 @@ class TaalaMapMarker {
     this.iconSize = 32,
     this.livePulse = false,
     this.headingDegrees,
+    this.onTap,
   });
 
   final LatLng point;
@@ -17,6 +18,7 @@ class TaalaMapMarker {
   final double iconSize;
   final bool livePulse;
   final double? headingDegrees;
+  final VoidCallback? onTap;
 }
 
 class TaalaMapPolyline {

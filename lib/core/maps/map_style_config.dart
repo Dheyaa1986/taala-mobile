@@ -41,4 +41,5 @@ class MapStyleConfig {
   static const double defaultLatitude = 33.3152;
   static const double defaultLongitude = 44.3661;
   static const double defaultZoom = 13;
+  static const double browseTilt = 45;
 }
