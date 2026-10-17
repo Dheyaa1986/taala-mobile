@@ -22,6 +22,7 @@ import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/my_places/data/my_place_item.dart';
 import 'package:taal/features/my_places/data/my_places_repository.dart';
+import 'package:taal/features/service_orders/presentation/screens/provider_in_app_navigation_screen.dart';
 
 enum _PlacesFilter { all, places, alerts }
 
@@ -288,11 +289,17 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     });
   }
 
-  Future<void> _navigateTo(MyPlaceItem item) {
-    return _launcher.openDirections(
-      destinationLat: item.latitude,
-      destinationLng: item.longitude,
-      destinationTitle: item.title,
+  void _navigateTo(MyPlaceItem item) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderInAppNavigationScreen(
+          args: ProviderInAppNavigationArgs(
+            targetLatitude: item.latitude,
+            targetLongitude: item.longitude,
+            targetTitle: item.title,
+          ),
+        ),
+      ),
     );
   }
 
@@ -537,7 +544,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                       if (_selected != null)
                         _SelectedCard(
                           item: _selected!,
-                          onNavigate: () => unawaited(_navigateTo(_selected!)),
+                          onNavigate: () => _navigateTo(_selected!),
                           onWaze: () => unawaited(_openWaze(_selected!)),
                           onEdit: () => unawaited(
                             _openEditor(
@@ -778,7 +785,7 @@ class _SelectedCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: TaalaButton(
-                    label: AppStrings.myPlacesNavigate.tr(),
+                    label: AppStrings.departInApp.tr(),
                     height: 44,
                     onPressed: onNavigate,
                   ),
