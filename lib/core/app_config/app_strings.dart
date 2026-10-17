@@ -599,6 +599,9 @@ class AppStrings {
   static const String myPlacesEdit = 'myPlacesEdit';
   static const String myPlacesOpenWaze = 'myPlacesOpenWaze';
   static const String myPlacesSaveHere = 'myPlacesSaveHere';
+  static const String myPlacesSaveCurrent = 'myPlacesSaveCurrent';
+  static const String myPlacesSaved = 'myPlacesSaved';
+  static const String myPlacesNameRequired = 'myPlacesNameRequired';
   static const String myPlacesDeleteConfirm = 'myPlacesDeleteConfirm';
   static const String myPlacesEmpty = 'myPlacesEmpty';
 }

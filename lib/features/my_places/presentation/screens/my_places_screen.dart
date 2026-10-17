@@ -11,14 +11,17 @@ import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
+import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/maps_helper.dart';
 import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
+import 'package:taal/core/maps/widgets/google_browse_map.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
 import 'package:taal/core/maps/widgets/live_map_marker.dart';
+import 'package:taal/core/maps/widgets/taala_map_models.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
@@ -56,6 +59,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   LatLng _center = MapsHelper.defaultCenter;
   LatLng? _myLocation;
   MyPlaceItem? _selected;
+  int _cameraRevision = 0;
 
   List<MyPlaceItem> get _visibleItems {
     return _items.where((item) {
@@ -125,6 +129,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
       }
       _myLocation = LatLng(current.latitude, current.longitude);
       _center = _myLocation!;
+      _cameraRevision++;
       _safeMap?.move(_center, 16);
       unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
       setState(() {});
@@ -178,10 +183,15 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     MyPlaceItem? existing,
     String? presetCategory,
     String? presetTitle,
+    double? latitude,
+    double? longitude,
   }) {
+    final lat = latitude ?? existing?.latitude ?? _center.latitude;
+    final lng = longitude ?? existing?.longitude ?? _center.longitude;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (_) {
         return _MyPlaceEditorSheet(
@@ -189,8 +199,8 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           initial: existing,
           presetCategory: presetCategory,
           presetTitle: presetTitle,
-          latitude: existing?.latitude ?? _center.latitude,
-          longitude: existing?.longitude ?? _center.longitude,
+          latitude: lat,
+          longitude: lng,
           geocoding: _geocoding,
           onSave: (item) async {
             final next = await _repository.upsert(item);
@@ -198,8 +208,11 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
             setState(() {
               _items = next;
               _selected = item;
+              _center = LatLng(item.latitude, item.longitude);
+              _cameraRevision++;
             });
             _safeMap?.move(LatLng(item.latitude, item.longitude), 16);
+            AppMessages.showSuccess(context, AppStrings.myPlacesSaved.tr());
             unawaited(_previewRouteTo(item));
           },
         );
@@ -207,20 +220,39 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     );
   }
 
+  Future<void> _saveCurrentLocation() async {
+    await _goToCurrentLocation();
+    if (!mounted) return;
+    final here = _myLocation;
+    if (here == null) return;
+    await _openEditor(
+      isAlert: false,
+      latitude: here.latitude,
+      longitude: here.longitude,
+    );
+  }
+
   Future<void> _quickSave(String category) async {
+    await _goToCurrentLocation(showError: false);
+    if (!mounted) return;
+    final here = _myLocation ?? _center;
     final existing = _items.cast<MyPlaceItem?>().firstWhere(
           (item) => item?.category == category,
           orElse: () => null,
         );
-    if (existing != null) {
-      _focusItem(existing);
-      return;
-    }
-    await _openEditor(isAlert: false, presetCategory: category);
+    await _openEditor(
+      isAlert: false,
+      existing: existing,
+      presetCategory: category,
+      presetTitle: myPlaceCategoryLabel(category),
+      latitude: here.latitude,
+      longitude: here.longitude,
+    );
   }
 
   void _focusItem(MyPlaceItem item) {
     _center = LatLng(item.latitude, item.longitude);
+    _cameraRevision++;
     _safeMap?.move(_center, 16);
     setState(() => _selected = item);
     unawaited(_previewRouteTo(item));
@@ -320,11 +352,13 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                                 color: myPlaceColor(item),
                               ),
                               title: Text(item.title),
-                              subtitle: Text(
-                                item.address ?? item.details ?? '',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              subtitle: (item.address ?? '').isEmpty
+                                  ? null
+                                  : Text(
+                                      item.address!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                               onTap: () => Navigator.pop(context, item),
                             );
                           },
@@ -361,72 +395,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    initialCenter: _center,
-                    initialZoom: 14,
-                    onMapReady: _onMapReady,
-                    onTap: (_, point) {
-                      setState(() {
-                        _center = point;
-                        _selected = null;
-                        _previewRoute = [];
-                      });
-                    },
-                    onLongPress: (_, point) {
-                      setState(() => _center = point);
-                      unawaited(_openEditor(isAlert: false));
-                    },
-                  ),
-                  children: [
-                    HybridMapTileLayer(offlineMapPath: offlineMapPath),
-                    if (_previewRoute.length >= 2)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: _previewRoute,
-                            color: MapStyleConfig.routeCasingColor,
-                            strokeWidth: MapStyleConfig.routeCasingWidth,
-                          ),
-                          Polyline(
-                            points: _previewRoute,
-                            color: MapStyleConfig.routeColor,
-                            strokeWidth: MapStyleConfig.routeWidth,
-                          ),
-                        ],
-                      ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: _center,
-                          width: 40,
-                          height: 40,
-                          child: Icon(
-                            Icons.add_location_alt,
-                            color: tokens.primary,
-                            size: 36,
-                          ),
-                        ),
-                        ..._visibleItems.map(
-                          (item) => Marker(
-                            point: LatLng(item.latitude, item.longitude),
-                            width: 48,
-                            height: 48,
-                            child: GestureDetector(
-                              onTap: () => _focusItem(item),
-                              child: LiveMapMarker(
-                                icon: myPlaceIcon(item.category),
-                                color: myPlaceColor(item),
-                                size: 28,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                _buildMap(tokens, mapController),
                 Positioned(
                   top: 12.h,
                   left: 12.w,
@@ -595,12 +564,19 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                           }),
                         ),
                       if (_selected != null) 8.height,
+                      TaalaButton(
+                        label: AppStrings.myPlacesSaveCurrent.tr(),
+                        height: 48,
+                        onPressed: () => unawaited(_saveCurrentLocation()),
+                      ),
+                      8.height,
                       Row(
                         children: [
                           Expanded(
                             child: TaalaButton(
-                              label: AppStrings.myPlacesAddPlace.tr(),
+                              label: AppStrings.myPlacesSaveHere.tr(),
                               height: 48,
+                              variant: TaalaButtonVariant.secondary,
                               onPressed: () => unawaited(
                                 _openEditor(isAlert: false),
                               ),
@@ -624,6 +600,137 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildMap(TaalaTokens tokens, MapController mapController) {
+    final placeMarkers = _visibleItems
+        .map(
+          (item) => TaalaMapMarker(
+            point: LatLng(item.latitude, item.longitude),
+            color: myPlaceColor(item),
+            icon: myPlaceIcon(item.category),
+          ),
+        )
+        .toList();
+
+    if (GoogleMapsConfig.useGoogleMapWidget) {
+      return GoogleBrowseMap(
+        center: _center,
+        zoom: 16,
+        cameraRevision: _cameraRevision,
+        routePoints: _previewRoute,
+        markers: [
+          TaalaMapMarker(
+            point: _center,
+            color: tokens.primary,
+            icon: Icons.add_location_alt,
+          ),
+          ...placeMarkers,
+        ],
+        onMarkerTap: (point) {
+          final match = _visibleItems.cast<MyPlaceItem?>().firstWhere(
+                (item) =>
+                    item != null &&
+                    (item.latitude - point.latitude).abs() < 0.00015 &&
+                    (item.longitude - point.longitude).abs() < 0.00015,
+                orElse: () => null,
+              );
+          if (match != null) _focusItem(match);
+        },
+        onTap: (point) {
+          setState(() {
+            _center = point;
+            _selected = null;
+            _previewRoute = [];
+          });
+        },
+        onLongPress: (point) {
+          setState(() => _center = point);
+          unawaited(_openEditor(
+            isAlert: false,
+            latitude: point.latitude,
+            longitude: point.longitude,
+          ));
+        },
+        onCameraIdle: (point) {
+          _center = point;
+        },
+        onMapReady: () {
+          unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
+        },
+      );
+    }
+
+    return FlutterMap(
+      mapController: mapController,
+      options: MapOptions(
+        initialCenter: _center,
+        initialZoom: 14,
+        onMapReady: _onMapReady,
+        onTap: (_, point) {
+          setState(() {
+            _center = point;
+            _selected = null;
+            _previewRoute = [];
+          });
+        },
+        onLongPress: (_, point) {
+          setState(() => _center = point);
+          unawaited(_openEditor(
+            isAlert: false,
+            latitude: point.latitude,
+            longitude: point.longitude,
+          ));
+        },
+      ),
+      children: [
+        HybridMapTileLayer(offlineMapPath: offlineMapPath),
+        if (_previewRoute.length >= 2)
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: _previewRoute,
+                color: MapStyleConfig.routeCasingColor,
+                strokeWidth: MapStyleConfig.routeCasingWidth,
+              ),
+              Polyline(
+                points: _previewRoute,
+                color: MapStyleConfig.routeColor,
+                strokeWidth: MapStyleConfig.routeWidth,
+              ),
+            ],
+          ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: _center,
+              width: 40,
+              height: 40,
+              child: Icon(
+                Icons.add_location_alt,
+                color: tokens.primary,
+                size: 36,
+              ),
+            ),
+            ..._visibleItems.map(
+              (item) => Marker(
+                point: LatLng(item.latitude, item.longitude),
+                width: 48,
+                height: 48,
+                child: GestureDetector(
+                  onTap: () => _focusItem(item),
+                  child: LiveMapMarker(
+                    icon: myPlaceIcon(item.category),
+                    color: myPlaceColor(item),
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -739,8 +846,6 @@ class _SelectedCard extends StatelessWidget {
               myPlaceCategoryLabel(item.category),
               style: TextStyle(fontSize: 12.sp, color: tokens.textSecondary),
             ),
-            if ((item.details ?? '').isNotEmpty)
-              Text(item.details!, style: TextStyle(fontSize: 13.sp)),
             if ((item.address ?? '').isNotEmpty)
               Text(
                 item.address!,
@@ -814,7 +919,6 @@ class _MyPlaceEditorSheet extends StatefulWidget {
 
 class _MyPlaceEditorSheetState extends State<_MyPlaceEditorSheet> {
   late final TextEditingController _title;
-  late final TextEditingController _details;
   late String _category;
   String? _address;
   bool _saving = false;
@@ -825,7 +929,6 @@ class _MyPlaceEditorSheetState extends State<_MyPlaceEditorSheet> {
     _title = TextEditingController(
       text: widget.initial?.title ?? widget.presetTitle ?? '',
     );
-    _details = TextEditingController(text: widget.initial?.details ?? '');
     _category = widget.initial?.category ??
         widget.presetCategory ??
         (widget.isAlert ? MyPlaceCategories.note : MyPlaceCategories.other);
@@ -835,7 +938,6 @@ class _MyPlaceEditorSheetState extends State<_MyPlaceEditorSheet> {
   @override
   void dispose() {
     _title.dispose();
-    _details.dispose();
     super.dispose();
   }
 
@@ -849,27 +951,33 @@ class _MyPlaceEditorSheetState extends State<_MyPlaceEditorSheet> {
   }
 
   Future<void> _save() async {
-    var title = _title.text.trim();
+    final title = _title.text.trim();
     if (title.isEmpty) {
-      title = myPlaceCategoryLabel(_category);
+      AppMessages.showError(context, AppStrings.myPlacesNameRequired.tr());
+      return;
     }
     setState(() => _saving = true);
-    final item = MyPlaceItem(
-      id: widget.initial?.id ??
-          DateTime.now().microsecondsSinceEpoch.toString(),
-      kind: widget.isAlert ? MyPlaceKinds.alert : MyPlaceKinds.place,
-      category: _category,
-      title: title,
-      details: _details.text.trim().isEmpty ? null : _details.text.trim(),
-      latitude: widget.latitude,
-      longitude: widget.longitude,
-      address: _address,
-      createdAtMs: widget.initial?.createdAtMs ??
-          DateTime.now().millisecondsSinceEpoch,
-    );
-    await widget.onSave(item);
-    if (!mounted) return;
-    Navigator.pop(context);
+    try {
+      final item = MyPlaceItem(
+        id: widget.initial?.id ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
+        kind: widget.isAlert ? MyPlaceKinds.alert : MyPlaceKinds.place,
+        category: _category,
+        title: title,
+        latitude: widget.latitude,
+        longitude: widget.longitude,
+        address: _address,
+        createdAtMs: widget.initial?.createdAtMs ??
+            DateTime.now().millisecondsSinceEpoch,
+      );
+      await widget.onSave(item);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      AppMessages.showError(context, AppStrings.genericError.tr());
+    }
   }
 
   @override
@@ -922,17 +1030,11 @@ class _MyPlaceEditorSheetState extends State<_MyPlaceEditorSheet> {
                 12.height,
                 TextField(
                   controller: _title,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: AppStrings.name.tr(),
                   ),
-                ),
-                12.height,
-                TextField(
-                  controller: _details,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: AppStrings.myPlacesDetails.tr(),
-                  ),
+                  onSubmitted: (_) => unawaited(_save()),
                 ),
                 if ((_address ?? '').isNotEmpty) ...[
                   8.height,

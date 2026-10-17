@@ -528,6 +528,9 @@
   "myPlacesEdit": "Edit",
   "myPlacesOpenWaze": "Waze",
   "myPlacesSaveHere": "Save here",
+  "myPlacesSaveCurrent": "Save my location",
+  "myPlacesSaved": "Place saved",
+  "myPlacesNameRequired": "Enter a name",
   "myPlacesDeleteConfirm": "Delete this item?",
-  "myPlacesEmpty": "No saved places yet. Search or long-press the map."
+  "myPlacesEmpty": "No saved places yet. Save your location or tap the map, then save."
 }

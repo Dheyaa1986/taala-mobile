@@ -172,6 +172,9 @@
   "myPlacesEdit": "دەستکاری",
   "myPlacesOpenWaze": "Waze",
   "myPlacesSaveHere": "لێرە هەڵبگرە",
+  "myPlacesSaveCurrent": "شوێنی ئێستام هەڵبگرە",
+  "myPlacesSaved": "شوێن پاشەکەوت کرا",
+  "myPlacesNameRequired": "ناو بنووسە",
   "myPlacesDeleteConfirm": "ئەمە بسڕدرێتەوە؟",
-  "myPlacesEmpty": "هێشتا شوێن نییە. بگەڕێ یان بە درێژی لەسەر نەخشە دابگرە."
+  "myPlacesEmpty": "هێشتا شوێن نییە. شوێنی خۆت هەڵبگرە یان لەسەر نەخشە دابگرە."
 }

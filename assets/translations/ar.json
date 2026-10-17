@@ -552,6 +552,9 @@
   "myPlacesEdit": "تعديل",
   "myPlacesOpenWaze": "Waze",
   "myPlacesSaveHere": "حفظ هنا",
+  "myPlacesSaveCurrent": "حفظ موقعي الحالي",
+  "myPlacesSaved": "تم حفظ المكان",
+  "myPlacesNameRequired": "أدخل الاسم",
   "myPlacesDeleteConfirm": "حذف هذا العنصر؟",
-  "myPlacesEmpty": "لا أماكن محفوظة بعد. ابحث أو اضغط مطولاً على الخريطة."
+  "myPlacesEmpty": "لا أماكن محفوظة بعد. احفظ موقعك أو اضغط على الخريطة ثم احفظ."
 }
