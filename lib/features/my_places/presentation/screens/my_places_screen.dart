@@ -687,13 +687,37 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           _followCamera = false;
           _selected = null;
           _searchPin = null;
+          _previewRoute = [];
+        });
+      },
+      onLongPress: (_, point) {
+        setState(() {
+          _center = point;
+          _followCamera = false;
+        });
+        unawaited(_openEditor(
+          isAlert: false,
+          latitude: point.latitude,
+          longitude: point.longitude,
+        ));
+      },
+      onMoved: (point) {
+        _center = point;
+        _followCamera = false;
+      },
+      polylines: [
+        if (_previewRoute.length >= 2)
+          TaalaMapPolyline(
+            points: _previewRoute,
             color: MapStyleConfig.routeColor,
             width: MapStyleConfig.routeWidth,
           ),
       ],
       markers: [
         TaalaMapMarker(
-          point: _center,
+          point: _searchPin != null
+              ? LatLng(_searchPin!.latitude, _searchPin!.longitude)
+              : _center,
           color: tokens.primary,
           icon: Icons.add_location_alt,
           iconSize: 36,
@@ -713,30 +737,33 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   }
 }
 
-IconData myPlaceIcon(String category) {
-  return switch (category) {
-          point: _searchPin != null
-              ? LatLng(_searchPin!.latitude, _searchPin!.longitude)
-              : _center,
-    MyPlaceCategories.work => Icons.work,
-    MyPlaceCategories.traffic => Icons.traffic,
-    MyPlaceCategories.accident => Icons.car_crash,
-    MyPlaceCategories.closure => Icons.block,
-    MyPlaceCategories.hazard => Icons.warning_amber_rounded,
-    MyPlaceCategories.note => Icons.campaign,
-    _ => Icons.place,
-  };
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(end: 6.w),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onTap(),
+      ),
+    );
+  }
 }
 
-Color myPlaceColor(MyPlaceItem item) {
-  if (item.isAlert) return const Color(0xFFE65100);
-  return switch (item.category) {
-    MyPlaceCategories.home => const Color(0xFF2E7D32),
-    MyPlaceCategories.work => const Color(0xFF1565C0),
-    _ => MapStyleConfig.routeColor,
-  };
-}
-
+class _SelectedCard extends StatelessWidget {
+  const _SelectedCard({
+    required this.item,
     required this.onNavigate,
     required this.onWaze,
     required this.onEdit,
