@@ -26,80 +26,98 @@ class GoogleDirectionsService {
           'origin': '${from.latitude},${from.longitude}',
           'destination': '${to.latitude},${to.longitude}',
           'mode': 'driving',
+          'alternatives': 'true',
+          'departure_time': 'now',
           'language': 'ar',
           'key': key,
         },
         options: Options(
-          receiveTimeout: const Duration(seconds: 12),
-          sendTimeout: const Duration(seconds: 12),
+          receiveTimeout: const Duration(seconds: 8),
+          sendTimeout: const Duration(seconds: 8),
         ),
       );
 
       final routes = response.data?['routes'] as List<dynamic>?;
       if (routes == null || routes.isEmpty) return null;
 
-      final route = routes.first as Map<String, dynamic>;
-      final overview = route['overview_polyline'] as Map<String, dynamic>?;
-      final encoded = overview?['points'] as String?;
-      if (encoded == null || encoded.isEmpty) return null;
-
-      final points = _decodePolyline(encoded);
-      if (points.length < 2) return null;
-
-      final legs = route['legs'] as List<dynamic>? ?? const [];
-      final steps = <TaalaNavigationStep>[];
-      var totalDistance = 0.0;
-      var totalDuration = 0.0;
-
-      for (final leg in legs) {
-        final legMap = leg as Map<String, dynamic>;
-        totalDistance += (legMap['distance']?['value'] as num?)?.toDouble() ?? 0;
-        totalDuration += (legMap['duration']?['value'] as num?)?.toDouble() ?? 0;
-
-        final legSteps = legMap['steps'] as List<dynamic>? ?? const [];
-        for (final step in legSteps) {
-          final stepMap = step as Map<String, dynamic>;
-          final start = stepMap['start_location'] as Map<String, dynamic>?;
-          if (start == null) continue;
-
-          final html = stepMap['html_instructions'] as String? ?? '';
-          final instruction = _stripHtml(html);
-          final maneuver = stepMap['maneuver'] as String?;
-          final streetName = stepMap['name'] as String?;
-
-          steps.add(
-            TaalaNavigationStep(
-              instruction: instruction.isNotEmpty
-                  ? instruction
-                  : buildManeuverInstruction(
-                      apiInstruction: null,
-                      type: maneuver,
-                      modifier: null,
-                      streetName: streetName,
-                    ),
-              maneuverLocation: LatLng(
-                (start['lat'] as num).toDouble(),
-                (start['lng'] as num).toDouble(),
-              ),
-              distanceMeters:
-                  (stepMap['distance']?['value'] as num?)?.toDouble() ?? 0,
-              durationSeconds:
-                  (stepMap['duration']?['value'] as num?)?.toDouble() ?? 0,
-              streetName: streetName,
-            ),
-          );
+      TaalaNavigationRoute? best;
+      for (final raw in routes) {
+        if (raw is! Map<String, dynamic>) continue;
+        final parsed = _parseRoute(raw);
+        if (parsed == null || !parsed.isValid) continue;
+        if (best == null ||
+            parsed.totalDurationSeconds < best.totalDurationSeconds) {
+          best = parsed;
         }
       }
-
-      return TaalaNavigationRoute(
-        points: points,
-        steps: steps,
-        totalDistanceMeters: totalDistance,
-        totalDurationSeconds: totalDuration,
-      );
+      return best;
     } catch (_) {
       return null;
     }
+  }
+
+  TaalaNavigationRoute? _parseRoute(Map<String, dynamic> route) {
+    final overview = route['overview_polyline'] as Map<String, dynamic>?;
+    final encoded = overview?['points'] as String?;
+    if (encoded == null || encoded.isEmpty) return null;
+
+    final points = _decodePolyline(encoded);
+    if (points.length < 2) return null;
+
+    final legs = route['legs'] as List<dynamic>? ?? const [];
+    final steps = <TaalaNavigationStep>[];
+    var totalDistance = 0.0;
+    var totalDuration = 0.0;
+
+    for (final leg in legs) {
+      final legMap = leg as Map<String, dynamic>;
+      totalDistance += (legMap['distance']?['value'] as num?)?.toDouble() ?? 0;
+      totalDuration +=
+          (legMap['duration_in_traffic']?['value'] as num?)?.toDouble() ??
+              (legMap['duration']?['value'] as num?)?.toDouble() ??
+              0;
+
+      final legSteps = legMap['steps'] as List<dynamic>? ?? const [];
+      for (final step in legSteps) {
+        final stepMap = step as Map<String, dynamic>;
+        final start = stepMap['start_location'] as Map<String, dynamic>?;
+        if (start == null) continue;
+
+        final html = stepMap['html_instructions'] as String? ?? '';
+        final instruction = _stripHtml(html);
+        final maneuver = stepMap['maneuver'] as String?;
+        final streetName = stepMap['name'] as String?;
+
+        steps.add(
+          TaalaNavigationStep(
+            instruction: instruction.isNotEmpty
+                ? instruction
+                : buildManeuverInstruction(
+                    apiInstruction: null,
+                    type: maneuver,
+                    modifier: null,
+                    streetName: streetName,
+                  ),
+            maneuverLocation: LatLng(
+              (start['lat'] as num).toDouble(),
+              (start['lng'] as num).toDouble(),
+            ),
+            distanceMeters:
+                (stepMap['distance']?['value'] as num?)?.toDouble() ?? 0,
+            durationSeconds:
+                (stepMap['duration']?['value'] as num?)?.toDouble() ?? 0,
+            streetName: streetName,
+          ),
+        );
+      }
+    }
+
+    return TaalaNavigationRoute(
+      points: points,
+      steps: steps,
+      totalDistanceMeters: totalDistance,
+      totalDurationSeconds: totalDuration,
+    );
   }
 
   static String _stripHtml(String input) {

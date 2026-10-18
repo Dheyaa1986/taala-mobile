@@ -30,6 +30,24 @@ double distanceToPolylineMeters(LatLng point, List<LatLng> polyline) {
   return minDistance;
 }
 
+/// Closest point on [polyline] to [point] (road centerline).
+LatLng closestPointOnPolyline(LatLng point, List<LatLng> polyline) {
+  if (polyline.isEmpty) return point;
+  if (polyline.length == 1) return polyline.first;
+
+  LatLng best = polyline.first;
+  var bestDistance = double.infinity;
+  for (var i = 0; i < polyline.length - 1; i++) {
+    final candidate = _closestPointOnSegment(point, polyline[i], polyline[i + 1]);
+    final d = navigationDistanceMeters(point, candidate);
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
 /// Index of the polyline vertex closest to [point].
 int closestPolylineIndex(LatLng point, List<LatLng> polyline) {
   if (polyline.isEmpty) return 0;
@@ -58,7 +76,7 @@ double remainingPolylineDistanceMeters(LatLng point, List<LatLng> polyline) {
   return total;
 }
 
-double _distanceToSegmentMeters(LatLng p, LatLng a, LatLng b) {
+LatLng _closestPointOnSegment(LatLng p, LatLng a, LatLng b) {
   final ax = a.longitude;
   final ay = a.latitude;
   final bx = b.longitude;
@@ -71,13 +89,14 @@ double _distanceToSegmentMeters(LatLng p, LatLng a, LatLng b) {
   final apx = px - ax;
   final apy = py - ay;
   final abLenSq = abx * abx + aby * aby;
-  if (abLenSq == 0) {
-    return navigationDistanceMeters(p, a);
-  }
+  if (abLenSq == 0) return a;
 
   final t = ((apx * abx + apy * aby) / abLenSq).clamp(0.0, 1.0);
-  final closest = LatLng(ay + aby * t, ax + abx * t);
-  return navigationDistanceMeters(p, closest);
+  return LatLng(ay + aby * t, ax + abx * t);
+}
+
+double _distanceToSegmentMeters(LatLng p, LatLng a, LatLng b) {
+  return navigationDistanceMeters(p, _closestPointOnSegment(p, a, b));
 }
 
 String formatNavigationDistance(double meters) {

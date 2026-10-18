@@ -172,5 +172,5 @@ TaalaBottomNavItem portfolioNavItem() => TaalaBottomNavItem(
 
 TaalaBottomNavItem myPlacesNavItem() => TaalaBottomNavItem(
       label: AppStrings.myPlaces.tr(),
-      materialIcon: Icons.place_outlined,
+      materialIcon: Icons.map_outlined,
     );

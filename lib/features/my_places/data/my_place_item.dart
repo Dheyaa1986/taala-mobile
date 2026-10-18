@@ -63,8 +63,24 @@ class MyPlaceCategories {
   static const accident = 'accident';
   static const closure = 'closure';
   static const hazard = 'hazard';
+  static const speedBump = 'speedBump';
+  static const police = 'police';
+  static const trafficLight = 'trafficLight';
+  static const sign = 'sign';
+  static const camera = 'camera';
   static const note = 'note';
 
   static const placeOptions = [home, work, other];
-  static const alertOptions = [traffic, accident, closure, hazard, note];
+  static const alertOptions = [
+    traffic,
+    accident,
+    speedBump,
+    police,
+    trafficLight,
+    sign,
+    camera,
+    closure,
+    hazard,
+    note,
+  ];
 }

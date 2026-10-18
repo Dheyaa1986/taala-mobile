@@ -12,8 +12,8 @@ import 'package:taal/design_system/tokens/taala_shadows.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/features/my_places/data/my_place_item.dart';
 import 'package:taal/features/my_places/data/my_places_repository.dart';
+import 'package:taal/features/my_places/presentation/my_place_ui.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
-import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/map_style_config.dart';
@@ -81,6 +81,8 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   int _cameraRevision = 0;
   Timer? _locationTimer;
   DateTime? _lastRerouteAt;
+  DateTime? _lastBestRouteAt;
+  bool _refreshingBestRoute = false;
   late LatLng _targetPoint;
   late String? _targetTitle;
   bool _breakdownLegComplete = false;
@@ -166,6 +168,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       if (!mounted) return;
       setState(() => _guidanceSnapshot = snapshot);
       setState(() => _cameraRevision++);
+      if (updateRoute && _canRefreshBestRoute()) {
+        unawaited(_refreshBestRoute());
+      }
     }
   }
 
@@ -205,7 +210,43 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   bool _canReroute() {
     final last = _lastRerouteAt;
     if (last == null) return true;
-    return DateTime.now().difference(last) >= const Duration(seconds: 8);
+    return DateTime.now().difference(last) >= const Duration(seconds: 2);
+  }
+
+  bool _canRefreshBestRoute() {
+    final last = _lastBestRouteAt;
+    if (last == null) return true;
+    return DateTime.now().difference(last) >= const Duration(seconds: 4);
+  }
+
+  LatLng? get _snappedProviderPoint {
+    final raw = _providerPoint;
+    if (raw == null) return null;
+    final points = _route?.points;
+    if (points == null || points.length < 2) return raw;
+    if (distanceToPolylineMeters(raw, points) > 40) return raw;
+    return closestPointOnPolyline(raw, points);
+  }
+
+  Future<void> _refreshBestRoute() async {
+    final from = _providerPoint;
+    if (from == null || _loadingRoute || _refreshingBestRoute) return;
+    _refreshingBestRoute = true;
+    _lastBestRouteAt = DateTime.now();
+    final route = await _routing.fetchNavigationRoute(from, _targetPoint);
+    _refreshingBestRoute = false;
+    if (!mounted || route == null || !route.isValid) return;
+    final current = _route;
+    if (current != null &&
+        route.totalDurationSeconds >= current.totalDurationSeconds - 8) {
+      return;
+    }
+    _guidance.setRoute(route);
+    setState(() {
+      _route = route;
+      _cameraRevision++;
+    });
+    if (_navigationActive) _guidance.start();
   }
 
   Future<void> _loadRoute({required bool startNavigationAfter}) async {
@@ -261,27 +302,24 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     if (point == null) return;
     final category = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.traffic),
-                title: const Text('ازدحام'),
-                onTap: () => Navigator.pop(context, MyPlaceCategories.traffic),
-              ),
-              ListTile(
-                leading: const Icon(Icons.car_crash),
-                title: const Text('حادث'),
-                onTap: () => Navigator.pop(context, MyPlaceCategories.accident),
-              ),
-              ListTile(
-                leading: const Icon(Icons.block),
-                title: const Text('إغلاق'),
-                onTap: () => Navigator.pop(context, MyPlaceCategories.closure),
-              ),
-            ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+            ),
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (final option in MyPlaceCategories.alertOptions)
+                  ListTile(
+                    leading: Icon(myPlaceIcon(option)),
+                    title: Text(myPlaceCategoryLabel(option)),
+                    onTap: () => Navigator.pop(context, option),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -292,11 +330,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         kind: MyPlaceKinds.alert,
         category: category,
-        title: switch (category) {
-          MyPlaceCategories.accident => 'حادث',
-          MyPlaceCategories.closure => 'إغلاق',
-          _ => 'ازدحام',
-        },
+        title: myPlaceCategoryLabel(category),
         latitude: point.latitude,
         longitude: point.longitude,
         createdAtMs: DateTime.now().millisecondsSinceEpoch,
@@ -320,7 +354,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
 
   @override
   Widget build(BuildContext context) {
-    final provider = _providerPoint;
+    final provider = _snappedProviderPoint;
     final routePoints = _route?.points ?? const <LatLng>[];
     final routePolyline =
         routePoints.length >= 2 ? routePoints : const <LatLng>[];

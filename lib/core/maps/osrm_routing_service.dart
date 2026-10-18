@@ -24,75 +24,89 @@ class OsrmRoutingService {
       final url =
           '$_baseUrl/${from.longitude},${from.latitude};'
           '${to.longitude},${to.latitude}'
-          '?overview=full&geometries=geojson&steps=true';
+          '?overview=full&geometries=geojson&steps=true&alternatives=true';
       final response = await _dio.get<Map<String, dynamic>>(
         url,
         options: Options(
-          receiveTimeout: const Duration(seconds: 12),
-          sendTimeout: const Duration(seconds: 12),
+          receiveTimeout: const Duration(seconds: 8),
+          sendTimeout: const Duration(seconds: 8),
         ),
       );
 
       final routes = response.data?['routes'] as List<dynamic>?;
       if (routes == null || routes.isEmpty) return null;
 
-      final route = routes.first as Map<String, dynamic>;
-      final geometry = route['geometry'] as Map<String, dynamic>?;
-      final coordinates = geometry?['coordinates'] as List<dynamic>?;
-      if (coordinates == null || coordinates.isEmpty) return null;
-
-      final points = coordinates
-          .map((point) {
-            final pair = point as List<dynamic>;
-            return LatLng(
-              (pair[1] as num).toDouble(),
-              (pair[0] as num).toDouble(),
-            );
-          })
-          .toList(growable: false);
-
-      final legs = route['legs'] as List<dynamic>? ?? const [];
-      final steps = <TaalaNavigationStep>[];
-      for (final leg in legs) {
-        final legMap = leg as Map<String, dynamic>;
-        final legSteps = legMap['steps'] as List<dynamic>? ?? const [];
-        for (final step in legSteps) {
-          final stepMap = step as Map<String, dynamic>;
-          final maneuver = stepMap['maneuver'] as Map<String, dynamic>?;
-          if (maneuver == null) continue;
-
-          final location = maneuver['location'] as List<dynamic>?;
-          if (location == null || location.length < 2) continue;
-
-          final streetName = stepMap['name'] as String?;
-          steps.add(
-            TaalaNavigationStep(
-              instruction: buildManeuverInstruction(
-                apiInstruction: null,
-                type: maneuver['type'] as String?,
-                modifier: maneuver['modifier'] as String?,
-                streetName: streetName,
-              ),
-              maneuverLocation: LatLng(
-                (location[1] as num).toDouble(),
-                (location[0] as num).toDouble(),
-              ),
-              distanceMeters: (stepMap['distance'] as num?)?.toDouble() ?? 0,
-              durationSeconds: (stepMap['duration'] as num?)?.toDouble() ?? 0,
-              streetName: streetName,
-            ),
-          );
+      TaalaNavigationRoute? best;
+      for (final raw in routes) {
+        if (raw is! Map<String, dynamic>) continue;
+        final parsed = _parseRoute(raw);
+        if (parsed == null || !parsed.isValid) continue;
+        if (best == null ||
+            parsed.totalDurationSeconds < best.totalDurationSeconds) {
+          best = parsed;
         }
       }
-
-      return TaalaNavigationRoute(
-        points: points,
-        steps: steps,
-        totalDistanceMeters: (route['distance'] as num?)?.toDouble() ?? 0,
-        totalDurationSeconds: (route['duration'] as num?)?.toDouble() ?? 0,
-      );
+      return best;
     } catch (_) {
       return null;
     }
+  }
+
+  TaalaNavigationRoute? _parseRoute(Map<String, dynamic> route) {
+    final geometry = route['geometry'] as Map<String, dynamic>?;
+    final coordinates = geometry?['coordinates'] as List<dynamic>?;
+    if (coordinates == null || coordinates.isEmpty) return null;
+
+    final points = coordinates
+        .map((point) {
+          final pair = point as List<dynamic>;
+          return LatLng(
+            (pair[1] as num).toDouble(),
+            (pair[0] as num).toDouble(),
+          );
+        })
+        .toList(growable: false);
+    if (points.length < 2) return null;
+
+    final legs = route['legs'] as List<dynamic>? ?? const [];
+    final steps = <TaalaNavigationStep>[];
+    for (final leg in legs) {
+      final legMap = leg as Map<String, dynamic>;
+      final legSteps = legMap['steps'] as List<dynamic>? ?? const [];
+      for (final step in legSteps) {
+        final stepMap = step as Map<String, dynamic>;
+        final maneuver = stepMap['maneuver'] as Map<String, dynamic>?;
+        if (maneuver == null) continue;
+
+        final location = maneuver['location'] as List<dynamic>?;
+        if (location == null || location.length < 2) continue;
+
+        final streetName = stepMap['name'] as String?;
+        steps.add(
+          TaalaNavigationStep(
+            instruction: buildManeuverInstruction(
+              apiInstruction: null,
+              type: maneuver['type'] as String?,
+              modifier: maneuver['modifier'] as String?,
+              streetName: streetName,
+            ),
+            maneuverLocation: LatLng(
+              (location[1] as num).toDouble(),
+              (location[0] as num).toDouble(),
+            ),
+            distanceMeters: (stepMap['distance'] as num?)?.toDouble() ?? 0,
+            durationSeconds: (stepMap['duration'] as num?)?.toDouble() ?? 0,
+            streetName: streetName,
+          ),
+        );
+      }
+    }
+
+    return TaalaNavigationRoute(
+      points: points,
+      steps: steps,
+      totalDistanceMeters: (route['distance'] as num?)?.toDouble() ?? 0,
+      totalDurationSeconds: (route['duration'] as num?)?.toDouble() ?? 0,
+    );
   }
 }

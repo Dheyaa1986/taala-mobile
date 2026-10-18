@@ -165,7 +165,7 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
       zoomControlsEnabled: false,
       compassEnabled: false,
       mapToolbarEnabled: false,
-      trafficEnabled: false,
+      trafficEnabled: true,
       padding: const EdgeInsets.only(top: 118, bottom: 118),
       markers: _buildMarkers(),
       polylines: _buildPolylines(),

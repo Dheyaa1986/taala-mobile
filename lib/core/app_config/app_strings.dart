@@ -591,6 +591,11 @@ class AppStrings {
   static const String myPlacesAccident = 'myPlacesAccident';
   static const String myPlacesClosure = 'myPlacesClosure';
   static const String myPlacesHazard = 'myPlacesHazard';
+  static const String myPlacesSpeedBump = 'myPlacesSpeedBump';
+  static const String myPlacesPolice = 'myPlacesPolice';
+  static const String myPlacesTrafficLight = 'myPlacesTrafficLight';
+  static const String myPlacesSign = 'myPlacesSign';
+  static const String myPlacesCamera = 'myPlacesCamera';
   static const String myPlacesNote = 'myPlacesNote';
   static const String myPlacesList = 'myPlacesList';
   static const String myPlacesFilterAll = 'myPlacesFilterAll';

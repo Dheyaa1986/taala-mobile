@@ -22,6 +22,7 @@ import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/my_places/data/my_place_item.dart';
 import 'package:taal/features/my_places/data/my_places_repository.dart';
+import 'package:taal/features/my_places/presentation/my_place_ui.dart';
 import 'package:taal/features/service_orders/presentation/screens/provider_in_app_navigation_screen.dart';
 
 enum _PlacesFilter { all, places, alerts }
@@ -53,6 +54,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   LatLng _center = MapsHelper.defaultCenter;
   LatLng? _myLocation;
   MyPlaceItem? _selected;
+  MyPlaceItem? _searchPin;
   int _cameraRevision = 0;
   bool _followCamera = false;
 
@@ -156,17 +158,31 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   }
 
   void _applySuggestion(PlaceSuggestion suggestion, {bool save = false}) {
+    final title = suggestion.displayName.split(',').first;
     _moveCameraTo(LatLng(suggestion.latitude, suggestion.longitude));
     _searchController.text = suggestion.displayName;
     setState(() {
       _suggestions = [];
       _selected = null;
+      _searchPin = MyPlaceItem(
+        id: 'search-pin',
+        kind: MyPlaceKinds.place,
+        category: MyPlaceCategories.other,
+        title: title,
+        latitude: suggestion.latitude,
+        longitude: suggestion.longitude,
+        address: suggestion.displayName,
+        createdAtMs: DateTime.now().millisecondsSinceEpoch,
+      );
     });
+    unawaited(_previewRouteTo(_searchPin!));
     if (save) {
       unawaited(
         _openEditor(
           isAlert: false,
-          presetTitle: suggestion.displayName.split(',').first,
+          presetTitle: title,
+          latitude: suggestion.latitude,
+          longitude: suggestion.longitude,
         ),
       );
     }
@@ -244,7 +260,10 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
 
   void _focusItem(MyPlaceItem item) {
     _moveCameraTo(LatLng(item.latitude, item.longitude));
-    setState(() => _selected = item);
+    setState(() {
+      _selected = item;
+      _searchPin = null;
+    });
     unawaited(_previewRouteTo(item));
   }
 
@@ -289,14 +308,36 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     });
   }
 
+  void _departToSuggestion(PlaceSuggestion suggestion) {
+    _suggestions = [];
+    _searchController.text = suggestion.displayName;
+    _navigateToCoords(
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+      title: suggestion.displayName.split(',').first,
+    );
+  }
+
   void _navigateTo(MyPlaceItem item) {
+    _navigateToCoords(
+      latitude: item.latitude,
+      longitude: item.longitude,
+      title: item.title,
+    );
+  }
+
+  void _navigateToCoords({
+    required double latitude,
+    required double longitude,
+    String? title,
+  }) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => ProviderInAppNavigationScreen(
           args: ProviderInAppNavigationArgs(
-            targetLatitude: item.latitude,
-            targetLongitude: item.longitude,
-            targetTitle: item.title,
+            targetLatitude: latitude,
+            targetLongitude: longitude,
+            targetTitle: title,
           ),
         ),
       ),
@@ -457,12 +498,25 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.bookmark_add_outlined),
-                                  onPressed: () => _applySuggestion(
-                                    suggestion,
-                                    save: true,
-                                  ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: AppStrings.departInApp.tr(),
+                                      icon: const Icon(Icons.navigation),
+                                      onPressed: () =>
+                                          _departToSuggestion(suggestion),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.bookmark_add_outlined,
+                                      ),
+                                      onPressed: () => _applySuggestion(
+                                        suggestion,
+                                        save: true,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 onTap: () => _applySuggestion(suggestion),
                               );
@@ -557,8 +611,29 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                             _selected = null;
                             _previewRoute = [];
                           }),
+                        )
+                      else if (_searchPin != null)
+                        Material(
+                          elevation: 3,
+                          borderRadius: BorderRadius.circular(12.r),
+                          color: tokens.surface,
+                          child: ListTile(
+                            leading: const Icon(Icons.place),
+                            title: Text(_searchPin!.title),
+                            subtitle: Text(
+                              _searchPin!.address ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: TaalaButton(
+                              label: AppStrings.departInApp.tr(),
+                              height: 40,
+                              expanded: false,
+                              onPressed: () => _navigateTo(_searchPin!),
+                            ),
+                          ),
                         ),
-                      if (_selected != null) 8.height,
+                      if (_selected != null || _searchPin != null) 8.height,
                       TaalaButton(
                         label: AppStrings.myPlacesSaveCurrent.tr(),
                         height: 48,
@@ -611,28 +686,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           _center = point;
           _followCamera = false;
           _selected = null;
-          _previewRoute = [];
-        });
-      },
-      onLongPress: (_, point) {
-        setState(() {
-          _center = point;
-          _followCamera = false;
-        });
-        unawaited(_openEditor(
-          isAlert: false,
-          latitude: point.latitude,
-          longitude: point.longitude,
-        ));
-      },
-      onMoved: (point) {
-        _center = point;
-        _followCamera = false;
-      },
-      polylines: [
-        if (_previewRoute.length >= 2)
-          TaalaMapPolyline(
-            points: _previewRoute,
+          _searchPin = null;
             color: MapStyleConfig.routeColor,
             width: MapStyleConfig.routeWidth,
           ),
@@ -661,7 +715,9 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
 
 IconData myPlaceIcon(String category) {
   return switch (category) {
-    MyPlaceCategories.home => Icons.home,
+          point: _searchPin != null
+              ? LatLng(_searchPin!.latitude, _searchPin!.longitude)
+              : _center,
     MyPlaceCategories.work => Icons.work,
     MyPlaceCategories.traffic => Icons.traffic,
     MyPlaceCategories.accident => Icons.car_crash,
@@ -681,46 +737,6 @@ Color myPlaceColor(MyPlaceItem item) {
   };
 }
 
-String myPlaceCategoryLabel(String category) {
-  return switch (category) {
-    MyPlaceCategories.home => AppStrings.myPlacesHome.tr(),
-    MyPlaceCategories.work => AppStrings.myPlacesWork.tr(),
-    MyPlaceCategories.other => AppStrings.myPlacesOther.tr(),
-    MyPlaceCategories.traffic => AppStrings.myPlacesTraffic.tr(),
-    MyPlaceCategories.accident => AppStrings.myPlacesAccident.tr(),
-    MyPlaceCategories.closure => AppStrings.myPlacesClosure.tr(),
-    MyPlaceCategories.hazard => AppStrings.myPlacesHazard.tr(),
-    _ => AppStrings.myPlacesNote.tr(),
-  };
-}
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.only(end: 6.w),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-      ),
-    );
-  }
-}
-
-class _SelectedCard extends StatelessWidget {
-  const _SelectedCard({
-    required this.item,
     required this.onNavigate,
     required this.onWaze,
     required this.onEdit,

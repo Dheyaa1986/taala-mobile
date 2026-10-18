@@ -45,6 +45,7 @@ app.*.map.json
 # Signing secrets and certificates (never commit)
 upload-certificate.pem
 *.pem
+*.jks
 android/key.properties
 android/key.propertie
 
