@@ -327,16 +327,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     });
   }
 
-  void _departToSuggestion(PlaceSuggestion suggestion) {
-    _suggestions = [];
-    _searchController.text = suggestion.displayName;
-    _navigateToCoords(
-      latitude: suggestion.latitude,
-      longitude: suggestion.longitude,
-      title: suggestion.displayName.split(',').first,
-    );
-  }
-
   void _navigateTo(MyPlaceItem item) {
     _navigateToCoords(
       latitude: item.latitude,
@@ -440,7 +430,35 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                _buildMap(tokens),
+                _buildMap(),
+                IgnorePointer(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.add_location_alt,
+                          color: tokens.primary,
+                          size: 40.r,
+                        ),
+                        Text(
+                          AppStrings.myPlacesAddHere.tr(),
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w800,
+                            color: tokens.primary,
+                            shadows: const [
+                              Shadow(
+                                color: Colors.white,
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: 12.h,
                   left: 12.w,
@@ -507,25 +525,14 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      tooltip: AppStrings.departInApp.tr(),
-                                      icon: const Icon(Icons.navigation),
-                                      onPressed: () =>
-                                          _departToSuggestion(suggestion),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.bookmark_add_outlined,
-                                      ),
-                                      onPressed: () => _applySuggestion(
-                                        suggestion,
-                                        save: true,
-                                      ),
-                                    ),
-                                  ],
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.bookmark_add_outlined,
+                                  ),
+                                  onPressed: () => _applySuggestion(
+                                    suggestion,
+                                    save: true,
+                                  ),
                                 ),
                                 onTap: () => _applySuggestion(suggestion),
                               );
@@ -681,7 +688,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     );
   }
 
-  Widget _buildMap(TaalaTokens tokens) {
+  Widget _buildMap() {
     return TaalaMapView(
       initialCenter: _center,
       initialZoom: 16,
@@ -728,15 +735,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
             color: MapStyleConfig.routeColor,
             headingDegrees: _myHeading ?? 0,
           ),
-        TaalaMapMarker(
-          point: _searchPin != null
-              ? LatLng(_searchPin!.latitude, _searchPin!.longitude)
-              : _center,
-          color: tokens.primary,
-          icon: Icons.add_location_alt,
-          iconSize: 36,
-          label: AppStrings.myPlacesAddHere.tr(),
-        ),
         ..._visibleItems.map(
           (item) => TaalaMapMarker(
             point: LatLng(item.latitude, item.longitude),
