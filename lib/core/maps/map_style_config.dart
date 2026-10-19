@@ -17,23 +17,22 @@ class MapStyleConfig {
   static const double routeCasingWidth = 14;
 
   /// Daytime navigation basemap: pale land, white roads, muted POIs.
+  /// Pale roads/water only. Do not paint all `geometry` — that flattens 3D buildings.
   static const String googleNavigationMapStyle = '''
 [
-  {"elementType":"geometry","stylers":[{"color":"#ececec"}]},
   {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
   {"elementType":"labels.text.fill","stylers":[{"color":"#6b6b6b"}]},
   {"elementType":"labels.text.stroke","stylers":[{"color":"#f7f7f7"}]},
-  {"featureType":"administrative","elementType":"geometry","stylers":[{"visibility":"off"}]},
+  {"featureType":"landscape.natural","elementType":"geometry.fill","stylers":[{"color":"#ececec"}]},
   {"featureType":"poi","stylers":[{"visibility":"off"}]},
-  {"featureType":"poi.park","stylers":[{"visibility":"simplified"},{"color":"#d7ead2"}]},
-  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#ffffff"}]},
+  {"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#d7ead2"}]},
+  {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},
   {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#d4d4d4"}]},
-  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"}]},
-  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#f3f3f3"}]},
+  {"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#f3f3f3"}]},
   {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#dadada"}]},
   {"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"simplified"}]},
   {"featureType":"transit","stylers":[{"visibility":"off"}]},
-  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#b7dff2"}]},
+  {"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#b7dff2"}]},
   {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#5a9bb8"}]}
 ]
 ''';

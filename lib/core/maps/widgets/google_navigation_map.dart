@@ -144,6 +144,20 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
     await controller.animateCamera(
       gmaps.CameraUpdate.newLatLngBounds(bounds, 64),
     );
+    final zoom = await controller.getZoomLevel();
+    final region = await controller.getVisibleRegion();
+    await controller.animateCamera(
+      gmaps.CameraUpdate.newCameraPosition(
+        gmaps.CameraPosition(
+          target: gmaps.LatLng(
+            (region.northeast.latitude + region.southwest.latitude) / 2,
+            (region.northeast.longitude + region.southwest.longitude) / 2,
+          ),
+          zoom: zoom < 15.5 ? 15.5 : zoom,
+          tilt: 58,
+        ),
+      ),
+    );
   }
 
   gmaps.LatLngBounds _boundsFor(List<LatLng> points) {
@@ -172,9 +186,12 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
     return gmaps.GoogleMap(
       initialCameraPosition: gmaps.CameraPosition(
         target: _toGoogle(initial),
-        zoom: 14,
+        zoom: 16,
+        tilt: 58,
       ),
       style: MapStyleConfig.googleNavigationMapStyle,
+      buildingsEnabled: true,
+      tiltGesturesEnabled: true,
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,

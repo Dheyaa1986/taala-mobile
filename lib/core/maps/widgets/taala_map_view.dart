@@ -214,6 +214,21 @@ class _TaalaMapViewState extends State<TaalaMapView> {
           56,
         ),
       );
+      final zoom = await controller.getZoomLevel();
+      final region = await controller.getVisibleRegion();
+      await controller.animateCamera(
+        gmaps.CameraUpdate.newCameraPosition(
+          gmaps.CameraPosition(
+            target: gmaps.LatLng(
+              (region.northeast.latitude + region.southwest.latitude) / 2,
+              (region.northeast.longitude + region.southwest.longitude) / 2,
+            ),
+            zoom: zoom < 15.5 ? 15.5 : zoom,
+            tilt: _tilt,
+            bearing: widget.followBearing ?? 0,
+          ),
+        ),
+      );
     } finally {
       Future<void>.delayed(const Duration(milliseconds: 400), () {
         _applyingGoogleCamera = false;
