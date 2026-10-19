@@ -603,6 +603,7 @@ class AppStrings {
   static const String myPlacesFilterAlerts = 'myPlacesFilterAlerts';
   static const String myPlacesEdit = 'myPlacesEdit';
   static const String myPlacesOpenWaze = 'myPlacesOpenWaze';
+  static const String myPlacesAddHere = 'myPlacesAddHere';
   static const String myPlacesSaveHere = 'myPlacesSaveHere';
   static const String myPlacesSaveCurrent = 'myPlacesSaveCurrent';
   static const String myPlacesSaved = 'myPlacesSaved';

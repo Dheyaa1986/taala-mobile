@@ -10,6 +10,7 @@ import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
 import 'package:taal/core/maps/widgets/hybrid_map_tile_layer.dart';
 import 'package:taal/core/maps/widgets/live_map_marker.dart';
+import 'package:taal/core/maps/widgets/nav_vehicle_bitmap.dart';
 import 'package:taal/core/maps/widgets/nav_vehicle_marker.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
 
@@ -62,6 +63,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   bool _googleReadyNotified = false;
   gmaps.CameraPosition? _lastGoogleCamera;
   bool _applyingGoogleCamera = false;
+  gmaps.BitmapDescriptor? _vehicleIcon;
 
   bool get _useGoogle => GoogleMapsConfig.useGoogleMapWidget;
 
@@ -71,7 +73,14 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   @override
   void initState() {
     super.initState();
+    unawaited(_loadVehicleIcon());
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyCamera());
+  }
+
+  Future<void> _loadVehicleIcon() async {
+    final icon = await createNavVehicleBitmap();
+    if (!mounted) return;
+    setState(() => _vehicleIcon = icon);
   }
 
   @override
@@ -85,6 +94,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         oldWidget.polylines != widget.polylines ||
         oldWidget.cameraRevision != widget.cameraRevision) {
       _applyCamera();
+      _showLabeledGoogleWindows();
     }
   }
 
@@ -195,6 +205,21 @@ class _TaalaMapViewState extends State<TaalaMapView> {
     }
   }
 
+  void _showLabeledGoogleWindows() {
+    final controller = _googleController;
+    if (controller == null || !_useGoogle) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _googleController == null) return;
+      for (var i = 0; i < widget.markers.length; i++) {
+        final label = widget.markers[i].label;
+        if (label == null || label.isEmpty) continue;
+        unawaited(
+          _googleController!.showMarkerInfoWindow(gmaps.MarkerId('m$i')),
+        );
+      }
+    });
+  }
+
   Set<gmaps.Marker> _googleMarkers() {
     return {
       for (var i = 0; i < widget.markers.length; i++)
@@ -203,11 +228,19 @@ class _TaalaMapViewState extends State<TaalaMapView> {
           position: _toGoogle(widget.markers[i].point),
           rotation: widget.markers[i].headingDegrees ?? 0,
           flat: widget.markers[i].headingDegrees != null,
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            HSLColor.fromColor(widget.markers[i].color).hue,
-          ),
+          anchor: widget.markers[i].headingDegrees != null
+              ? const Offset(0.5, 0.5)
+              : const Offset(0.5, 1),
+          icon: widget.markers[i].headingDegrees != null && _vehicleIcon != null
+              ? _vehicleIcon!
+              : gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                  HSLColor.fromColor(widget.markers[i].color).hue,
+                ),
           consumeTapEvents: widget.markers[i].onTap != null,
           onTap: widget.markers[i].onTap,
+          infoWindow: (widget.markers[i].label ?? '').isEmpty
+              ? const gmaps.InfoWindow()
+              : gmaps.InfoWindow(title: widget.markers[i].label),
         ),
     };
   }
@@ -287,6 +320,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
           widget.onMapReady?.call();
         }
         await _applyGoogleCamera();
+        _showLabeledGoogleWindows();
       },
     );
   }
@@ -352,37 +386,62 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         MarkerLayer(
           markers: widget.markers
               .map(
-                (marker) => Marker(
+                (marker) {
+                  final hasLabel = (marker.label ?? '').isNotEmpty;
+                  final iconChild = marker.headingDegrees != null
+                      ? NavVehicleMarker(
+                          headingDegrees: marker.headingDegrees!,
+                        )
+                      : marker.livePulse && marker.icon != null
+                          ? LiveMapMarker(
+                              icon: marker.icon!,
+                              color: marker.color,
+                              size: marker.iconSize,
+                            )
+                          : Icon(
+                              marker.icon ?? Icons.location_on,
+                              color: marker.color,
+                              size: marker.iconSize,
+                            );
+                  return Marker(
                   point: marker.point,
-                  width: marker.headingDegrees != null
-                      ? 52
-                      : marker.livePulse
+                  width: hasLabel
+                      ? 88
+                      : marker.headingDegrees != null
                           ? 52
-                          : 44,
-                  height: marker.headingDegrees != null
-                      ? 52
-                      : marker.livePulse
+                          : marker.livePulse
+                              ? 52
+                              : 44,
+                  height: hasLabel
+                      ? 72
+                      : marker.headingDegrees != null
                           ? 52
-                          : 44,
+                          : marker.livePulse
+                              ? 52
+                              : 44,
                   child: GestureDetector(
                     onTap: marker.onTap,
-                    child: marker.headingDegrees != null
-                        ? NavVehicleMarker(
-                            headingDegrees: marker.headingDegrees!,
-                          )
-                        : marker.livePulse && marker.icon != null
-                            ? LiveMapMarker(
-                                icon: marker.icon!,
-                                color: marker.color,
-                                size: marker.iconSize,
-                              )
-                            : Icon(
-                                marker.icon ?? Icons.location_on,
-                                color: marker.color,
-                                size: marker.iconSize,
+                    child: hasLabel
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              iconChild,
+                              Text(
+                                marker.label!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: marker.color,
+                                ),
                               ),
+                            ],
+                          )
+                        : iconChild,
                   ),
-                ),
+                );
+                },
               )
               .toList(),
         ),

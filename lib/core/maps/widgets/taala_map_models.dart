@@ -9,6 +9,7 @@ class TaalaMapMarker {
     this.iconSize = 32,
     this.livePulse = false,
     this.headingDegrees,
+    this.label,
     this.onTap,
   });
 
@@ -18,6 +19,7 @@ class TaalaMapMarker {
   final double iconSize;
   final bool livePulse;
   final double? headingDegrees;
+  final String? label;
   final VoidCallback? onTap;
 }
 

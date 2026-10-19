@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
@@ -41,7 +40,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   final _geocoding = getIt<ReverseGeocodingService>();
   final _placeSearch = getIt<PlaceSearchService>();
   final _repository = getIt<MyPlacesRepository>();
-  final _launcher = getIt<CustomLauncher>();
   final _routing = getIt<TaalaRoutingService>();
 
   List<MyPlaceItem> _items = [];
@@ -53,6 +51,8 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   _PlacesFilter _filter = _PlacesFilter.all;
   LatLng _center = MapsHelper.defaultCenter;
   LatLng? _myLocation;
+  double? _myHeading;
+  Timer? _locationTimer;
   MyPlaceItem? _selected;
   MyPlaceItem? _searchPin;
   int _cameraRevision = 0;
@@ -84,6 +84,9 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
         if (!mounted) return;
         setState(() {});
         unawaited(_goToCurrentLocation(showError: false));
+        _locationTimer ??= Timer.periodic(const Duration(seconds: 2), (_) {
+          unawaited(_refreshMyLocationMarker());
+        });
       });
     }
   }
@@ -91,6 +94,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   @override
   void dispose() {
     _searchDebounce?.cancel();
+    _locationTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -115,9 +119,9 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
 
   Future<void> _goToCurrentLocation({bool showError = true}) async {
     try {
-      final current = await _deviceLocation.getCurrentLocation();
+      final reading = await _deviceLocation.getNavigationReading();
       if (!mounted) return;
-      if (current == null) {
+      if (reading == null) {
         if (showError) {
           AppMessages.showError(
             context,
@@ -126,11 +130,26 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
         }
         return;
       }
-      _myLocation = LatLng(current.latitude, current.longitude);
+      _myLocation = LatLng(reading.latitude, reading.longitude);
+      if (reading.hasValidHeading) {
+        _myHeading = reading.heading;
+      }
       _moveCameraTo(_myLocation!);
       unawaited(refreshOfflineMapPath(_center.latitude, _center.longitude));
       setState(() {});
     } catch (_) {}
+  }
+
+  Future<void> _refreshMyLocationMarker() async {
+    if (!_tabActive) return;
+    final reading = await _deviceLocation.getNavigationReading();
+    if (!mounted || reading == null) return;
+    setState(() {
+      _myLocation = LatLng(reading.latitude, reading.longitude);
+      if (reading.hasValidHeading) {
+        _myHeading = reading.heading;
+      }
+    });
   }
 
   void _onSearchChanged(String value) {
@@ -341,16 +360,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _openWaze(MyPlaceItem item) {
-    return _launcher.openWazeDirections(
-      destinationLat: item.latitude,
-      destinationLng: item.longitude,
-      destinationTitle: item.title,
-      originLat: _myLocation?.latitude,
-      originLng: _myLocation?.longitude,
     );
   }
 
@@ -599,7 +608,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                         _SelectedCard(
                           item: _selected!,
                           onNavigate: () => _navigateTo(_selected!),
-                          onWaze: () => unawaited(_openWaze(_selected!)),
                           onEdit: () => unawaited(
                             _openEditor(
                               isAlert: _selected!.isAlert,
@@ -714,6 +722,12 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           ),
       ],
       markers: [
+        if (_myLocation != null)
+          TaalaMapMarker(
+            point: _myLocation!,
+            color: MapStyleConfig.routeColor,
+            headingDegrees: _myHeading ?? 0,
+          ),
         TaalaMapMarker(
           point: _searchPin != null
               ? LatLng(_searchPin!.latitude, _searchPin!.longitude)
@@ -721,6 +735,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           color: tokens.primary,
           icon: Icons.add_location_alt,
           iconSize: 36,
+          label: AppStrings.myPlacesAddHere.tr(),
         ),
         ..._visibleItems.map(
           (item) => TaalaMapMarker(
@@ -765,7 +780,6 @@ class _SelectedCard extends StatelessWidget {
   const _SelectedCard({
     required this.item,
     required this.onNavigate,
-    required this.onWaze,
     required this.onEdit,
     required this.onDelete,
     required this.onClose,
@@ -773,7 +787,6 @@ class _SelectedCard extends StatelessWidget {
 
   final MyPlaceItem item;
   final VoidCallback onNavigate;
-  final VoidCallback onWaze;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onClose;
@@ -831,15 +844,6 @@ class _SelectedCard extends StatelessWidget {
                     label: AppStrings.departInApp.tr(),
                     height: 44,
                     onPressed: onNavigate,
-                  ),
-                ),
-                8.width,
-                Expanded(
-                  child: TaalaButton(
-                    label: AppStrings.myPlacesOpenWaze.tr(),
-                    height: 44,
-                    variant: TaalaButtonVariant.secondary,
-                    onPressed: onWaze,
                   ),
                 ),
                 IconButton(

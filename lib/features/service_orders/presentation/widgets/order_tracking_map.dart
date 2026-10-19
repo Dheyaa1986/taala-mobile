@@ -188,9 +188,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
         TaalaMapMarker(
           point: provider,
           color: MapStyleConfig.routeColor,
-          icon: Icons.navigation_rounded,
-          iconSize: 30,
-          livePulse: true,
+          headingDegrees: 0,
         ),
       if (destination != null)
         TaalaMapMarker(

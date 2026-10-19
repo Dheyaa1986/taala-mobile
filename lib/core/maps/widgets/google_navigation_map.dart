@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/maps/map_style_config.dart';
+import 'package:taal/core/maps/widgets/nav_vehicle_bitmap.dart';
 
 /// Google Maps view for provider in-app navigation.
 class GoogleNavigationMap extends StatefulWidget {
@@ -33,6 +34,19 @@ class GoogleNavigationMap extends StatefulWidget {
 class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
   gmaps.GoogleMapController? _controller;
   bool _readyNotified = false;
+  gmaps.BitmapDescriptor? _vehicleIcon;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadVehicleIcon());
+  }
+
+  Future<void> _loadVehicleIcon() async {
+    final icon = await createNavVehicleBitmap();
+    if (!mounted) return;
+    setState(() => _vehicleIcon = icon);
+  }
 
   @override
   void didUpdateWidget(covariant GoogleNavigationMap oldWidget) {
@@ -66,9 +80,10 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
           rotation: widget.bearing ?? 0,
           flat: true,
           anchor: const Offset(0.5, 0.5),
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            gmaps.BitmapDescriptor.hueAzure,
-          ),
+          icon: _vehicleIcon ??
+              gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                gmaps.BitmapDescriptor.hueAzure,
+              ),
         ),
       );
     }

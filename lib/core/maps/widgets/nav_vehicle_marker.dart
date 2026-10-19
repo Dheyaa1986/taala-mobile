@@ -20,14 +20,14 @@ class NavVehicleMarker extends StatelessWidget {
         width: size,
         height: size,
         child: CustomPaint(
-          painter: _ChevronPainter(),
+          painter: NavVehicleChevronPainter(),
         ),
       ),
     );
   }
 }
 
-class _ChevronPainter extends CustomPainter {
+class NavVehicleChevronPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final path = Path()
