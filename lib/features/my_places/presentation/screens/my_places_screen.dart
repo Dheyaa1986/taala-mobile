@@ -430,35 +430,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                _buildMap(),
-                IgnorePointer(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.add_location_alt,
-                          color: tokens.primary,
-                          size: 40.r,
-                        ),
-                        Text(
-                          AppStrings.myPlacesAddHere.tr(),
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w800,
-                            color: tokens.primary,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.white,
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _buildMap(tokens),
                 Positioned(
                   top: 12.h,
                   left: 12.w,
@@ -688,7 +660,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     );
   }
 
-  Widget _buildMap() {
+  Widget _buildMap(TaalaTokens tokens) {
     return TaalaMapView(
       initialCenter: _center,
       initialZoom: 16,
@@ -735,6 +707,15 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
             color: MapStyleConfig.routeColor,
             headingDegrees: _myHeading ?? 0,
           ),
+        TaalaMapMarker(
+          point: _searchPin != null
+              ? LatLng(_searchPin!.latitude, _searchPin!.longitude)
+              : _center,
+          color: tokens.primary,
+          icon: Icons.add_location_alt,
+          iconSize: 36,
+          label: AppStrings.myPlacesAddHere.tr(),
+        ),
         ..._visibleItems.map(
           (item) => TaalaMapMarker(
             point: LatLng(item.latitude, item.longitude),

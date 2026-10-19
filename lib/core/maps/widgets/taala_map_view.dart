@@ -64,6 +64,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   gmaps.CameraPosition? _lastGoogleCamera;
   bool _applyingGoogleCamera = false;
   gmaps.BitmapDescriptor? _vehicleIcon;
+  final Map<String, gmaps.BitmapDescriptor> _labeledIcons = {};
 
   bool get _useGoogle => GoogleMapsConfig.useGoogleMapWidget;
 
@@ -74,6 +75,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   void initState() {
     super.initState();
     unawaited(_loadVehicleIcon());
+    unawaited(_loadLabeledIcons());
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyCamera());
   }
 
@@ -81,6 +83,20 @@ class _TaalaMapViewState extends State<TaalaMapView> {
     final icon = await createNavVehicleBitmap();
     if (!mounted) return;
     setState(() => _vehicleIcon = icon);
+  }
+
+  Future<void> _loadLabeledIcons() async {
+    var changed = false;
+    for (final marker in widget.markers) {
+      final label = marker.label?.trim() ?? '';
+      if (label.isEmpty || _labeledIcons.containsKey(label)) continue;
+      _labeledIcons[label] = await createLabeledPinBitmap(
+        label: label,
+        color: marker.color,
+      );
+      changed = true;
+    }
+    if (changed && mounted) setState(() {});
   }
 
   @override
@@ -94,7 +110,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         oldWidget.polylines != widget.polylines ||
         oldWidget.cameraRevision != widget.cameraRevision) {
       _applyCamera();
-      _showLabeledGoogleWindows();
+      unawaited(_loadLabeledIcons());
     }
   }
 
@@ -205,21 +221,6 @@ class _TaalaMapViewState extends State<TaalaMapView> {
     }
   }
 
-  void _showLabeledGoogleWindows() {
-    final controller = _googleController;
-    if (controller == null || !_useGoogle) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _googleController == null) return;
-      for (var i = 0; i < widget.markers.length; i++) {
-        final label = widget.markers[i].label;
-        if (label == null || label.isEmpty) continue;
-        unawaited(
-          _googleController!.showMarkerInfoWindow(gmaps.MarkerId('m$i')),
-        );
-      }
-    });
-  }
-
   Set<gmaps.Marker> _googleMarkers() {
     return {
       for (var i = 0; i < widget.markers.length; i++)
@@ -233,14 +234,14 @@ class _TaalaMapViewState extends State<TaalaMapView> {
               : const Offset(0.5, 1),
           icon: widget.markers[i].headingDegrees != null && _vehicleIcon != null
               ? _vehicleIcon!
-              : gmaps.BitmapDescriptor.defaultMarkerWithHue(
-                  HSLColor.fromColor(widget.markers[i].color).hue,
-                ),
+              : ((widget.markers[i].label ?? '').isNotEmpty &&
+                      _labeledIcons[widget.markers[i].label] != null
+                  ? _labeledIcons[widget.markers[i].label]!
+                  : gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                      HSLColor.fromColor(widget.markers[i].color).hue,
+                    )),
           consumeTapEvents: widget.markers[i].onTap != null,
           onTap: widget.markers[i].onTap,
-          infoWindow: (widget.markers[i].label ?? '').isEmpty
-              ? const gmaps.InfoWindow()
-              : gmaps.InfoWindow(title: widget.markers[i].label),
         ),
     };
   }
@@ -320,7 +321,6 @@ class _TaalaMapViewState extends State<TaalaMapView> {
           widget.onMapReady?.call();
         }
         await _applyGoogleCamera();
-        _showLabeledGoogleWindows();
       },
     );
   }
