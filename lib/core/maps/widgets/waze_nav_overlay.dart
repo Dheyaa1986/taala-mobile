@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/navigation/navigation_geometry.dart';
@@ -111,13 +113,16 @@ class WazeNavOverlay extends StatelessWidget {
                   8.height,
                   _RoundIconButton(
                     icon: Icons.warning_amber_rounded,
+                    label: AppStrings.navAddNote.tr(),
                     onPressed: onReport ?? () {},
                   ),
-                  8.height,
-                  _RoundIconButton(
-                    icon: Icons.near_me,
-                    onPressed: onOpenWaze ?? () {},
-                  ),
+                  if (onOpenWaze != null) ...[
+                    8.height,
+                    _RoundIconButton(
+                      icon: Icons.near_me,
+                      onPressed: onOpenWaze!,
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -335,14 +340,19 @@ class _EtaCell extends StatelessWidget {
 }
 
 class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({required this.icon, required this.onPressed});
+  const _RoundIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.label,
+  });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    final button = Material(
       color: Colors.white,
       shape: const CircleBorder(),
       elevation: 2,
@@ -354,6 +364,22 @@ class _RoundIconButton extends StatelessWidget {
           child: Icon(icon, size: 22.r),
         ),
       ),
+    );
+    if ((label ?? '').isEmpty) return button;
+    return Column(
+      children: [
+        button,
+        4.height,
+        Text(
+          label!,
+          style: TextStyle(
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+            shadows: const [Shadow(color: Colors.white, blurRadius: 6)],
+          ),
+        ),
+      ],
     );
   }
 }

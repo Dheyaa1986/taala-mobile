@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/design_system/tokens/taala_shadows.dart';
@@ -438,17 +437,6 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                     _voiceOn = !_voiceOn;
                     _tts.muted = !_voiceOn;
                   });
-                },
-                onOpenWaze: () {
-                  unawaited(
-                    getIt<CustomLauncher>().openWazeDirections(
-                      destinationLat: _targetPoint.latitude,
-                      destinationLng: _targetPoint.longitude,
-                      destinationTitle: _targetTitle,
-                      originLat: _providerPoint?.latitude,
-                      originLng: _providerPoint?.longitude,
-                    ),
-                  );
                 },
                 onReport: () => unawaited(_reportAlongRoute()),
               ),

@@ -582,6 +582,7 @@ class AppStrings {
   static const String myPlacesSearchHint = 'myPlacesSearchHint';
   static const String myPlacesAddPlace = 'myPlacesAddPlace';
   static const String myPlacesAddAlert = 'myPlacesAddAlert';
+  static const String navAddNote = 'navAddNote';
   static const String myPlacesNavigate = 'myPlacesNavigate';
   static const String myPlacesDetails = 'myPlacesDetails';
   static const String myPlacesHome = 'myPlacesHome';

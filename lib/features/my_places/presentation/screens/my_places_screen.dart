@@ -627,30 +627,13 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                         onPressed: () => unawaited(_saveCurrentLocation()),
                       ),
                       8.height,
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TaalaButton(
-                              label: AppStrings.myPlacesSaveHere.tr(),
-                              height: 48,
-                              variant: TaalaButtonVariant.secondary,
-                              onPressed: () => unawaited(
-                                _openEditor(isAlert: false),
-                              ),
-                            ),
-                          ),
-                          8.width,
-                          Expanded(
-                            child: TaalaButton(
-                              label: AppStrings.myPlacesAddAlert.tr(),
-                              height: 48,
-                              variant: TaalaButtonVariant.secondary,
-                              onPressed: () => unawaited(
-                                _openEditor(isAlert: true),
-                              ),
-                            ),
-                          ),
-                        ],
+                      TaalaButton(
+                        label: AppStrings.myPlacesSaveHere.tr(),
+                        height: 48,
+                        variant: TaalaButtonVariant.secondary,
+                        onPressed: () => unawaited(
+                          _openEditor(isAlert: false),
+                        ),
                       ),
                     ],
                   ),

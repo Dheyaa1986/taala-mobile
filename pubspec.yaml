@@ -2,7 +2,7 @@ name: taal
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.18+35
+version: 1.0.19+36
 
 environment:
   sdk: ^3.5.4
