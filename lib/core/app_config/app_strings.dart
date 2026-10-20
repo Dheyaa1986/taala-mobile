@@ -320,12 +320,6 @@ class AppStrings {
   static const String sendOtp = 'sendOtp';
   static const String resendOtp = 'resendOtp';
   static const String otpSent = 'otpSent';
-  static const String otpWhatsAppOpened = 'otpWhatsAppOpened';
-  static const String openWhatsAppForOtp = 'openWhatsAppForOtp';
-  static const String resendOtpWhatsApp = 'resendOtpWhatsApp';
-  static const String guestHelpVerifyWhatsAppHint =
-      'guestHelpVerifyWhatsAppHint';
-  static const String guestOtpWhatsAppResendHint = 'guestOtpWhatsAppResendHint';
   static const String invalidPhone = 'invalidPhone';
   static const String clientPhoneLoginHint = 'clientPhoneLoginHint';
   static const String providerPhoneVerifyHint = 'providerPhoneVerifyHint';

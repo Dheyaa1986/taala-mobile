@@ -14,9 +14,6 @@ class AppPublicInfoModel {
     this.androidStoreUrl = '',
     this.iosStoreUrl = '',
     this.iosAppStoreId = '',
-    this.otpChannel = 'wevlix',
-    this.otpWhatsAppNumber,
-    this.otpWhatsAppMessage = '',
   });
 
   final String termsAr;
@@ -33,14 +30,6 @@ class AppPublicInfoModel {
   final String androidStoreUrl;
   final String iosStoreUrl;
   final String iosAppStoreId;
-  final String otpChannel;
-  final String? otpWhatsAppNumber;
-  final String otpWhatsAppMessage;
-
-  bool get usesWhatsAppSessionOtp =>
-      otpChannel == 'whatsapp_session' &&
-      otpWhatsAppNumber != null &&
-      otpWhatsAppNumber!.trim().isNotEmpty;
 
   bool get hasSupportWhatsApp =>
       supportWhatsApp != null && supportWhatsApp!.trim().isNotEmpty;
@@ -82,9 +71,6 @@ class AppPublicInfoModel {
       androidStoreUrl: json['androidStoreUrl']?.toString() ?? '',
       iosStoreUrl: json['iosStoreUrl']?.toString() ?? '',
       iosAppStoreId: json['iosAppStoreId']?.toString() ?? '',
-      otpChannel: json['otpChannel']?.toString() ?? 'wevlix',
-      otpWhatsAppNumber: _nullableString(json['otpWhatsAppNumber']),
-      otpWhatsAppMessage: json['otpWhatsAppMessage']?.toString() ?? '',
     );
   }
 }
