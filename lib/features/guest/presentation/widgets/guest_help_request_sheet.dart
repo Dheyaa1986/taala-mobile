@@ -20,6 +20,8 @@ import 'package:taal/core/widgets/texts/clickable_text_widget.dart';
 import 'package:taal/core/widgets/fields/custom_text_field.dart';
 import 'package:taal/core/widgets/fields/password_field.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
+import 'package:taal/core/widgets/otp/whatsapp_registration_confirm_panel.dart';
+import 'package:taal/features/app_info/data/repository/app_public_info_repository.dart';
 import 'package:taal/core/widgets/service_type_catalog_sections.dart';
 import 'package:taal/core/alerts/app_alert_monitor.dart';
 import 'package:taal/features/guest/data/repository/guest_repository.dart';
@@ -108,12 +110,17 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   bool _loadingTypes = true;
   bool _submitting = false;
   bool _otpSendSucceeded = false;
+  bool _whatsAppSession = false;
+  bool _firebaseChannel = false;
+  String? _whatsAppConfirmToken;
+  String? _firebaseIdToken;
   int _step = 0;
   PickedLocation? _destinationLocation;
 
   @override
   void initState() {
     super.initState();
+    _loadWhatsAppChannel();
     _loadServiceTypes();
     _nameFocusNode.addListener(() => _scrollFocusedField(_nameFocusNode, _nameFieldKey));
     _phoneFocusNode.addListener(() => _scrollFocusedField(_phoneFocusNode, _phoneFieldKey));
@@ -238,12 +245,25 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       if (step == 0) {
         _otpSendSucceeded = false;
         _otpController.clear();
+        _firebaseIdToken = null;
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
       }
+    });
+  }
+
+  Future<void> _loadWhatsAppChannel() async {
+    if (!getIt.isRegistered<AppPublicInfoRepository>()) return;
+    final result = await getIt<AppPublicInfoRepository>().getPublicInfo();
+    if (!mounted) return;
+    result.fold((_) {}, (info) {
+      setState(() {
+        _whatsAppSession = info.usesWhatsAppSessionOtp;
+        _firebaseChannel = info.usesFirebaseOtp;
+      });
     });
   }
 
@@ -336,7 +356,10 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       profileAddress: _addressController.text,
       description: _descriptionController.text,
       providerId: widget.providerId,
-      otp: _otpController.text.trim(),
+      otp: _whatsAppSession
+          ? (_whatsAppConfirmToken ?? '')
+          : _otpController.text.trim(),
+      firebaseIdToken: _firebaseChannel ? _firebaseIdToken : null,
       destinationAddress: destination!.address,
       destinationLatitude: destination.latitude,
       destinationLongitude: destination.longitude,
@@ -411,12 +434,36 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PhoneOtpVerificationSection(
-            phone: _phoneController.text.trim(),
-            otpController: _otpController,
-            otpFocusNode: _otpFocusNode,
-            onSendOtp: _sendGuestOtp,
-          ),
+          if (_whatsAppSession)
+            WhatsAppRegistrationConfirmPanel(
+              phone: _phoneController.text.trim(),
+              onBegin: (phone) async {
+                final result = await _guestRepository.sendOtp(phone);
+                return result.fold((error) {
+                  _showError(error.displayMessage);
+                  return null;
+                }, (payload) {
+                  setState(() => _otpSendSucceeded = true);
+                  return payload;
+                });
+              },
+              onConfirmed: (token) {
+                setState(() {
+                  _whatsAppConfirmToken = token;
+                  _otpSendSucceeded = true;
+                });
+              },
+            )
+          else
+            PhoneOtpVerificationSection(
+              phone: _phoneController.text.trim(),
+              otpController: _otpController,
+              otpFocusNode: _otpFocusNode,
+              onSendOtp: _sendGuestOtp,
+              onFirebaseIdToken: (token) {
+                setState(() => _firebaseIdToken = token);
+              },
+            ),
           16.height,
         ],
       ),
@@ -614,8 +661,26 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           TaalaButton(
             label: AppStrings.continueKey.tr(),
             onPressed: () {
+              if (_whatsAppSession) {
+                if (_whatsAppConfirmToken == null ||
+                    _whatsAppConfirmToken!.isEmpty) {
+                  _showError(AppStrings.whatsAppConfirmWaiting.tr());
+                  return;
+                }
+                _goToStep(2);
+                return;
+              }
               if (!_otpSendSucceeded) {
                 _showError(AppStrings.sendOtpFirst.tr());
+                return;
+              }
+              if (_firebaseChannel) {
+                if (_firebaseIdToken == null ||
+                    _firebaseIdToken!.trim().isEmpty) {
+                  _showError(AppStrings.otpCode.tr());
+                  return;
+                }
+                _goToStep(2);
                 return;
               }
               if (_otpController.text.trim().length < 6) {

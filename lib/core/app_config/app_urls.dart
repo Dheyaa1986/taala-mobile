@@ -19,6 +19,8 @@ class AppUrls {
   static String get clientLoginPhone => '$base/auth/client/login-phone';
   static String get clientSendOtp => '$base/auth/client/send-otp';
   static String get clientVerifyOtp => '$base/auth/client/verify-otp';
+  static String get clientWhatsAppConfirmStatus =>
+      '$base/auth/client/whatsapp-confirm-status';
   static String get providerLogin => '$base/auth/provider/login';
   static String get login => clientLogin;
   static String get registerClient => '$base/auth/register';

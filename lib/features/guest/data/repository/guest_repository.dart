@@ -69,6 +69,7 @@ class GuestRepository extends Repository {
     String? clientRequestId,
     DateTime? queuedAt,
     String? otp,
+    String? firebaseIdToken,
     String? destinationAddress,
     double? destinationLatitude,
     double? destinationLongitude,
@@ -88,6 +89,8 @@ class GuestRepository extends Repository {
             'clientLatitude': latitude,
             'clientLongitude': longitude,
             if (otp != null && otp.trim().isNotEmpty) 'otp': otp.trim(),
+            if (firebaseIdToken != null && firebaseIdToken.trim().isNotEmpty)
+              'firebaseIdToken': firebaseIdToken.trim(),
             if (profileAddress != null && profileAddress.trim().isNotEmpty)
               'address': profileAddress.trim(),
             if (address != null && address.trim().isNotEmpty)

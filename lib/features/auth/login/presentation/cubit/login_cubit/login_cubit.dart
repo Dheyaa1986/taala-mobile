@@ -103,13 +103,15 @@ class LoginCubit extends Cubit<LoginState> {
 
   Future<void> loginWithPhone({
     required String phone,
-    required String otp,
+    String? otp,
+    String? firebaseIdToken,
   }) async {
     emit(LoginLoading());
 
     final result = await loginRepository.verifyClientOtp(
       phone: phone,
       otp: otp,
+      firebaseIdToken: firebaseIdToken,
     );
 
     result.fold(

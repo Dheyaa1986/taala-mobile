@@ -113,7 +113,8 @@ class LoginRepositoryImpl extends LoginRepository {
   @override
   Future<Either<CustomException, LoginResponseModel>> verifyClientOtp({
     required String phone,
-    required String otp,
+    String? otp,
+    String? firebaseIdToken,
   }) async {
     return exceptionHandler(() async {
       final user = await dioService.callApi(
@@ -123,7 +124,9 @@ class LoginRepositoryImpl extends LoginRepository {
           requestWithOutToken: true,
           body: {
             'phone': phone.trim(),
-            'otp': otp.trim(),
+            if (otp != null && otp.trim().isNotEmpty) 'otp': otp.trim(),
+            if (firebaseIdToken != null && firebaseIdToken.trim().isNotEmpty)
+              'firebaseIdToken': firebaseIdToken.trim(),
           },
         ),
         mapper: (json) => LoginResponseModel.fromJson(json: json),

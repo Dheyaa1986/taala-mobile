@@ -19,6 +19,7 @@ class RegisterOptions {
   final String? type;
   final List<String>? serviceTypesIds;
   final String? otp;
+  final String? firebaseIdToken;
   final ProviderRegistrationDocumentFiles? providerDocuments;
   final List<ProviderServiceOfferingInput>? serviceOfferings;
 
@@ -35,6 +36,7 @@ class RegisterOptions {
     this.type,
     this.serviceTypesIds,
     this.otp,
+    this.firebaseIdToken,
     this.providerDocuments,
     this.serviceOfferings,
   });
@@ -75,6 +77,11 @@ class RegisterOptions {
     final otpCode = otp?.trim();
     if (otpCode != null && otpCode.isNotEmpty) {
       map['otp'] = otpCode;
+    }
+
+    final firebaseToken = firebaseIdToken?.trim();
+    if (firebaseToken != null && firebaseToken.isNotEmpty) {
+      map['firebaseIdToken'] = firebaseToken;
     }
 
     final docs = providerDocuments;
