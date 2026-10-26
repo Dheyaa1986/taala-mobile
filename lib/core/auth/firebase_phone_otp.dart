@@ -13,7 +13,7 @@ class FirebasePhoneOtpClient {
 
     FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: e164,
-      timeout: const Duration(seconds: 90),
+      timeout: const Duration(seconds: 45),
       forceResendingToken: _forceResendingToken,
       verificationCompleted: (_) {
         if (!done.isCompleted) {

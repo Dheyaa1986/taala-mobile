@@ -94,7 +94,7 @@ class _PhoneOtpVerificationSectionState
 
   void _startCooldown() {
     _timer?.cancel();
-    setState(() => _cooldown = 60);
+    setState(() => _cooldown = _firebaseChannel ? 30 : 60);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -116,23 +116,28 @@ class _PhoneOtpVerificationSectionState
       _inlineOtp = null;
     });
 
+    Future<void>? firebaseSend;
+    if (_firebaseChannel) {
+      firebaseSend = _firebaseOtp.sendSms(widget.phone.trim());
+    }
+
     final result = await widget.onSendOtp(widget.phone.trim());
     if (!mounted) return;
 
-    setState(() => _sending = false);
-
     if (result.error != null) {
+      setState(() => _sending = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(ApiErrorMessage.from(result.error!))),
       );
       return;
     }
 
-    if (_firebaseChannel) {
+    if (firebaseSend != null) {
       try {
-        await _firebaseOtp.sendSms(widget.phone.trim());
+        await firebaseSend;
       } catch (error) {
         if (!mounted) return;
+        setState(() => _sending = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(ApiErrorMessage.from(error.toString()))),
         );
@@ -140,6 +145,8 @@ class _PhoneOtpVerificationSectionState
       }
       if (!mounted) return;
     }
+
+    setState(() => _sending = false);
 
     setState(() {
       _sent = true;
