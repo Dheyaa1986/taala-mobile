@@ -52,6 +52,7 @@ class ClientPhoneLoginFields extends StatelessWidget {
             otpController: otpController,
             otpFocusNode: otpFocusNode,
             onSendOtp: onSendOtp,
+            autoSendOnMount: true,
           ),
         ],
       ],

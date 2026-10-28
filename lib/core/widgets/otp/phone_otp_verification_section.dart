@@ -22,6 +22,8 @@ class PhoneOtpVerificationSection extends StatefulWidget {
     required this.otpFocusNode,
     required this.onSendOtp,
     this.autoSendOnMount = false,
+    this.showIntroHint = true,
+    this.onCompleted,
   });
 
   final String phone;
@@ -29,6 +31,8 @@ class PhoneOtpVerificationSection extends StatefulWidget {
   final FocusNode otpFocusNode;
   final PhoneOtpSender onSendOtp;
   final bool autoSendOnMount;
+  final bool showIntroHint;
+  final ValueChanged<String>? onCompleted;
 
   @override
   State<PhoneOtpVerificationSection> createState() =>
@@ -78,6 +82,15 @@ class _PhoneOtpVerificationSectionState
     });
   }
 
+  bool _isRateLimited(String error) {
+    final text = error.toLowerCase();
+    return text.contains('كثير') ||
+        text.contains('too many') ||
+        text.contains('429') ||
+        text.contains('rate') ||
+        text.contains('انتظر دقيقة');
+  }
+
   Future<void> _sendOtp() async {
     if (_sending || _cooldown > 0) return;
     setState(() {
@@ -89,9 +102,24 @@ class _PhoneOtpVerificationSectionState
     if (!mounted) return;
 
     if (result.error != null) {
-      setState(() => _sending = false);
+      final limited = _isRateLimited(result.error!);
+      setState(() {
+        _sending = false;
+        if (limited) {
+          _sent = true;
+        }
+      });
+      if (limited) {
+        _startCooldown();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ApiErrorMessage.from(result.error!))),
+        SnackBar(
+          content: Text(
+            limited
+                ? AppStrings.otpWaitThenResend.tr()
+                : ApiErrorMessage.from(result.error!),
+          ),
+        ),
       );
       return;
     }
@@ -116,13 +144,16 @@ class _PhoneOtpVerificationSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          AppStrings.guestHelpVerifyStepHint.tr(),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: tokens.textSecondary,
-              ),
-        ),
-        12.height,
+        if (widget.showIntroHint) ...[
+          Text(
+            AppStrings.guestHelpVerifyStepHint.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: tokens.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          12.height,
+        ],
         if (_inlineOtp != null && _inlineOtp!.isNotEmpty) ...[
           Container(
             width: double.infinity,
@@ -142,29 +173,35 @@ class _PhoneOtpVerificationSectionState
         CustomOTPField(
           controller: widget.otpController,
           focusNode: widget.otpFocusNode,
-          onCompleted: (_) {},
+          onCompleted: (value) {
+            if (value != null && value.length == 6) {
+              widget.onCompleted?.call(value);
+            }
+          },
           onChanged: (_) {},
         ),
         8.height,
         Text(
-          AppStrings.guestOtpResendHint.tr(),
+          _sending
+              ? AppStrings.otpSendingWhatsApp.tr()
+              : AppStrings.guestOtpResendHint.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: tokens.textSecondary,
               ),
+          textAlign: TextAlign.center,
         ),
         12.height,
         TaalaButton(
-          label: _cooldown > 0
-              ? '${AppStrings.resendOtp.tr()} (${_cooldown}s)'
-              : (_sent ? AppStrings.resendOtp.tr() : AppStrings.sendOtp.tr()),
+          label: _sending
+              ? AppStrings.otpSendingWhatsApp.tr()
+              : _cooldown > 0
+                  ? '${AppStrings.resendOtp.tr()} (${_cooldown}s)'
+                  : (_sent
+                      ? AppStrings.resendOtp.tr()
+                      : AppStrings.sendOtp.tr()),
           variant: TaalaButtonVariant.secondary,
           onPressed: (_sending || _cooldown > 0) ? null : _sendOtp,
         ),
-        if (_sending)
-          const Padding(
-            padding: EdgeInsets.only(top: 12),
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ),
       ],
     );
   }

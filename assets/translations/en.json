@@ -298,6 +298,8 @@
   "sendOtp": "Send code",
   "resendOtp": "Resend code",
   "otpSent": "Verification code sent on WhatsApp",
+  "otpSendingWhatsApp": "Sending on WhatsApp…",
+  "otpWaitThenResend": "Wait for the timer, then tap Resend once",
   "invalidPhone": "Invalid phone number",
   "clientPhoneLoginHint": "Enter your phone number, then request a verification code to sign in",
   "providerPhoneVerifyHint": "Enter the verification code sent to your phone to complete registration",

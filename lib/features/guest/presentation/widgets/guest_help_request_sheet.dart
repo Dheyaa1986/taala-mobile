@@ -416,6 +416,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             otpController: _otpController,
             otpFocusNode: _otpFocusNode,
             onSendOtp: _sendGuestOtp,
+            autoSendOnMount: true,
           ),
           16.height,
         ],

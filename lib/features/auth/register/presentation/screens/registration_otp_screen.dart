@@ -34,6 +34,16 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
   bool _otpSent = false;
 
   bool get _isProvider => widget.options.type == 'provider';
+  bool get _canSubmit =>
+      _otpSent && _otpController.text.trim().length == 6;
+
+  @override
+  void initState() {
+    super.initState();
+    _otpController.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -156,25 +166,25 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
                       ),
                     ),
                     24.height,
-                    Text(
-                      AppStrings.providerPhoneVerifyHint.tr(),
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    24.height,
                     PhoneOtpVerificationSection(
                       phone: widget.options.phone,
                       otpController: _otpController,
                       otpFocusNode: _otpFocusNode,
                       onSendOtp: _sendOtp,
                       autoSendOnMount: true,
+                      showIntroHint: false,
+                      onCompleted: (code) {
+                        if (_otpSent) {
+                          _submitWithSecret(code);
+                        }
+                      },
                     ),
                     32.height,
                     TaalaButton(
                       label: _isProvider
                           ? AppStrings.next.tr()
                           : AppStrings.signUp.tr(),
-                      onPressed: _continue,
+                      onPressed: _canSubmit ? _continue : null,
                     ),
                     24.height,
                   ],

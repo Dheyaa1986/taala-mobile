@@ -320,6 +320,8 @@ class AppStrings {
   static const String sendOtp = 'sendOtp';
   static const String resendOtp = 'resendOtp';
   static const String otpSent = 'otpSent';
+  static const String otpSendingWhatsApp = 'otpSendingWhatsApp';
+  static const String otpWaitThenResend = 'otpWaitThenResend';
   static const String otpWhatsAppOpened = 'otpWhatsAppOpened';
   static const String openWhatsAppForOtp = 'openWhatsAppForOtp';
   static const String resendOtpWhatsApp = 'resendOtpWhatsApp';
@@ -623,4 +625,18 @@ class AppStrings {
   static const String myPlacesNameRequired = 'myPlacesNameRequired';
   static const String myPlacesDeleteConfirm = 'myPlacesDeleteConfirm';
   static const String myPlacesEmpty = 'myPlacesEmpty';
+  static const String exploreAround = 'exploreAround';
+  static const String exploreHospitals = 'exploreHospitals';
+  static const String exploreRestaurants = 'exploreRestaurants';
+  static const String exploreCharging = 'exploreCharging';
+  static const String exploreFuel = 'exploreFuel';
+  static const String exploreShopping = 'exploreShopping';
+  static const String exploreBanks = 'exploreBanks';
+  static const String exploreMosques = 'exploreMosques';
+  static const String exploreTransit = 'exploreTransit';
+  static const String exploreParks = 'exploreParks';
+  static const String explorePharmacies = 'explorePharmacies';
+  static const String exploreEmpty = 'exploreEmpty';
+  static const String exploreKm = 'exploreKm';
+  static const String exploreMeters = 'exploreMeters';
 }
