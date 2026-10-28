@@ -79,11 +79,6 @@ class RegisterOptions {
       map['otp'] = otpCode;
     }
 
-    final firebaseToken = firebaseIdToken?.trim();
-    if (firebaseToken != null && firebaseToken.isNotEmpty) {
-      map['firebaseIdToken'] = firebaseToken;
-    }
-
     final docs = providerDocuments;
     if (docs != null) {
       await _appendDocument(map, 'nationalIdFront', docs.nationalIdFront);

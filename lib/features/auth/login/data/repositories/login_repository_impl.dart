@@ -125,8 +125,6 @@ class LoginRepositoryImpl extends LoginRepository {
           body: {
             'phone': phone.trim(),
             if (otp != null && otp.trim().isNotEmpty) 'otp': otp.trim(),
-            if (firebaseIdToken != null && firebaseIdToken.trim().isNotEmpty)
-              'firebaseIdToken': firebaseIdToken.trim(),
           },
         ),
         mapper: (json) => LoginResponseModel.fromJson(json: json),

@@ -4,15 +4,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/auth/firebase_phone_otp.dart';
-import 'package:taal/core/custom_launcher/custom_launcher.dart';
-import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/api_error_message.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/core/widgets/otp/otp_field.dart';
-import 'package:taal/features/app_info/data/repository/app_public_info_repository.dart';
 
 typedef PhoneOtpSender = Future<({String? debugOtp, String? error})> Function(
   String phone,
@@ -26,7 +22,6 @@ class PhoneOtpVerificationSection extends StatefulWidget {
     required this.otpFocusNode,
     required this.onSendOtp,
     this.autoSendOnMount = false,
-    this.onFirebaseIdToken,
   });
 
   final String phone;
@@ -34,7 +29,6 @@ class PhoneOtpVerificationSection extends StatefulWidget {
   final FocusNode otpFocusNode;
   final PhoneOtpSender onSendOtp;
   final bool autoSendOnMount;
-  final ValueChanged<String>? onFirebaseIdToken;
 
   @override
   State<PhoneOtpVerificationSection> createState() =>
@@ -48,12 +42,6 @@ class _PhoneOtpVerificationSectionState
   String? _inlineOtp;
   int _cooldown = 0;
   Timer? _timer;
-  bool _whatsAppSession = false;
-  bool _firebaseChannel = false;
-  bool _confirmingFirebase = false;
-  String? _whatsAppNumber;
-  String _whatsAppMessage = 'تأكيد طلة';
-  final _firebaseOtp = FirebasePhoneOtpClient();
 
   @override
   void initState() {
@@ -62,28 +50,9 @@ class _PhoneOtpVerificationSectionState
   }
 
   Future<void> _bootstrap() async {
-    await _loadOtpChannel();
     if (widget.autoSendOnMount && widget.phone.trim().isNotEmpty) {
       await _sendOtp();
     }
-  }
-
-  Future<void> _loadOtpChannel() async {
-    if (!getIt.isRegistered<AppPublicInfoRepository>()) {
-      return;
-    }
-    final result = await getIt<AppPublicInfoRepository>().getPublicInfo();
-    if (!mounted) return;
-    result.fold((_) {}, (info) {
-      setState(() {
-        _whatsAppSession = info.usesWhatsAppSessionOtp;
-        _firebaseChannel = info.usesFirebaseOtp;
-        _whatsAppNumber = info.otpWhatsAppNumber;
-        if (info.otpWhatsAppMessage.trim().isNotEmpty) {
-          _whatsAppMessage = info.otpWhatsAppMessage.trim();
-        }
-      });
-    });
   }
 
   @override
@@ -94,7 +63,7 @@ class _PhoneOtpVerificationSectionState
 
   void _startCooldown() {
     _timer?.cancel();
-    setState(() => _cooldown = _firebaseChannel ? 30 : 60);
+    setState(() => _cooldown = 60);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -116,11 +85,6 @@ class _PhoneOtpVerificationSectionState
       _inlineOtp = null;
     });
 
-    Future<void>? firebaseSend;
-    if (_firebaseChannel) {
-      firebaseSend = _firebaseOtp.sendSms(widget.phone.trim());
-    }
-
     final result = await widget.onSendOtp(widget.phone.trim());
     if (!mounted) return;
 
@@ -132,94 +96,28 @@ class _PhoneOtpVerificationSectionState
       return;
     }
 
-    if (firebaseSend != null) {
-      try {
-        await firebaseSend;
-      } catch (error) {
-        if (!mounted) return;
-        setState(() => _sending = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiErrorMessage.from(error.toString()))),
-        );
-        return;
-      }
-      if (!mounted) return;
-    }
-
-    setState(() => _sending = false);
-
     setState(() {
+      _sending = false;
       _sent = true;
-      _inlineOtp = (_whatsAppSession || _firebaseChannel) ? null : result.debugOtp;
+      _inlineOtp = result.debugOtp;
     });
     _startCooldown();
     widget.otpFocusNode.requestFocus();
 
-    if (_whatsAppSession &&
-        _whatsAppNumber != null &&
-        _whatsAppNumber!.trim().isNotEmpty) {
-      await getIt<CustomLauncher>().openWhatsApp(
-        _whatsAppNumber!,
-        message: _whatsAppMessage,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.otpWhatsAppOpened.tr())),
-      );
-      return;
-    }
-
-    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppStrings.otpSent.tr())),
     );
   }
 
-  Future<void> _confirmFirebaseIfNeeded(String smsCode) async {
-    if (!_firebaseChannel || widget.onFirebaseIdToken == null) {
-      return;
-    }
-    if (_confirmingFirebase || smsCode.trim().length < 6) {
-      return;
-    }
-    setState(() => _confirmingFirebase = true);
-    try {
-      final token = await _firebaseOtp.confirmSms(smsCode);
-      if (!mounted) return;
-      widget.onFirebaseIdToken!(token);
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ApiErrorMessage.from(error.toString()))),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _confirmingFirebase = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final tokens = TaalaTokens.of(context);
-    final hint = _whatsAppSession
-        ? AppStrings.guestHelpVerifyWhatsAppHint.tr()
-        : AppStrings.guestHelpVerifyStepHint.tr();
-    final resendHint = _whatsAppSession
-        ? AppStrings.guestOtpWhatsAppResendHint.tr()
-        : AppStrings.guestOtpResendHint.tr();
-    final idleLabel = _whatsAppSession
-        ? AppStrings.openWhatsAppForOtp.tr()
-        : AppStrings.sendOtp.tr();
-    final sentLabel = _whatsAppSession
-        ? AppStrings.resendOtpWhatsApp.tr()
-        : AppStrings.resendOtp.tr();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          hint,
+          AppStrings.guestHelpVerifyStepHint.tr(),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -244,16 +142,12 @@ class _PhoneOtpVerificationSectionState
         CustomOTPField(
           controller: widget.otpController,
           focusNode: widget.otpFocusNode,
-          onCompleted: (value) {
-            if (value != null) {
-              unawaited(_confirmFirebaseIfNeeded(value));
-            }
-          },
+          onCompleted: (_) {},
           onChanged: (_) {},
         ),
         8.height,
         Text(
-          resendHint,
+          AppStrings.guestOtpResendHint.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -261,12 +155,12 @@ class _PhoneOtpVerificationSectionState
         12.height,
         TaalaButton(
           label: _cooldown > 0
-              ? '$sentLabel (${_cooldown}s)'
-              : (_sent ? sentLabel : idleLabel),
+              ? '${AppStrings.resendOtp.tr()} (${_cooldown}s)'
+              : (_sent ? AppStrings.resendOtp.tr() : AppStrings.sendOtp.tr()),
           variant: TaalaButtonVariant.secondary,
           onPressed: (_sending || _cooldown > 0) ? null : _sendOtp,
         ),
-        if (_sending || _confirmingFirebase)
+        if (_sending)
           const Padding(
             padding: EdgeInsets.only(top: 12),
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),

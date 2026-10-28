@@ -12,8 +12,6 @@ import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
-import 'package:taal/core/widgets/otp/whatsapp_registration_confirm_panel.dart';
-import 'package:taal/features/app_info/data/repository/app_public_info_repository.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
 import 'package:taal/features/auth/register/presentation/cubit/register_cubit.dart';
 import 'package:taal/features/auth/widgets/auth_header_widget.dart';
@@ -34,33 +32,8 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
   final _otpRepository = GuestOtpRepository();
   late final RegisterCubit _registerCubit = getIt<RegisterCubit>();
   bool _otpSent = false;
-  bool _whatsAppSession = false;
-  bool _firebaseChannel = false;
-  bool _channelReady = false;
-  String? _whatsAppConfirmToken;
-  String? _firebaseIdToken;
 
   bool get _isProvider => widget.options.type == 'provider';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadChannel();
-  }
-
-  Future<void> _loadChannel() async {
-    if (!getIt.isRegistered<AppPublicInfoRepository>()) {
-      setState(() => _channelReady = true);
-      return;
-    }
-    final result = await getIt<AppPublicInfoRepository>().getPublicInfo();
-    if (!mounted) return;
-    result.fold((_) {}, (info) {
-      _whatsAppSession = info.usesWhatsAppSessionOtp;
-      _firebaseChannel = info.usesFirebaseOtp;
-    });
-    setState(() => _channelReady = true);
-  }
 
   @override
   void dispose() {
@@ -87,45 +60,9 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     );
   }
 
-  Future<GuestOtpSendResult?> _beginWhatsApp(String phone) async {
-    final result = await _otpRepository.sendRegistrationOtp(phone);
-    return result.fold(
-      (error) {
-        if (mounted) {
-          AppMessages.showError(context, error.displayMessage);
-        }
-        return null;
-      },
-      (payload) => payload,
-    );
-  }
-
   void _continue() {
-    if (_whatsAppSession) {
-      final token = _whatsAppConfirmToken?.trim() ?? '';
-      if (token.isEmpty) {
-        AppMessages.showError(
-          context,
-          AppStrings.whatsAppConfirmWaiting.tr(),
-        );
-        return;
-      }
-      _submitWithSecret(token);
-      return;
-    }
-
     if (!_otpSent) {
       AppMessages.showError(context, AppStrings.sendOtpFirst.tr());
-      return;
-    }
-
-    if (_firebaseChannel) {
-      final token = _firebaseIdToken?.trim() ?? '';
-      if (token.isEmpty) {
-        AppMessages.showError(context, AppStrings.otpCode.tr());
-        return;
-      }
-      _submitWithSecret(_otpController.text.trim(), firebaseIdToken: token);
       return;
     }
 
@@ -138,7 +75,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     _submitWithSecret(otp);
   }
 
-  void _submitWithSecret(String secret, {String? firebaseIdToken}) {
+  void _submitWithSecret(String secret) {
     final optionsWithOtp = RegisterOptions(
       countryImageSvg: widget.options.countryImageSvg,
       confirmPassword: widget.options.confirmPassword,
@@ -151,7 +88,6 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
       country: widget.options.country,
       type: widget.options.type ?? 'client',
       otp: secret,
-      firebaseIdToken: firebaseIdToken,
     );
 
     if (_isProvider) {
@@ -215,42 +151,24 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
                     40.height,
                     Center(
                       child: AuthHeaderWidget(
-                        subTitle: _whatsAppSession
-                            ? AppStrings.whatsAppConfirmHint.tr()
-                            : AppStrings.registrationOtpSubtitle.tr(),
+                        subTitle: AppStrings.registrationOtpSubtitle.tr(),
                         title: AppStrings.registrationOtpTitle.tr(),
                       ),
                     ),
                     24.height,
-                    if (!_channelReady)
-                      const Center(child: CircularProgressIndicator())
-                    else if (_whatsAppSession)
-                      WhatsAppRegistrationConfirmPanel(
-                        phone: widget.options.phone,
-                        onBegin: _beginWhatsApp,
-                        onConfirmed: (token) {
-                          setState(() => _whatsAppConfirmToken = token);
-                          _submitWithSecret(token);
-                        },
-                      )
-                    else ...[
-                      Text(
-                        AppStrings.providerPhoneVerifyHint.tr(),
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.center,
-                      ),
-                      24.height,
-                      PhoneOtpVerificationSection(
-                        phone: widget.options.phone,
-                        otpController: _otpController,
-                        otpFocusNode: _otpFocusNode,
-                        onSendOtp: _sendOtp,
-                        autoSendOnMount: true,
-                        onFirebaseIdToken: (token) {
-                          setState(() => _firebaseIdToken = token);
-                        },
-                      ),
-                    ],
+                    Text(
+                      AppStrings.providerPhoneVerifyHint.tr(),
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    24.height,
+                    PhoneOtpVerificationSection(
+                      phone: widget.options.phone,
+                      otpController: _otpController,
+                      otpFocusNode: _otpFocusNode,
+                      onSendOtp: _sendOtp,
+                      autoSendOnMount: true,
+                    ),
                     32.height,
                     TaalaButton(
                       label: _isProvider
