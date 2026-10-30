@@ -17,6 +17,7 @@ import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/offline/map_offline_manager.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/iraq_offline_map_button.dart';
 import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/picked_location.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
@@ -54,7 +55,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   bool _loadingAddress = false;
   bool _loadingProviders = false;
   String? _error;
-  String? _offlineMapPath;
+  List<String> _offlineMapPaths = [];
   int _cameraRevision = 0;
   bool _followCamera = true;
 
@@ -70,12 +71,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   }
 
   Future<void> _refreshOfflineMapPath() async {
-    final path = await getIt<MapOfflineManager>().localMapPathFor(
-      _center.latitude,
-      _center.longitude,
-    );
+    final paths = await getIt<MapOfflineManager>().readyMapPaths();
     if (!mounted) return;
-    setState(() => _offlineMapPath = path);
+    setState(() => _offlineMapPaths = paths);
   }
 
   Future<void> _bootstrap() async {
@@ -212,7 +210,10 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             initialZoom: MapStyleConfig.defaultZoom,
             cameraRevision: _cameraRevision,
             followPoint: _followCamera ? _center : null,
-            offlineMapPath: _offlineMapPath,
+            offlineMapPath: _offlineMapPaths.isEmpty
+                ? null
+                : _offlineMapPaths.first,
+            offlineMapPaths: _offlineMapPaths,
             markers: _providerMarkers(tokens),
             onMoved: (point) => unawaited(_onMapMoved(point)),
           ),
@@ -297,18 +298,28 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
           Positioned(
             right: 16.w,
             bottom: MediaQuery.sizeOf(context).height * 0.42,
-            child: FloatingActionButton(
-              heroTag: 'guest_gps',
-              backgroundColor: tokens.surface,
-              foregroundColor: tokens.primary,
-              onPressed: _loadingGps ? null : _goToCurrentLocation,
-              child: _loadingGps
-                  ? SizedBox(
-                      width: 22.r,
-                      height: 22.r,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.my_location),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IraqOfflineMapButton(
+                  heroTag: 'guestIraqOffline',
+                  onDownloaded: () => unawaited(_refreshOfflineMapPath()),
+                ),
+                8.height,
+                FloatingActionButton(
+                  heroTag: 'guest_gps',
+                  backgroundColor: tokens.surface,
+                  foregroundColor: tokens.primary,
+                  onPressed: _loadingGps ? null : _goToCurrentLocation,
+                  child: _loadingGps
+                      ? SizedBox(
+                          width: 22.r,
+                          height: 22.r,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.my_location),
+                ),
+              ],
             ),
           ),
           DraggableScrollableSheet(

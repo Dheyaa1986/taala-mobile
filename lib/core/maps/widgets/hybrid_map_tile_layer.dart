@@ -5,29 +5,34 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 
-class HybridMapTileLayer extends StatelessWidget {
-  const HybridMapTileLayer({
-    super.key,
-    this.offlineMapPath,
-  });
+class HybridMapTileLayer {
+  const HybridMapTileLayer._();
 
-  final String? offlineMapPath;
-
-  @override
-  Widget build(BuildContext context) {
-    final path = offlineMapPath;
-    if (path != null && path.isNotEmpty && File(path).existsSync()) {
-      return TileLayer(
-        tileProvider: MbTilesTileProvider.fromPath(path: path),
-        maxZoom: 19,
-      );
+  static List<Widget> layers({
+    String? offlineMapPath,
+    List<String> offlineMapPaths = const [],
+  }) {
+    final paths = <String>[];
+    for (final path in [
+      ...offlineMapPaths,
+      if (offlineMapPath != null) offlineMapPath,
+    ]) {
+      if (path.isEmpty || paths.contains(path)) continue;
+      if (File(path).existsSync()) paths.add(path);
     }
 
-    return TileLayer(
-      urlTemplate: MapStyleConfig.tileUrlTemplate,
-      subdomains: MapStyleConfig.tileSubdomains,
-      userAgentPackageName: MapStyleConfig.userAgentPackageName,
-      maxZoom: 19,
-    );
+    return [
+      TileLayer(
+        urlTemplate: MapStyleConfig.tileUrlTemplate,
+        subdomains: MapStyleConfig.tileSubdomains,
+        userAgentPackageName: MapStyleConfig.userAgentPackageName,
+        maxZoom: 19,
+      ),
+      for (final path in paths)
+        TileLayer(
+          tileProvider: MbTilesTileProvider.fromPath(path: path),
+          maxZoom: 19,
+        ),
+    ];
   }
 }

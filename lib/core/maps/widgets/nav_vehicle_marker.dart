@@ -5,7 +5,7 @@ import 'package:taal/core/maps/map_style_config.dart';
 class NavVehicleMarker extends StatelessWidget {
   const NavVehicleMarker({
     super.key,
-    this.size = 44,
+    this.size = 22,
     this.headingDegrees = 0,
   });
 
@@ -31,10 +31,10 @@ class NavVehicleChevronPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final path = Path()
-      ..moveTo(size.width * 0.5, size.height * 0.06)
-      ..lineTo(size.width * 0.88, size.height * 0.86)
-      ..lineTo(size.width * 0.5, size.height * 0.68)
-      ..lineTo(size.width * 0.12, size.height * 0.86)
+      ..moveTo(size.width * 0.5, size.height * 0.12)
+      ..lineTo(size.width * 0.78, size.height * 0.84)
+      ..lineTo(size.width * 0.5, size.height * 0.7)
+      ..lineTo(size.width * 0.22, size.height * 0.84)
       ..close();
 
     canvas.drawPath(
@@ -42,7 +42,7 @@ class NavVehicleChevronPainter extends CustomPainter {
       Paint()
         ..color = MapStyleConfig.routeCasingColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 5
+        ..strokeWidth = 1.8
         ..strokeJoin = StrokeJoin.round,
     );
     canvas.drawPath(

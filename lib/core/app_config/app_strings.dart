@@ -639,4 +639,10 @@ class AppStrings {
   static const String exploreEmpty = 'exploreEmpty';
   static const String exploreKm = 'exploreKm';
   static const String exploreMeters = 'exploreMeters';
+  static const String offlineIraqDownload = 'offlineIraqDownload';
+  static const String offlineIraqDownloading = 'offlineIraqDownloading';
+  static const String offlineIraqProgress = 'offlineIraqProgress';
+  static const String offlineIraqReady = 'offlineIraqReady';
+  static const String offlineIraqFailed = 'offlineIraqFailed';
+  static const String offlineIraqNeedInternet = 'offlineIraqNeedInternet';
 }

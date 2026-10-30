@@ -71,6 +71,7 @@ dependencies:
   gradient_borders: ^1.0.1
   image_picker: ^1.0.7
   internet_connection_checker: ^3.0.1
+  connectivity_plus: ^6.1.5
 
   jwt_decoder: ^2.0.1
   location: any

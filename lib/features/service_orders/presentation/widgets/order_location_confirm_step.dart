@@ -367,6 +367,7 @@ class _OrderLocationConfirmStepState extends State<OrderLocationConfirmStep>
                     cameraRevision: _cameraRevision,
                     followPoint: _followCamera ? _center : null,
                     offlineMapPath: offlineMapPath,
+                    offlineMapPaths: offlineMapPaths,
                     onMapReady: _onMapReady,
                     onMoved: (point) {
                       _userMovedMap = true;

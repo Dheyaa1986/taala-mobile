@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:taal/core/maps/widgets/nav_vehicle_marker.dart';
 
 Future<gmaps.BitmapDescriptor> createNavVehicleBitmap({
-  double logicalSize = 48,
+  double logicalSize = 22,
 }) async {
   const pixelRatio = 3.0;
   final pixelSize = (logicalSize * pixelRatio).round();

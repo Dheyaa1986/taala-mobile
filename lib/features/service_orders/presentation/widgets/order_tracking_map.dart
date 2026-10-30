@@ -209,6 +209,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap>
           fitPoints: _fitPoints(),
           followPoint: widget.followProvider ? provider : null,
           offlineMapPath: offlineMapPath,
+          offlineMapPaths: offlineMapPaths,
           fitPadding: EdgeInsets.all(40.r),
         ),
         if (_loadingRoute)

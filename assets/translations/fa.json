@@ -197,5 +197,11 @@
   "explorePharmacies": "دەرمانخانە",
   "exploreEmpty": "لەم جۆرە شوێنێکی نزیک نییە",
   "exploreKm": "کم",
-  "exploreMeters": "م"
+  "exploreMeters": "م",
+  "offlineIraqDownload": "داگرتنی نەخشەی عێراق",
+  "offlineIraqDownloading": "نەخشەی عێراق دادەگیرێت",
+  "offlineIraqProgress": "{done}/{total} — {name}",
+  "offlineIraqReady": "نەخشەی عێراق ئامادەیە بۆ بەکارهێنان بێ ئینتەرنێت",
+  "offlineIraqFailed": "نەتوانرا نەخشە دابگیرێت. ئینتەرنێت بپشکنە.",
+  "offlineIraqNeedInternet": "ئینتەرنێت پێویستە بۆ داگرتنی نەخشە"
 }

@@ -16,6 +16,7 @@ import 'package:taal/core/maps/place_search_service.dart';
 import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
+import 'package:taal/core/maps/widgets/iraq_offline_map_button.dart';
 import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 import 'package:taal/design_system/components/taala_button.dart';
@@ -614,6 +615,16 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                         onPressed: () => unawaited(_goToCurrentLocation()),
                         child: const Icon(Icons.my_location),
                       ),
+                      8.height,
+                      IraqOfflineMapButton(
+                        heroTag: 'myPlacesIraqOffline',
+                        onDownloaded: () => unawaited(
+                          refreshOfflineMapPath(
+                            _center.latitude,
+                            _center.longitude,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -698,6 +709,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
       cameraRevision: _cameraRevision,
       followPoint: _followCamera ? _center : null,
       offlineMapPath: offlineMapPath,
+      offlineMapPaths: offlineMapPaths,
       onMapReady: _onMapReady,
       onTap: (_, point) {
         setState(() {

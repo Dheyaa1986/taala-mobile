@@ -590,5 +590,11 @@
   "explorePharmacies": "صيدليات",
   "exploreEmpty": "لا أماكن قريبة من هذا النوع",
   "exploreKm": "كم",
-  "exploreMeters": "م"
+  "exploreMeters": "م",
+  "offlineIraqDownload": "تنزيل خريطة العراق",
+  "offlineIraqDownloading": "جاري تنزيل خريطة العراق",
+  "offlineIraqProgress": "{done}/{total} — {name}",
+  "offlineIraqReady": "تم تنزيل خريطة العراق للعمل بدون إنترنت",
+  "offlineIraqFailed": "تعذر تنزيل الخريطة. تحقق من الإنترنت وحاول مرة أخرى.",
+  "offlineIraqNeedInternet": "يلزم اتصال بالإنترنت لتنزيل الخريطة"
 }

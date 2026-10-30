@@ -20,31 +20,35 @@ class MapOfflineManager {
 
   List<OfflineMapPackageModel> get manifest => List.unmodifiable(_manifest);
 
+  Future<void> _loadManifest() async {
+    final json = await _dioService.callApi<Map<String, dynamic>>(
+      NetworkRequest(
+        AppUrls.offlineMapsManifest,
+        method: RequestMethod.get,
+        requestWithOutToken: true,
+      ),
+    );
+    final response = json['response'] as Map<String, dynamic>? ?? json;
+    final packages = (response['packages'] as List<dynamic>? ?? [])
+        .map(
+          (item) => OfflineMapPackageModel.fromJson(
+            item as Map<String, dynamic>,
+          ),
+        )
+        .toList()
+      ..sort((a, b) => a.priority.compareTo(b.priority));
+    _manifest = packages;
+    await _ensureRecordsForManifest(packages);
+  }
+
   Future<void> syncWhenOnline({String? priorityGovernorateId}) async {
     if (_syncInProgress || !await ConnectivityHelper.connected) {
       return;
     }
     _syncInProgress = true;
     try {
-      final json = await _dioService.callApi<Map<String, dynamic>>(
-        NetworkRequest(
-          AppUrls.offlineMapsManifest,
-          method: RequestMethod.get,
-          requestWithOutToken: true,
-        ),
-      );
-      final response = json['response'] as Map<String, dynamic>? ?? json;
-      final packages = (response['packages'] as List<dynamic>? ?? [])
-          .map(
-            (item) => OfflineMapPackageModel.fromJson(
-              item as Map<String, dynamic>,
-            ),
-          )
-          .toList()
-        ..sort((a, b) => a.priority.compareTo(b.priority));
-
-      _manifest = packages;
-      await _ensureRecordsForManifest(packages);
+      await _loadManifest();
+      final packages = _manifest;
 
       if (priorityGovernorateId != null) {
         final priority = packages.where(
@@ -61,6 +65,52 @@ class MapOfflineManager {
       }
     } catch (_) {
       // Silent background sync — online tiles remain available.
+    } finally {
+      _syncInProgress = false;
+    }
+  }
+
+  Future<List<String>> readyMapPaths() async {
+    final records = await _repository.loadRecords();
+    final paths = <String>[];
+    for (final record in records.values) {
+      final path = record.localPath;
+      if (record.status != OfflineMapLocalStatus.ready || path == null) {
+        continue;
+      }
+      if (await File(path).exists()) {
+        paths.add(path);
+      }
+    }
+    return paths;
+  }
+
+  Future<void> downloadAllIraqMaps({
+    void Function(int done, int total, String name)? onProgress,
+  }) async {
+    if (!await ConnectivityHelper.connected) {
+      throw StateError('offline');
+    }
+    while (_syncInProgress) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    _syncInProgress = true;
+    try {
+      await _loadManifest();
+      final packages = _manifest;
+      if (packages.isEmpty) {
+        throw StateError('No Iraq map packages available');
+      }
+      var done = 0;
+      for (final pkg in packages) {
+        final name = pkg.governorateNameAr.isEmpty
+            ? pkg.mapSlug
+            : pkg.governorateNameAr;
+        onProgress?.call(done, packages.length, name);
+        await _downloadIfNeeded(pkg);
+        done++;
+        onProgress?.call(done, packages.length, name);
+      }
     } finally {
       _syncInProgress = false;
     }

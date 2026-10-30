@@ -106,6 +106,7 @@ class _DualLocationPreviewMapState extends State<DualLocationPreviewMap>
       onMapReady: _onMapReady,
       allowRotate: false,
       offlineMapPath: offlineMapPath,
+      offlineMapPaths: offlineMapPaths,
       fitPoints: _fitPoints(),
       fitPadding: EdgeInsets.all(48.r),
       polylines: routePolyline.length >= 2

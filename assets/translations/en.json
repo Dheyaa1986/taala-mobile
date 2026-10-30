@@ -566,5 +566,11 @@
   "explorePharmacies": "Pharmacies",
   "exploreEmpty": "No nearby places of this type",
   "exploreKm": "km",
-  "exploreMeters": "m"
+  "exploreMeters": "m",
+  "offlineIraqDownload": "Download Iraq map",
+  "offlineIraqDownloading": "Downloading Iraq map",
+  "offlineIraqProgress": "{done}/{total} — {name}",
+  "offlineIraqReady": "Iraq map is ready for offline use",
+  "offlineIraqFailed": "Could not download the map. Check the internet and try again.",
+  "offlineIraqNeedInternet": "Internet is required to download the map"
 }

@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
+import 'package:taal/core/helpers/connectivity_helper.dart';
 import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/map_style_config.dart';
 import 'package:taal/core/maps/safe_map_controller.dart';
@@ -27,6 +28,7 @@ class TaalaMapView extends StatefulWidget {
     this.navigationFollow = false,
     this.allowRotate = false,
     this.offlineMapPath,
+    this.offlineMapPaths = const [],
     this.onMapReady,
     this.onTap,
     this.onLongPress,
@@ -45,6 +47,7 @@ class TaalaMapView extends StatefulWidget {
   final bool navigationFollow;
   final bool allowRotate;
   final String? offlineMapPath;
+  final List<String> offlineMapPaths;
   final VoidCallback? onMapReady;
   final TapCallback? onTap;
   final LongPressCallback? onLongPress;
@@ -65,8 +68,15 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   bool _applyingGoogleCamera = false;
   gmaps.BitmapDescriptor? _vehicleIcon;
   final Map<String, gmaps.BitmapDescriptor> _labeledIcons = {};
+  StreamSubscription<bool>? _connectivitySub;
+  bool _online = true;
 
-  bool get _useGoogle => GoogleMapsConfig.useGoogleMapWidget;
+  bool get _hasOfflineTiles =>
+      (widget.offlineMapPath != null && widget.offlineMapPath!.isNotEmpty) ||
+      widget.offlineMapPaths.isNotEmpty;
+
+  bool get _useGoogle =>
+      GoogleMapsConfig.useGoogleMapWidget && (_online || !_hasOfflineTiles);
 
   double get _tilt =>
       widget.navigationFollow ? 58 : MapStyleConfig.browseTilt;
@@ -76,7 +86,23 @@ class _TaalaMapViewState extends State<TaalaMapView> {
     super.initState();
     unawaited(_loadVehicleIcon());
     unawaited(_loadLabeledIcons());
+    unawaited(_watchConnectivity());
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyCamera());
+  }
+
+  Future<void> _watchConnectivity() async {
+    _online = await ConnectivityHelper.connected;
+    if (mounted) setState(() {});
+    _connectivitySub = ConnectivityHelper.onlineChanges.listen((online) {
+      if (!mounted || online == _online) return;
+      setState(() => _online = online);
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadVehicleIcon() async {
@@ -359,7 +385,10 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         interactionOptions: InteractionOptions(flags: flags),
       ),
       children: [
-        HybridMapTileLayer(offlineMapPath: widget.offlineMapPath),
+        ...HybridMapTileLayer.layers(
+          offlineMapPath: widget.offlineMapPath,
+          offlineMapPaths: widget.offlineMapPaths,
+        ),
         ...widget.polylines.expand((line) {
           if (line.points.length < 2) {
             return const <Widget>[];
@@ -423,14 +452,14 @@ class _TaalaMapViewState extends State<TaalaMapView> {
                   width: hasLabel
                       ? 88
                       : marker.headingDegrees != null
-                          ? 52
+                          ? 26
                           : marker.livePulse
                               ? 52
                               : 44,
                   height: hasLabel
                       ? 72
                       : marker.headingDegrees != null
-                          ? 52
+                          ? 26
                           : marker.livePulse
                               ? 52
                               : 44,
