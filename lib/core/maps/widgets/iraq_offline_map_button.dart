@@ -12,10 +12,12 @@ class IraqOfflineMapButton extends StatelessWidget {
     super.key,
     this.onDownloaded,
     this.heroTag = 'iraqOfflineMapFab',
+    this.iconOnly = false,
   });
 
   final VoidCallback? onDownloaded;
   final Object heroTag;
+  final bool iconOnly;
 
   Future<void> _download(BuildContext context) async {
     if (!await ConnectivityHelper.connected) {
@@ -82,9 +84,17 @@ class IraqOfflineMapButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tooltip = AppStrings.offlineIraqDownload.tr();
+    if (iconOnly) {
+      return IconButton(
+        tooltip: tooltip,
+        onPressed: () => _download(context),
+        icon: const Icon(Icons.download_for_offline_outlined),
+      );
+    }
     return FloatingActionButton.small(
       heroTag: heroTag,
-      tooltip: AppStrings.offlineIraqDownload.tr(),
+      tooltip: tooltip,
       onPressed: () => _download(context),
       child: const Icon(Icons.download_for_offline_outlined),
     );

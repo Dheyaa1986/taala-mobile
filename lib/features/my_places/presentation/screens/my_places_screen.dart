@@ -461,6 +461,15 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
         centerTitle: true,
         automaticallyImplyLeading: false,
         actions: [
+          IraqOfflineMapButton(
+            iconOnly: true,
+            onDownloaded: () => unawaited(
+              refreshOfflineMapPath(
+                _center.latitude,
+                _center.longitude,
+              ),
+            ),
+          ),
           IconButton(
             tooltip: AppStrings.myPlacesList.tr(),
             onPressed: () => unawaited(_openList()),
@@ -602,30 +611,10 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                 Positioned(
                   right: 12.w,
                   bottom: 174.h,
-                  child: Column(
-                    children: [
-                      FloatingActionButton.small(
-                        heroTag: 'myPlacesListFab',
-                        onPressed: () => unawaited(_openList()),
-                        child: const Icon(Icons.list),
-                      ),
-                      8.height,
-                      FloatingActionButton.small(
-                        heroTag: 'myPlacesGps',
-                        onPressed: () => unawaited(_goToCurrentLocation()),
-                        child: const Icon(Icons.my_location),
-                      ),
-                      8.height,
-                      IraqOfflineMapButton(
-                        heroTag: 'myPlacesIraqOffline',
-                        onDownloaded: () => unawaited(
-                          refreshOfflineMapPath(
-                            _center.latitude,
-                            _center.longitude,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: FloatingActionButton.small(
+                    heroTag: 'myPlacesGps',
+                    onPressed: () => unawaited(_goToCurrentLocation()),
+                    child: const Icon(Icons.my_location),
                   ),
                 ),
                 Positioned(

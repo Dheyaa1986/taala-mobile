@@ -239,6 +239,10 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             child: Row(
               children: [
                 const LangPopup(),
+                IraqOfflineMapButton(
+                  iconOnly: true,
+                  onDownloaded: () => unawaited(_refreshOfflineMapPath()),
+                ),
                 8.width,
                 Expanded(
                   child: Container(
@@ -298,28 +302,18 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
           Positioned(
             right: 16.w,
             bottom: MediaQuery.sizeOf(context).height * 0.42,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IraqOfflineMapButton(
-                  heroTag: 'guestIraqOffline',
-                  onDownloaded: () => unawaited(_refreshOfflineMapPath()),
-                ),
-                8.height,
-                FloatingActionButton(
-                  heroTag: 'guest_gps',
-                  backgroundColor: tokens.surface,
-                  foregroundColor: tokens.primary,
-                  onPressed: _loadingGps ? null : _goToCurrentLocation,
-                  child: _loadingGps
-                      ? SizedBox(
-                          width: 22.r,
-                          height: 22.r,
-                          child: const CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.my_location),
-                ),
-              ],
+            child: FloatingActionButton.small(
+              heroTag: 'guest_gps',
+              backgroundColor: tokens.surface,
+              foregroundColor: tokens.primary,
+              onPressed: _loadingGps ? null : _goToCurrentLocation,
+              child: _loadingGps
+                  ? SizedBox(
+                      width: 22.r,
+                      height: 22.r,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.my_location),
             ),
           ),
           DraggableScrollableSheet(
