@@ -69,7 +69,6 @@ class GuestRepository extends Repository {
     String? clientRequestId,
     DateTime? queuedAt,
     String? otp,
-    String? firebaseIdToken,
     String? destinationAddress,
     double? destinationLatitude,
     double? destinationLongitude,

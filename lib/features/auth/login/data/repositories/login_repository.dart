@@ -21,6 +21,5 @@ abstract class LoginRepository  extends Repository {
   Future<Either<CustomException, LoginResponseModel>> verifyClientOtp({
     required String phone,
     String? otp,
-    String? firebaseIdToken,
   });
 }

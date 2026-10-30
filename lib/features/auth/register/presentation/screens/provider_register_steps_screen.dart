@@ -271,7 +271,6 @@ class _ProviderRegisterStepsScreenState
       type: 'provider',
       serviceTypesIds: _selectedServiceTypeIds.toList(),
       otp: widget.options.otp,
-      firebaseIdToken: widget.options.firebaseIdToken,
       providerDocuments: _documentFiles,
       serviceOfferings:
           _offeringInputs.isEmpty ? null : List.from(_offeringInputs),

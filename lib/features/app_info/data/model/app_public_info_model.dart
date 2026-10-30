@@ -37,10 +37,6 @@ class AppPublicInfoModel {
   final String? otpWhatsAppNumber;
   final String otpWhatsAppMessage;
 
-  bool get usesWhatsAppSessionOtp => false;
-
-  bool get usesFirebaseOtp => false;
-
   bool get hasSupportWhatsApp =>
       supportWhatsApp != null && supportWhatsApp!.trim().isNotEmpty;
 

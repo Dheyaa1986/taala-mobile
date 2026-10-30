@@ -19,7 +19,6 @@ class RegisterOptions {
   final String? type;
   final List<String>? serviceTypesIds;
   final String? otp;
-  final String? firebaseIdToken;
   final ProviderRegistrationDocumentFiles? providerDocuments;
   final List<ProviderServiceOfferingInput>? serviceOfferings;
 
@@ -36,7 +35,6 @@ class RegisterOptions {
     this.type,
     this.serviceTypesIds,
     this.otp,
-    this.firebaseIdToken,
     this.providerDocuments,
     this.serviceOfferings,
   });

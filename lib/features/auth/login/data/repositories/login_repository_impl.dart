@@ -114,7 +114,6 @@ class LoginRepositoryImpl extends LoginRepository {
   Future<Either<CustomException, LoginResponseModel>> verifyClientOtp({
     required String phone,
     String? otp,
-    String? firebaseIdToken,
   }) async {
     return exceptionHandler(() async {
       final user = await dioService.callApi(
