@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -17,7 +18,26 @@ class PlaceSuggestion {
 }
 
 class PlaceSearchService {
-  PlaceSearchService() : _dio = Dio();
+  PlaceSearchService()
+      : _dio = Dio(
+          BaseOptions(
+            headers: {
+              'User-Agent': _userAgent,
+              'Accept': 'application/json',
+            },
+            connectTimeout: const Duration(seconds: 12),
+            receiveTimeout: const Duration(seconds: 15),
+          ),
+        );
+
+  static const _userAgent =
+      'TaalaMobile/1.0.19 (com.mintops.taala; https://taal1.com)';
+
+  static const _overpassEndpoints = <String>[
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass-api.de/api/interpreter',
+  ];
 
   final Dio _dio;
 
@@ -26,7 +46,7 @@ class PlaceSearchService {
     if (trimmed.length < 3) return [];
 
     try {
-      final response = await _dio.get<List<dynamic>>(
+      final response = await _dio.get<dynamic>(
         'https://nominatim.openstreetmap.org/search',
         queryParameters: {
           'format': 'jsonv2',
@@ -35,53 +55,192 @@ class PlaceSearchService {
           'limit': 6,
           'accept-language': 'ar',
         },
-        options: Options(
-          headers: {'User-Agent': 'TaalaMobile/1.0 (com.mintops.taala)'},
-        ),
       );
-
-      final data = response.data;
-      if (data == null) return [];
-
-      return data
-          .map((item) {
-            final map = item as Map<String, dynamic>;
-            final lat = double.tryParse(map['lat']?.toString() ?? '');
-            final lng = double.tryParse(map['lon']?.toString() ?? '');
-            final name = map['display_name']?.toString();
-            if (lat == null || lng == null || name == null || name.isEmpty) {
-              return null;
-            }
-            return PlaceSuggestion(
-              displayName: name,
-              latitude: lat,
-              longitude: lng,
-            );
-          })
-          .whereType<PlaceSuggestion>()
-          .toList();
+      return _parseNominatimList(response.data);
     } catch (_) {
       return [];
     }
   }
-
-  static const _overpassEndpoints = <String>[
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://overpass.private.coffee/api/interpreter',
-  ];
 
   Future<List<PlaceSuggestion>> searchNearby({
     required double latitude,
     required double longitude,
     required String overpassFilter,
     List<String> overpassFilters = const [],
+    List<String> searchQueries = const [],
     int radiusMeters = 8000,
     int limit = 30,
   }) async {
-    final filters = overpassFilters.isNotEmpty
-        ? overpassFilters
-        : [overpassFilter];
+    final queries = searchQueries
+        .map((query) => query.trim())
+        .where((query) => query.isNotEmpty)
+        .toList();
+    if (queries.isEmpty) {
+      queries.add(overpassFilter);
+    }
+
+    final photon = await _searchPhotonNearby(
+      latitude: latitude,
+      longitude: longitude,
+      queries: queries,
+      radiusMeters: radiusMeters,
+      limit: limit,
+    );
+    if (photon.isNotEmpty) return photon;
+
+    final nominatim = await _searchNominatimNearby(
+      latitude: latitude,
+      longitude: longitude,
+      queries: queries,
+      radiusMeters: radiusMeters,
+      limit: limit,
+    );
+    if (nominatim.isNotEmpty) return nominatim;
+
+    return _searchOverpassNearby(
+      latitude: latitude,
+      longitude: longitude,
+      filters: overpassFilters.isNotEmpty ? overpassFilters : [overpassFilter],
+      radiusMeters: radiusMeters,
+      limit: limit,
+    );
+  }
+
+  Future<List<PlaceSuggestion>> _searchPhotonNearby({
+    required double latitude,
+    required double longitude,
+    required List<String> queries,
+    required int radiusMeters,
+    required int limit,
+  }) async {
+    final merged = <PlaceSuggestion>[];
+    for (final query in queries) {
+      try {
+        final response = await _dio.get<dynamic>(
+          'https://photon.komoot.io/api/',
+          queryParameters: {
+            'q': query,
+            'lat': latitude,
+            'lon': longitude,
+            'limit': 40,
+            'lang': 'en',
+          },
+        );
+        final features = response.data is Map
+            ? (response.data as Map)['features']
+            : null;
+        if (features is! List) continue;
+        for (final raw in features) {
+          if (raw is! Map) continue;
+          final feature = Map<String, dynamic>.from(raw);
+          final geometry = feature['geometry'] is Map
+              ? Map<String, dynamic>.from(feature['geometry'] as Map)
+              : null;
+          final coords = geometry?['coordinates'];
+          if (coords is! List || coords.length < 2) continue;
+          final lng = (coords[0] as num?)?.toDouble();
+          final lat = (coords[1] as num?)?.toDouble();
+          if (lat == null || lng == null) continue;
+          final properties = feature['properties'] is Map
+              ? Map<String, dynamic>.from(feature['properties'] as Map)
+              : <String, dynamic>{};
+          final country = properties['countrycode']?.toString().toUpperCase();
+          if (country != null && country.isNotEmpty && country != 'IQ') {
+            continue;
+          }
+          final name = (properties['name'] ??
+                  properties['street'] ??
+                  properties['city'] ??
+                  '')
+              .toString()
+              .trim();
+          if (name.isEmpty) continue;
+          merged.add(
+            PlaceSuggestion(
+              displayName: name,
+              latitude: lat,
+              longitude: lng,
+              distanceMeters: _distanceMeters(latitude, longitude, lat, lng),
+            ),
+          );
+        }
+      } catch (_) {
+        continue;
+      }
+      final filtered = _dedupeAndLimit(
+        merged,
+        radiusMeters: radiusMeters,
+        limit: limit,
+      );
+      if (filtered.length >= 8) return filtered;
+    }
+    return _dedupeAndLimit(
+      merged,
+      radiusMeters: radiusMeters,
+      limit: limit,
+    );
+  }
+
+  Future<List<PlaceSuggestion>> _searchNominatimNearby({
+    required double latitude,
+    required double longitude,
+    required List<String> queries,
+    required int radiusMeters,
+    required int limit,
+  }) async {
+    final deltaLat = radiusMeters / 111000.0;
+    final cosLat = math.cos(_toRad(latitude)).abs().clamp(0.2, 1.0);
+    final deltaLng = radiusMeters / (111000.0 * cosLat);
+    final viewbox =
+        '${longitude - deltaLng},${latitude + deltaLat},${longitude + deltaLng},${latitude - deltaLat}';
+    final merged = <PlaceSuggestion>[];
+    for (final query in queries) {
+      try {
+        final response = await _dio.get<dynamic>(
+          'https://nominatim.openstreetmap.org/search',
+          queryParameters: {
+            'format': 'jsonv2',
+            'q': query,
+            'lat': latitude,
+            'lon': longitude,
+            'countrycodes': 'iq',
+            'limit': 20,
+            'bounded': 1,
+            'viewbox': viewbox,
+            'accept-language': 'ar',
+          },
+        );
+        merged.addAll(
+          _parseNominatimList(
+            response.data,
+            originLat: latitude,
+            originLng: longitude,
+          ),
+        );
+      } catch (_) {
+        continue;
+      }
+      final filtered = _dedupeAndLimit(
+        merged,
+        radiusMeters: radiusMeters,
+        limit: limit,
+      );
+      if (filtered.length >= 8) return filtered;
+    }
+    return _dedupeAndLimit(
+      merged,
+      radiusMeters: radiusMeters,
+      limit: limit,
+    );
+  }
+
+  Future<List<PlaceSuggestion>> _searchOverpassNearby({
+    required double latitude,
+    required double longitude,
+    required List<String> filters,
+    required int radiusMeters,
+    required int limit,
+  }) async {
     final clauses = filters
         .map(
           (filter) =>
@@ -89,7 +248,7 @@ class PlaceSearchService {
         )
         .join('\n');
     final query = '''
-[out:json][timeout:25];
+[out:json][timeout:12];
 (
 $clauses
 );
@@ -97,18 +256,20 @@ out center $limit;
 ''';
     for (final endpoint in _overpassEndpoints) {
       try {
-        final response = await _dio.post<Map<String, dynamic>>(
+        final response = await _dio.post<dynamic>(
           endpoint,
           data: {'data': query},
           options: Options(
-            headers: {'User-Agent': 'TaalaMobile/1.0 (com.mintops.taala)'},
             contentType: Headers.formUrlEncodedContentType,
-            receiveTimeout: const Duration(seconds: 28),
-            sendTimeout: const Duration(seconds: 20),
+            responseType: ResponseType.plain,
+            receiveTimeout: const Duration(seconds: 14),
+            sendTimeout: const Duration(seconds: 10),
           ),
         );
+        final decoded = jsonDecode(response.data?.toString() ?? '');
+        if (decoded is! Map) continue;
         final parsed = _parseNearbyElements(
-          response.data?['elements'],
+          decoded['elements'],
           originLat: latitude,
           originLng: longitude,
           limit: limit,
@@ -119,6 +280,36 @@ out center $limit;
       }
     }
     return [];
+  }
+
+  List<PlaceSuggestion> _parseNominatimList(
+    dynamic data, {
+    double? originLat,
+    double? originLng,
+  }) {
+    if (data is! List) return [];
+    final results = <PlaceSuggestion>[];
+    for (final item in data) {
+      if (item is! Map) continue;
+      final map = Map<String, dynamic>.from(item);
+      final lat = double.tryParse(map['lat']?.toString() ?? '');
+      final lng = double.tryParse(map['lon']?.toString() ?? '');
+      final name = (map['name'] ?? map['display_name'])?.toString().trim();
+      if (lat == null || lng == null || name == null || name.isEmpty) {
+        continue;
+      }
+      results.add(
+        PlaceSuggestion(
+          displayName: name,
+          latitude: lat,
+          longitude: lng,
+          distanceMeters: originLat == null || originLng == null
+              ? null
+              : _distanceMeters(originLat, originLng, lat, lng),
+        ),
+      );
+    }
+    return results;
   }
 
   List<PlaceSuggestion> _parseNearbyElements(
@@ -159,6 +350,28 @@ out center $limit;
           ),
         ),
       );
+    }
+    return _dedupeAndLimit(
+      results,
+      radiusMeters: 20000,
+      limit: limit,
+    );
+  }
+
+  List<PlaceSuggestion> _dedupeAndLimit(
+    List<PlaceSuggestion> input, {
+    required int radiusMeters,
+    required int limit,
+  }) {
+    final seen = <String>{};
+    final results = <PlaceSuggestion>[];
+    for (final place in input) {
+      final distance = place.distanceMeters;
+      if (distance != null && distance > radiusMeters) continue;
+      final key =
+          '${place.displayName}|${place.latitude.toStringAsFixed(5)}|${place.longitude.toStringAsFixed(5)}';
+      if (!seen.add(key)) continue;
+      results.add(place);
     }
     results.sort(
       (a, b) => (a.distanceMeters ?? 0).compareTo(b.distanceMeters ?? 0),
