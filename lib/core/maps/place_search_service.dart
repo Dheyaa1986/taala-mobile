@@ -53,7 +53,8 @@ class PlaceSearchService {
           'q': trimmed,
           'countrycodes': 'iq',
           'limit': 6,
-          'accept-language': 'ar',
+          'accept-language': 'ar,en',
+          'namedetails': 1,
         },
       );
       return _parseNominatimList(response.data);
@@ -123,7 +124,7 @@ class PlaceSearchService {
             'lat': latitude,
             'lon': longitude,
             'limit': 40,
-            'lang': 'en',
+            'lang': 'default',
           },
         );
         final features = response.data is Map
@@ -148,12 +149,13 @@ class PlaceSearchService {
           if (country != null && country.isNotEmpty && country != 'IQ') {
             continue;
           }
-          final name = (properties['name'] ??
-                  properties['street'] ??
-                  properties['city'] ??
-                  '')
-              .toString()
-              .trim();
+          final name = _composeDisplayName(
+            primary: properties['name']?.toString(),
+            arabic: properties['name']?.toString(),
+            english: null,
+            fallback: properties['street']?.toString() ??
+                properties['city']?.toString(),
+          );
           if (name.isEmpty) continue;
           merged.add(
             PlaceSuggestion(
@@ -207,7 +209,8 @@ class PlaceSearchService {
             'limit': 20,
             'bounded': 1,
             'viewbox': viewbox,
-            'accept-language': 'ar',
+            'accept-language': 'ar,en',
+            'namedetails': 1,
           },
         );
         merged.addAll(
@@ -294,8 +297,16 @@ out center $limit;
       final map = Map<String, dynamic>.from(item);
       final lat = double.tryParse(map['lat']?.toString() ?? '');
       final lng = double.tryParse(map['lon']?.toString() ?? '');
-      final name = (map['name'] ?? map['display_name'])?.toString().trim();
-      if (lat == null || lng == null || name == null || name.isEmpty) {
+      final details = map['namedetails'] is Map
+          ? Map<String, dynamic>.from(map['namedetails'] as Map)
+          : <String, dynamic>{};
+      final name = _composeDisplayName(
+        primary: map['name']?.toString() ?? map['display_name']?.toString(),
+        arabic: details['name:ar']?.toString() ?? map['name']?.toString(),
+        english: details['name:en']?.toString(),
+        fallback: map['display_name']?.toString(),
+      );
+      if (lat == null || lng == null || name.isEmpty) {
         continue;
       }
       results.add(
@@ -335,7 +346,12 @@ out center $limit;
               ? (map['center']['lon'] as num?)?.toDouble()
               : null);
       if (lat == null || lng == null) continue;
-      final name = _placeLabel(tags);
+      final name = _composeDisplayName(
+        primary: tags['name']?.toString(),
+        arabic: tags['name:ar']?.toString() ?? tags['name']?.toString(),
+        english: tags['name:en']?.toString(),
+        fallback: _placeLabel(tags),
+      );
       if (name.isEmpty) continue;
       results.add(
         PlaceSuggestion(
@@ -369,7 +385,7 @@ out center $limit;
       final distance = place.distanceMeters;
       if (distance != null && distance > radiusMeters) continue;
       final key =
-          '${place.displayName}|${place.latitude.toStringAsFixed(5)}|${place.longitude.toStringAsFixed(5)}';
+          '${place.latitude.toStringAsFixed(5)}|${place.longitude.toStringAsFixed(5)}';
       if (!seen.add(key)) continue;
       results.add(place);
     }
@@ -393,9 +409,80 @@ out center $limit;
       'healthcare',
     ]) {
       final value = tags[key]?.toString().trim();
-      if (value != null && value.isNotEmpty) return value;
+      if (value != null && value.isNotEmpty) {
+        return _arabicKnownLabel(value) ?? value;
+      }
     }
     return '';
+  }
+
+  static final _arabicScript = RegExp(r'[\u0600-\u06FF]');
+
+  bool _hasArabic(String value) => _arabicScript.hasMatch(value);
+
+  String? _arabicKnownLabel(String value) {
+    const labels = <String, String>{
+      'hospital': 'مستشفى',
+      'clinic': 'عيادة',
+      'doctors': 'عيادة',
+      'restaurant': 'مطعم',
+      'fast_food': 'وجبات سريعة',
+      'cafe': 'مقهى',
+      'charging_station': 'محطة شحن',
+      'fuel': 'محطة وقود',
+      'supermarket': 'سوبرماركت',
+      'convenience': 'بقالة',
+      'mall': 'مول',
+      'bank': 'مصرف',
+      'atm': 'صراف آلي',
+      'place_of_worship': 'مسجد',
+      'mosque': 'مسجد',
+      'bus_station': 'محطة باص',
+      'bus_stop': 'موقف باص',
+      'station': 'محطة',
+      'park': 'حديقة',
+      'pharmacy': 'صيدلية',
+    };
+    final key = value.trim().toLowerCase();
+    return labels[key] ?? labels[key.replaceAll(' ', '_')];
+  }
+
+  String _composeDisplayName({
+    String? primary,
+    String? arabic,
+    String? english,
+    String? fallback,
+  }) {
+    final candidates = <String>[
+      if (arabic != null) arabic,
+      if (primary != null) primary,
+      if (english != null) english,
+      if (fallback != null) fallback,
+    ]
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
+    if (candidates.isEmpty) return '';
+
+    String? ar;
+    String? en;
+    for (final value in candidates) {
+      final known = _arabicKnownLabel(value);
+      if (known != null) {
+        ar ??= known;
+        continue;
+      }
+      if (_hasArabic(value)) {
+        ar ??= value.split(',').first.trim();
+      } else {
+        en ??= value.split(',').first.trim();
+      }
+    }
+
+    if (ar != null && en != null && ar != en) {
+      return '$ar ($en)';
+    }
+    return ar ?? en ?? candidates.first.split(',').first.trim();
   }
 
   double _distanceMeters(

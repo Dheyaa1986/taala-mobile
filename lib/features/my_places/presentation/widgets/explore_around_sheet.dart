@@ -31,7 +31,7 @@ const exploreAroundCategories = <ExploreAroundCategory>[
       '["amenity"="clinic"]',
       '["healthcare"="hospital"]',
     ],
-    searchQueries: ['hospital', 'مستشفى', 'عيادة', 'clinic'],
+    searchQueries: ['مستشفى', 'عيادة', 'hospital', 'clinic'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreRestaurants,
@@ -42,21 +42,21 @@ const exploreAroundCategories = <ExploreAroundCategory>[
       '["amenity"="fast_food"]',
       '["amenity"="cafe"]',
     ],
-    searchQueries: ['restaurant', 'مطعم', 'cafe', 'مقهى'],
+    searchQueries: ['مطعم', 'مقهى', 'restaurant', 'cafe'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreCharging,
     icon: Icons.ev_station,
     color: Color(0xFF43A047),
     overpassFilters: ['["amenity"="charging_station"]'],
-    searchQueries: ['charging station', 'شحن سيارات', 'ev charging'],
+    searchQueries: ['شحن سيارات', 'charging station', 'ev charging'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreFuel,
     icon: Icons.local_gas_station,
     color: Color(0xFF1E88E5),
     overpassFilters: ['["amenity"="fuel"]'],
-    searchQueries: ['fuel', 'محطة وقود', 'petrol'],
+    searchQueries: ['محطة وقود', 'fuel', 'petrol'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreShopping,
@@ -67,7 +67,7 @@ const exploreAroundCategories = <ExploreAroundCategory>[
       '["shop"="convenience"]',
       '["shop"="mall"]',
     ],
-    searchQueries: ['supermarket', 'مول', 'سوق', 'mall'],
+    searchQueries: ['سوق', 'مول', 'supermarket', 'mall'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreBanks,
@@ -77,7 +77,7 @@ const exploreAroundCategories = <ExploreAroundCategory>[
       '["amenity"="bank"]',
       '["amenity"="atm"]',
     ],
-    searchQueries: ['bank', 'مصرف', 'atm', 'صراف'],
+    searchQueries: ['مصرف', 'صراف', 'bank', 'atm'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreMosques,
@@ -87,7 +87,7 @@ const exploreAroundCategories = <ExploreAroundCategory>[
       '["amenity"="place_of_worship"]["religion"="muslim"]',
       '["amenity"="place_of_worship"]',
     ],
-    searchQueries: ['mosque', 'مسجد', 'جامع'],
+    searchQueries: ['مسجد', 'جامع', 'mosque'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreTransit,
@@ -98,21 +98,21 @@ const exploreAroundCategories = <ExploreAroundCategory>[
       '["highway"="bus_stop"]',
       '["public_transport"="station"]',
     ],
-    searchQueries: ['bus station', 'كراج', 'محطة باص'],
+    searchQueries: ['كراج', 'محطة باص', 'bus station'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.exploreParks,
     icon: Icons.park,
     color: Color(0xFF7CB342),
     overpassFilters: ['["leisure"="park"]'],
-    searchQueries: ['park', 'حديقة', 'متنزه'],
+    searchQueries: ['حديقة', 'متنزه', 'park'],
   ),
   ExploreAroundCategory(
     labelKey: AppStrings.explorePharmacies,
     icon: Icons.local_pharmacy,
     color: Color(0xFFD81B60),
     overpassFilters: ['["amenity"="pharmacy"]'],
-    searchQueries: ['pharmacy', 'صيدلية'],
+    searchQueries: ['صيدلية', 'pharmacy'],
   ),
 ];
 
@@ -275,7 +275,7 @@ class _ExploreAroundSheetState extends State<ExploreAroundSheet> {
                                   ),
                                   title: Text(
                                     place.displayName,
-                                    maxLines: 1,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   subtitle: subtitle == null
