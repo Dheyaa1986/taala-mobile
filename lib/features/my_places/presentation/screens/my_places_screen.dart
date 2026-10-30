@@ -610,7 +610,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                 ),
                 Positioned(
                   right: 12.w,
-                  bottom: 174.h,
+                  bottom: 210.h,
                   child: FloatingActionButton.small(
                     heroTag: 'myPlacesGps',
                     onPressed: () => unawaited(_goToCurrentLocation()),
@@ -627,7 +627,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                       if (_selected != null)
                         _SelectedCard(
                           item: _selected!,
-                          onNavigate: () => _navigateTo(_selected!),
                           onEdit: () => unawaited(
                             _openEditor(
                               isAlert: _selected!.isAlert,
@@ -653,31 +652,27 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            trailing: TaalaButton(
-                              label: AppStrings.departInApp.tr(),
-                              height: 40,
-                              expanded: false,
-                              onPressed: () => _navigateTo(_searchPin!),
-                            ),
                           ),
                         ),
                       if (_selected != null || _searchPin != null) 8.height,
-                      TaalaButton(
+                      _mapActionButton(
+                        label: AppStrings.departInApp.tr(),
+                        onPressed: _departFromMap,
+                      ),
+                      8.height,
+                      _mapActionButton(
                         label: AppStrings.exploreAround.tr(),
-                        height: 48,
                         variant: TaalaButtonVariant.secondary,
                         onPressed: () => unawaited(_openExplore()),
                       ),
                       8.height,
-                      TaalaButton(
+                      _mapActionButton(
                         label: AppStrings.myPlacesSaveCurrent.tr(),
-                        height: 48,
                         onPressed: () => unawaited(_saveCurrentLocation()),
                       ),
                       8.height,
-                      TaalaButton(
+                      _mapActionButton(
                         label: AppStrings.myPlacesSaveHere.tr(),
-                        height: 48,
                         variant: TaalaButtonVariant.secondary,
                         onPressed: () => unawaited(
                           _openEditor(isAlert: false),
@@ -688,6 +683,41 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                 ),
               ],
             ),
+    );
+  }
+
+  void _departFromMap() {
+    final selected = _selected;
+    final pin = _searchPin;
+    if (selected != null) {
+      _navigateTo(selected);
+      return;
+    }
+    if (pin != null) {
+      _navigateTo(pin);
+      return;
+    }
+    _navigateToCoords(
+      latitude: _center.latitude,
+      longitude: _center.longitude,
+    );
+  }
+
+  Widget _mapActionButton({
+    required String label,
+    required VoidCallback onPressed,
+    TaalaButtonVariant variant = TaalaButtonVariant.primary,
+  }) {
+    return Align(
+      child: SizedBox(
+        width: 210.w,
+        child: TaalaButton(
+          label: label,
+          height: 40,
+          variant: variant,
+          onPressed: onPressed,
+        ),
+      ),
     );
   }
 
@@ -799,14 +829,12 @@ class _FilterChip extends StatelessWidget {
 class _SelectedCard extends StatelessWidget {
   const _SelectedCard({
     required this.item,
-    required this.onNavigate,
     required this.onEdit,
     required this.onDelete,
     required this.onClose,
   });
 
   final MyPlaceItem item;
-  final VoidCallback onNavigate;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onClose;
@@ -858,14 +886,8 @@ class _SelectedCard extends StatelessWidget {
               ),
             8.height,
             Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: TaalaButton(
-                    label: AppStrings.departInApp.tr(),
-                    height: 44,
-                    onPressed: onNavigate,
-                  ),
-                ),
                 IconButton(
                   onPressed: onEdit,
                   icon: const Icon(Icons.edit_outlined),
