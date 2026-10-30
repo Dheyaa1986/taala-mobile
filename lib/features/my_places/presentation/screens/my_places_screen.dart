@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/di/service_locator.dart';
+import 'package:taal/core/extensions/device_insets_extension.dart';
 import 'package:taal/core/extensions/space_extension.dart';
 import 'package:taal/core/helpers/messages.dart';
 import 'package:taal/core/maps/device_location_service.dart';
@@ -22,6 +23,7 @@ import 'package:taal/design_system/theme/taala_tokens.dart';
 import 'package:taal/features/my_places/data/my_place_item.dart';
 import 'package:taal/features/my_places/data/my_places_repository.dart';
 import 'package:taal/features/my_places/presentation/my_place_ui.dart';
+import 'package:taal/features/my_places/presentation/widgets/explore_around_sheet.dart';
 import 'package:taal/features/service_orders/presentation/screens/provider_in_app_navigation_screen.dart';
 
 enum _PlacesFilter { all, places, alerts }
@@ -55,6 +57,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
   Timer? _locationTimer;
   MyPlaceItem? _selected;
   MyPlaceItem? _searchPin;
+  List<PlaceSuggestion> _exploreResults = [];
   int _cameraRevision = 0;
   bool _followCamera = false;
 
@@ -353,6 +356,44 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
     );
   }
 
+  Future<void> _openExplore() async {
+    await _goToCurrentLocation(showError: false);
+    if (!mounted) return;
+    final origin = _myLocation ?? _center;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return ExploreAroundSheet(
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+          placeSearch: _placeSearch,
+          onResults: (results) {
+            if (!mounted) return;
+            setState(() {
+              _exploreResults = results;
+              if (results.isNotEmpty) {
+                _center = LatLng(
+                  results.first.latitude,
+                  results.first.longitude,
+                );
+                _followCamera = true;
+                _cameraRevision++;
+              }
+            });
+          },
+          onPick: (place) {
+            Navigator.pop(context);
+            _applySuggestion(place);
+          },
+        );
+      },
+    );
+    if (!mounted) return;
+    setState(() => _exploreResults = []);
+  }
+
   Future<void> _openList() async {
     final selected = await showModalBottomSheet<MyPlaceItem>(
       context: context,
@@ -559,7 +600,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                 ),
                 Positioned(
                   right: 12.w,
-                  bottom: 118.h,
+                  bottom: 174.h,
                   child: Column(
                     children: [
                       FloatingActionButton.small(
@@ -579,7 +620,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                 Positioned(
                   left: 12.w,
                   right: 12.w,
-                  bottom: 12.h,
+                  bottom: 12.h + context.bottomNavContentInset,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -621,6 +662,13 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                           ),
                         ),
                       if (_selected != null || _searchPin != null) 8.height,
+                      TaalaButton(
+                        label: AppStrings.exploreAround.tr(),
+                        height: 48,
+                        variant: TaalaButtonVariant.secondary,
+                        onPressed: () => unawaited(_openExplore()),
+                      ),
+                      8.height,
                       TaalaButton(
                         label: AppStrings.myPlacesSaveCurrent.tr(),
                         height: 48,
@@ -698,6 +746,15 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
           icon: Icons.add_location_alt,
           iconSize: 36,
           label: AppStrings.myPlacesAddHere.tr(),
+        ),
+        ..._exploreResults.map(
+          (place) => TaalaMapMarker(
+            point: LatLng(place.latitude, place.longitude),
+            color: tokens.primary,
+            icon: Icons.place,
+            iconSize: 28,
+            onTap: () => _applySuggestion(place),
+          ),
         ),
         ..._visibleItems.map(
           (item) => TaalaMapMarker(
