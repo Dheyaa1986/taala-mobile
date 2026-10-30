@@ -14,7 +14,7 @@ class AppPublicInfoModel {
     this.androidStoreUrl = '',
     this.iosStoreUrl = '',
     this.iosAppStoreId = '',
-    this.otpChannel = 'wevlix',
+    this.otpChannel = 'whatsapp',
     this.otpWhatsAppNumber,
     this.otpWhatsAppMessage = '',
   });
@@ -81,7 +81,7 @@ class AppPublicInfoModel {
       androidStoreUrl: json['androidStoreUrl']?.toString() ?? '',
       iosStoreUrl: json['iosStoreUrl']?.toString() ?? '',
       iosAppStoreId: json['iosAppStoreId']?.toString() ?? '',
-      otpChannel: json['otpChannel']?.toString() ?? 'wevlix',
+      otpChannel: json['otpChannel']?.toString() ?? 'whatsapp',
       otpWhatsAppNumber: _nullableString(json['otpWhatsAppNumber']),
       otpWhatsAppMessage: json['otpWhatsAppMessage']?.toString() ?? '',
     );
