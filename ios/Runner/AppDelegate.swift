@@ -26,6 +26,12 @@ import UserNotifications
         if call.method == "googleMapsApiKey" {
           let key = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? ""
           result(key)
+        } else if call.method == "setMapLanguage" {
+          let code = (call.arguments as? String) ?? "ar"
+          let mapsLang = code.hasPrefix("en") ? "en" : "ar"
+          UserDefaults.standard.set([mapsLang], forKey: "AppleLanguages")
+          UserDefaults.standard.set(mapsLang, forKey: "AppleLocale")
+          result(true)
         } else {
           result(FlutterMethodNotImplemented)
         }

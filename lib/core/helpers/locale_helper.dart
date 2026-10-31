@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../app_config/prefs_keys.dart';
 import '../di/service_locator.dart';
+import '../maps/google/google_maps_config.dart';
 import 'shared_pref_local_storage.dart';
 
 class LocaleHelper {
@@ -22,5 +23,6 @@ class LocaleHelper {
       key: PrefsKeys.selectedLanguage,
       value: languageCode,
     );
+    await GoogleMapsConfig.setNativeMapLanguage(languageCode);
   }
 }

@@ -11,6 +11,7 @@ class HybridMapTileLayer {
   static List<Widget> layers({
     String? offlineMapPath,
     List<String> offlineMapPaths = const [],
+    String languageCode = 'ar',
   }) {
     final paths = <String>[];
     for (final path in [
@@ -23,7 +24,7 @@ class HybridMapTileLayer {
 
     return [
       TileLayer(
-        urlTemplate: MapStyleConfig.tileUrlTemplate,
+        urlTemplate: MapStyleConfig.tileUrlForLanguage(languageCode),
         subdomains: MapStyleConfig.tileSubdomains,
         userAgentPackageName: MapStyleConfig.userAgentPackageName,
         maxZoom: 19,

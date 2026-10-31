@@ -9,7 +9,15 @@ class MapStyleConfig {
   static const String tileUrlTemplate =
       'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 
+  /// OSM Carto uses local `name` tags (Arabic in Iraq).
+  static const String arabicTileUrlTemplate =
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
   static const List<String> tileSubdomains = <String>[];
+
+  static String tileUrlForLanguage(String languageCode) {
+    return languageCode == 'en' ? tileUrlTemplate : arabicTileUrlTemplate;
+  }
 
   static const Color routeColor = Color(0xFF33B5E5);
   static const Color routeCasingColor = Color(0xFF0D47A1);
@@ -24,7 +32,9 @@ class MapStyleConfig {
   {"elementType":"labels.text.fill","stylers":[{"color":"#6b6b6b"}]},
   {"elementType":"labels.text.stroke","stylers":[{"color":"#f7f7f7"}]},
   {"featureType":"landscape.natural","elementType":"geometry.fill","stylers":[{"color":"#ececec"}]},
-  {"featureType":"poi","stylers":[{"visibility":"off"}]},
+  {"featureType":"poi","elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+  {"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"on"}]},
+  {"featureType":"poi.business","elementType":"labels.text","stylers":[{"visibility":"on"}]},
   {"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#d7ead2"}]},
   {"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},
   {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#d4d4d4"}]},

@@ -18,6 +18,9 @@ class GoogleMapsConfig {
   static const _channel = MethodChannel('com.mintops.taala/maps');
   static String? _nativeKey;
 
+  static String mapsLanguageCode(String appLanguageCode) =>
+      appLanguageCode == 'en' ? 'en' : 'ar';
+
   static Future<void> hydrateNativeKey() async {
     if (kIsWeb) return;
     try {
@@ -26,6 +29,16 @@ class GoogleMapsConfig {
       if (trimmed.isNotEmpty) {
         _nativeKey = trimmed;
       }
+    } catch (_) {}
+  }
+
+  static Future<void> setNativeMapLanguage(String appLanguageCode) async {
+    if (kIsWeb) return;
+    try {
+      await _channel.invokeMethod<void>(
+        'setMapLanguage',
+        mapsLanguageCode(appLanguageCode),
+      );
     } catch (_) {}
   }
 

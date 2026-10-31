@@ -184,6 +184,9 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
     final initial = widget.provider ?? widget.target;
 
     return gmaps.GoogleMap(
+      key: ValueKey(
+        'gnav-${Localizations.localeOf(context).languageCode}',
+      ),
       initialCameraPosition: gmaps.CameraPosition(
         target: _toGoogle(initial),
         zoom: 16,

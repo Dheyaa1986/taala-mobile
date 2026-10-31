@@ -320,6 +320,9 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   Widget _buildGoogleMap() {
     final start = widget.followPoint ?? widget.initialCenter;
     return gmaps.GoogleMap(
+      key: ValueKey(
+        'gmap-${Localizations.localeOf(context).languageCode}',
+      ),
       initialCameraPosition: gmaps.CameraPosition(
         target: _toGoogle(start),
         zoom: widget.initialZoom,
@@ -388,6 +391,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         ...HybridMapTileLayer.layers(
           offlineMapPath: widget.offlineMapPath,
           offlineMapPaths: widget.offlineMapPaths,
+          languageCode: Localizations.localeOf(context).languageCode,
         ),
         ...widget.polylines.expand((line) {
           if (line.points.length < 2) {
