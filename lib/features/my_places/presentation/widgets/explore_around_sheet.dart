@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/maps/place_search_service.dart';
+import 'package:taal/core/maps/widgets/place_category_3d_icon.dart';
+import 'package:taal/core/maps/widgets/place_logo_avatar.dart';
 import 'package:taal/design_system/theme/taala_tokens.dart';
 
 class ExploreAroundCategory {
@@ -230,14 +232,10 @@ class _ExploreAroundSheetState extends State<ExploreAroundSheet> {
                           borderRadius: BorderRadius.circular(12.r),
                           child: Column(
                             children: [
-                              CircleAvatar(
-                                radius: 26.r,
-                                backgroundColor:
-                                    category.color.withValues(alpha: 0.15),
-                                child: Icon(
-                                  category.icon,
-                                  color: category.color,
-                                ),
+                              PlaceCategory3dIcon(
+                                icon: category.icon,
+                                color: category.color,
+                                size: 52.r,
                               ),
                               SizedBox(height: 6.h),
                               Text(
@@ -269,9 +267,11 @@ class _ExploreAroundSheetState extends State<ExploreAroundSheet> {
                                         ? '${(meters / 1000).toStringAsFixed(1)} ${AppStrings.exploreKm.tr()}'
                                         : '${meters.round()} ${AppStrings.exploreMeters.tr()}';
                                 return ListTile(
-                                  leading: Icon(
-                                    _selected!.icon,
+                                  leading: PlaceLogoAvatar(
+                                    icon: _selected!.icon,
                                     color: _selected!.color,
+                                    imageUrl: place.imageUrl,
+                                    size: 44,
                                   ),
                                   title: Text(
                                     place.displayName,

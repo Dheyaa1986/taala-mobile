@@ -238,11 +238,15 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             right: 16.w,
             child: Row(
               children: [
-                const LangPopup(),
-                IraqOfflineMapButton(
-                  iconOnly: true,
-                  onDownloaded: () => unawaited(_refreshOfflineMapPath()),
+                Material(
+                  color: tokens.surface,
+                  borderRadius: BorderRadius.circular(14.r),
+                  child: IraqOfflineMapButton(
+                    labeled: true,
+                    onDownloaded: () => unawaited(_refreshOfflineMapPath()),
+                  ),
                 ),
+                const LangPopup(),
                 8.width,
                 Expanded(
                   child: Container(

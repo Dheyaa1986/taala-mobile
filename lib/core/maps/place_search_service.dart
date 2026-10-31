@@ -9,12 +9,14 @@ class PlaceSuggestion {
     required this.latitude,
     required this.longitude,
     this.distanceMeters,
+    this.imageUrl,
   });
 
   final String displayName;
   final double latitude;
   final double longitude;
   final double? distanceMeters;
+  final String? imageUrl;
 }
 
 class PlaceSearchService {
@@ -55,6 +57,7 @@ class PlaceSearchService {
           'limit': 6,
           'accept-language': 'ar,en',
           'namedetails': 1,
+          'extratags': 1,
         },
       );
       return _parseNominatimList(response.data);
@@ -211,6 +214,7 @@ class PlaceSearchService {
             'viewbox': viewbox,
             'accept-language': 'ar,en',
             'namedetails': 1,
+            'extratags': 1,
           },
         );
         merged.addAll(
@@ -309,6 +313,9 @@ out center $limit;
       if (lat == null || lng == null || name.isEmpty) {
         continue;
       }
+      final extras = map['extratags'] is Map
+          ? Map<String, dynamic>.from(map['extratags'] as Map)
+          : <String, dynamic>{};
       results.add(
         PlaceSuggestion(
           displayName: name,
@@ -317,6 +324,7 @@ out center $limit;
           distanceMeters: originLat == null || originLng == null
               ? null
               : _distanceMeters(originLat, originLng, lat, lng),
+          imageUrl: _imageFromTags(extras),
         ),
       );
     }
@@ -364,6 +372,7 @@ out center $limit;
             lat,
             lng,
           ),
+          imageUrl: _imageFromTags(tags),
         ),
       );
     }
@@ -379,14 +388,24 @@ out center $limit;
     required int radiusMeters,
     required int limit,
   }) {
-    final seen = <String>{};
+    final seen = <String, int>{};
     final results = <PlaceSuggestion>[];
     for (final place in input) {
       final distance = place.distanceMeters;
       if (distance != null && distance > radiusMeters) continue;
       final key =
           '${place.latitude.toStringAsFixed(5)}|${place.longitude.toStringAsFixed(5)}';
-      if (!seen.add(key)) continue;
+      final existingIndex = seen[key];
+      if (existingIndex != null) {
+        final existing = results[existingIndex];
+        if ((existing.imageUrl == null || existing.imageUrl!.isEmpty) &&
+            place.imageUrl != null &&
+            place.imageUrl!.isNotEmpty) {
+          results[existingIndex] = place;
+        }
+        continue;
+      }
+      seen[key] = results.length;
       results.add(place);
     }
     results.sort(
@@ -503,4 +522,32 @@ out center $limit;
   }
 
   double _toRad(double degrees) => degrees * 3.141592653589793 / 180;
+
+  String? _imageFromTags(Map<String, dynamic> tags) {
+    for (final key in ['image', 'image:logo', 'logo', 'brand:logo']) {
+      final url = _safeImageUrl(tags[key]?.toString());
+      if (url != null) return url;
+    }
+    return _safeImageUrl(tags['wikimedia_commons']?.toString());
+  }
+
+  String? _safeImageUrl(String? raw) {
+    if (raw == null) return null;
+    final value = raw.trim();
+    if (value.isEmpty) return null;
+    final lower = value.toLowerCase();
+    if (lower.startsWith('javascript:') || lower.startsWith('data:')) {
+      return null;
+    }
+    if (lower.startsWith('file:')) {
+      final fileName = value.substring(5).trim();
+      if (fileName.isEmpty || fileName.contains('..')) return null;
+      return 'https://commons.wikimedia.org/wiki/Special:FilePath/${Uri.encodeComponent(fileName)}?width=128';
+    }
+    final uri = Uri.tryParse(value);
+    if (uri == null || !uri.hasScheme || !uri.hasAuthority) return null;
+    if (uri.scheme != 'https' && uri.scheme != 'http') return null;
+    if (uri.host.isEmpty) return null;
+    return uri.replace(scheme: 'https').toString();
+  }
 }

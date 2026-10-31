@@ -613,6 +613,7 @@ class AppStrings {
   static const String myPlacesCamera = 'myPlacesCamera';
   static const String myPlacesNote = 'myPlacesNote';
   static const String myPlacesList = 'myPlacesList';
+  static const String myPlacesListShort = 'myPlacesListShort';
   static const String myPlacesFilterAll = 'myPlacesFilterAll';
   static const String myPlacesFilterPlaces = 'myPlacesFilterPlaces';
   static const String myPlacesFilterAlerts = 'myPlacesFilterAlerts';
@@ -640,6 +641,7 @@ class AppStrings {
   static const String exploreKm = 'exploreKm';
   static const String exploreMeters = 'exploreMeters';
   static const String offlineIraqDownload = 'offlineIraqDownload';
+  static const String offlineIraqDownloadShort = 'offlineIraqDownloadShort';
   static const String offlineIraqDownloading = 'offlineIraqDownloading';
   static const String offlineIraqProgress = 'offlineIraqProgress';
   static const String offlineIraqReady = 'offlineIraqReady';

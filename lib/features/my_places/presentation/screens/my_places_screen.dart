@@ -17,6 +17,7 @@ import 'package:taal/core/maps/reverse_geocoding_service.dart';
 import 'package:taal/core/maps/taala_routing_service.dart';
 import 'package:taal/core/maps/widgets/taala_map_models.dart';
 import 'package:taal/core/maps/widgets/iraq_offline_map_button.dart';
+import 'package:taal/core/maps/widgets/place_category_3d_icon.dart';
 import 'package:taal/core/maps/widgets/taala_map_view.dart';
 import 'package:taal/core/maps/widgets/taala_offline_map_mixin.dart';
 import 'package:taal/design_system/components/taala_button.dart';
@@ -425,9 +426,10 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
                           itemBuilder: (context, index) {
                             final item = items[index];
                             return ListTile(
-                              leading: Icon(
-                                myPlaceIcon(item.category),
+                              leading: PlaceCategory3dIcon(
+                                icon: myPlaceIcon(item.category),
                                 color: myPlaceColor(item),
+                                size: 40,
                               ),
                               title: Text(item.title),
                               subtitle: (item.address ?? '').isEmpty
@@ -460,20 +462,24 @@ class _MyPlacesScreenState extends State<MyPlacesScreen>
         title: Text(AppStrings.myPlaces.tr()),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        actions: [
-          IraqOfflineMapButton(
-            iconOnly: true,
-            onDownloaded: () => unawaited(
-              refreshOfflineMapPath(
-                _center.latitude,
-                _center.longitude,
-              ),
+        leadingWidth: 132.w,
+        leading: IraqOfflineMapButton(
+          labeled: true,
+          onDownloaded: () => unawaited(
+            refreshOfflineMapPath(
+              _center.latitude,
+              _center.longitude,
             ),
           ),
-          IconButton(
-            tooltip: AppStrings.myPlacesList.tr(),
+        ),
+        actions: [
+          TextButton.icon(
             onPressed: () => unawaited(_openList()),
             icon: const Icon(Icons.list),
+            label: Text(
+              AppStrings.myPlacesListShort.tr(),
+              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
