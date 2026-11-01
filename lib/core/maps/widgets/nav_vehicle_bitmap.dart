@@ -23,11 +23,17 @@ Future<gmaps.BitmapDescriptor> createNavVehicleBitmap({
       gmaps.BitmapDescriptor.hueAzure,
     );
   }
-  return gmaps.BitmapDescriptor.bytes(
-    bytes.buffer.asUint8List(),
-    width: logicalSize,
-    height: logicalSize,
-  );
+  try {
+    return gmaps.BitmapDescriptor.bytes(
+      bytes.buffer.asUint8List(),
+      width: logicalSize,
+      height: logicalSize,
+    );
+  } catch (_) {
+    return gmaps.BitmapDescriptor.defaultMarkerWithHue(
+      gmaps.BitmapDescriptor.hueAzure,
+    );
+  }
 }
 
 Future<gmaps.BitmapDescriptor> createLabeledPinBitmap({
@@ -105,9 +111,15 @@ Future<gmaps.BitmapDescriptor> createLabeledPinBitmap({
       HSLColor.fromColor(color).hue,
     );
   }
-  return gmaps.BitmapDescriptor.bytes(
-    bytes.buffer.asUint8List(),
-    width: logicalWidth,
-    height: logicalHeight,
-  );
+  try {
+    return gmaps.BitmapDescriptor.bytes(
+      bytes.buffer.asUint8List(),
+      width: logicalWidth,
+      height: logicalHeight,
+    );
+  } catch (_) {
+    return gmaps.BitmapDescriptor.defaultMarkerWithHue(
+      HSLColor.fromColor(color).hue,
+    );
+  }
 }

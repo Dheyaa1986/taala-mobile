@@ -51,6 +51,8 @@ android/key.propertie
 
 lib/core/maps/google/google_maps_local_token.dart
 android/app/src/main/res/values/google_maps_api.xml
+ios/Flutter/MapsSecrets.xcconfig
+ios/Runner/GoogleMapsApiKey.plist
 
 # HERE SDK Navigate plugin binaries (keep plugins/here_sdk/README.md)
 plugins/here_sdk/*

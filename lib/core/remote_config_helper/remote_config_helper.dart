@@ -23,7 +23,7 @@ class RemoteConfigHelper {
 
     await remoteConfig.setConfigSettings(
       RemoteConfigSettings(
-        fetchTimeout: const Duration(seconds: 15),
+        fetchTimeout: const Duration(seconds: 5),
         minimumFetchInterval:
             kDebugMode ? Duration.zero : const Duration(hours: 1),
       ),

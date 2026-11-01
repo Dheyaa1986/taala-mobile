@@ -17,6 +17,7 @@ class GoogleMapsConfig {
   static const _envKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
   static const _channel = MethodChannel('com.mintops.taala/maps');
   static String? _nativeKey;
+  static bool _iosSdkReady = false;
 
   static String mapsLanguageCode(String appLanguageCode) =>
       appLanguageCode == 'en' ? 'en' : 'ar';
@@ -30,10 +31,18 @@ class GoogleMapsConfig {
         _nativeKey = trimmed;
       }
     } catch (_) {}
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      try {
+        _iosSdkReady =
+            await _channel.invokeMethod<bool>('mapsSdkReady') ?? false;
+      } catch (_) {
+        _iosSdkReady = _nativeKey != null && _nativeKey!.isNotEmpty;
+      }
+    }
   }
 
   static Future<void> setNativeMapLanguage(String appLanguageCode) async {
-    if (kIsWeb) return;
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) return;
     try {
       await _channel.invokeMethod<void>(
         'setMapLanguage',
@@ -51,10 +60,12 @@ class GoogleMapsConfig {
     return null;
   }
 
-  static bool get useGoogleMapWidget =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+  static bool get useGoogleMapWidget {
+    if (kIsWeb) return false;
+    if (defaultTargetPlatform == TargetPlatform.android) return true;
+    if (defaultTargetPlatform == TargetPlatform.iOS) return _iosSdkReady;
+    return false;
+  }
 
   static bool get isEnabled =>
       useGoogleMapWidget || (apiKey != null && apiKey!.trim().isNotEmpty);

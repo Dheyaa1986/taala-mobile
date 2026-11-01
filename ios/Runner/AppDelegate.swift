@@ -1,13 +1,22 @@
 import Flutter
+import GoogleMaps
 import UIKit
 import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
+  private var mapsSdkReady = false
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    let apiKey = readGoogleMapsApiKey()
+    if !apiKey.isEmpty {
+      GMSServices.provideAPIKey(apiKey)
+      mapsSdkReady = true
+    }
+
     GeneratedPluginRegistrant.register(with: self)
 
     if #available(iOS 10.0, *) {
@@ -15,29 +24,53 @@ import UserNotifications
     }
 
     application.registerForRemoteNotifications()
-    let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    setupMapsChannel()
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
 
-    if let registrar = self.registrar(forPlugin: "TaalaMaps") {
-      let mapsChannel = FlutterMethodChannel(
-        name: "com.mintops.taala/maps",
-        binaryMessenger: registrar.messenger()
-      )
-      mapsChannel.setMethodCallHandler { call, result in
-        if call.method == "googleMapsApiKey" {
-          let key = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? ""
-          result(key)
-        } else if call.method == "setMapLanguage" {
-          let code = (call.arguments as? String) ?? "ar"
-          let mapsLang = code.hasPrefix("en") ? "en" : "ar"
-          UserDefaults.standard.set([mapsLang], forKey: "AppleLanguages")
-          UserDefaults.standard.set(mapsLang, forKey: "AppleLocale")
-          result(true)
-        } else {
-          result(FlutterMethodNotImplemented)
-        }
-      }
+  private func setupMapsChannel() {
+    guard let messenger = registrar(forPlugin: "TaalaMapsChannel")?.messenger() else {
+      return
     }
 
-    return launched
+    let mapsChannel = FlutterMethodChannel(
+      name: "com.mintops.taala/maps",
+      binaryMessenger: messenger
+    )
+    mapsChannel.setMethodCallHandler { [weak self] call, result in
+      guard let self else {
+        result(FlutterError(code: "unavailable", message: nil, details: nil))
+        return
+      }
+      switch call.method {
+      case "googleMapsApiKey":
+        result(self.readGoogleMapsApiKey())
+      case "mapsSdkReady":
+        result(self.mapsSdkReady)
+      case "setMapLanguage":
+        // Do not change AppleLanguages; it relaunches or crashes some iPhones.
+        result(true)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  private func readGoogleMapsApiKey() -> String {
+    if let key = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String {
+      let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !trimmed.isEmpty && !trimmed.contains("GOOGLE_MAPS_API_KEY") {
+        return trimmed
+      }
+    }
+    if let path = Bundle.main.path(forResource: "GoogleMapsApiKey", ofType: "plist"),
+       let dict = NSDictionary(contentsOfFile: path),
+       let key = dict["GMSApiKey"] as? String {
+      let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !trimmed.isEmpty {
+        return trimmed
+      }
+    }
+    return ""
   }
 }

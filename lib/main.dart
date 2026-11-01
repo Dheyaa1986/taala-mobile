@@ -47,7 +47,7 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    await RemoteConfigHelper.initialize();
+    unawaited(RemoteConfigHelper.initialize());
   } catch (error) {
     debugPrint('Firebase init failed: $error');
   }
