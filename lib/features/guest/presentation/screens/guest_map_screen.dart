@@ -236,62 +236,71 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             top: MediaQuery.paddingOf(context).top + 8.h,
             left: 16.w,
             right: 16.w,
-            child: Row(
+            child: Column(
               children: [
-                Material(
-                  color: tokens.surface,
-                  borderRadius: BorderRadius.circular(14.r),
-                  child: IraqOfflineMapButton(
-                    labeled: true,
-                    onDownloaded: () => unawaited(_refreshOfflineMapPath()),
-                  ),
-                ),
-                const LangPopup(),
-                8.width,
-                Expanded(
-                  child: Container(
-                    padding: REdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
+                Row(
+                  children: [
+                    Material(
                       color: tokens.surface,
                       borderRadius: BorderRadius.circular(14.r),
-                      boxShadow: TaalaShadows.soft(brightness),
+                      child: IraqOfflineMapButton(
+                        labeled: true,
+                        onDownloaded: () =>
+                            unawaited(_refreshOfflineMapPath()),
+                      ),
                     ),
-                    child: Text(
-                      AppStrings.guestMapHint.tr(),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: tokens.textSecondary,
-                            height: 1.4,
-                          ),
+                    8.width,
+                    Material(
+                      color: tokens.surface,
+                      borderRadius: BorderRadius.circular(14.r),
+                      child: const LangPopup(),
                     ),
-                  ),
-                ),
-                8.width,
-                Material(
-                  color: tokens.surface,
-                  borderRadius: BorderRadius.circular(14.r),
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  child: InkWell(
-                    onTap: () =>
-                        context.pushNamed(Routes.register, extra: true),
-                    borderRadius: BorderRadius.circular(14.r),
-                    child: Container(
-                      decoration: BoxDecoration(
+                    const Spacer(),
+                    Material(
+                      color: tokens.surface,
+                      borderRadius: BorderRadius.circular(14.r),
+                      child: InkWell(
+                        onTap: () =>
+                            context.pushNamed(Routes.register, extra: true),
                         borderRadius: BorderRadius.circular(14.r),
-                        boxShadow: TaalaShadows.soft(brightness),
-                      ),
-                      padding: REdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      child: Text(
-                        AppStrings.register.tr(),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: tokens.primary,
-                            ),
+                        child: Padding(
+                          padding: REdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          child: Text(
+                            AppStrings.register.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: tokens.primary,
+                                ),
+                          ),
+                        ),
                       ),
                     ),
+                  ],
+                ),
+                8.height,
+                Container(
+                  width: double.infinity,
+                  padding: REdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: tokens.surface,
+                    borderRadius: BorderRadius.circular(14.r),
+                    boxShadow: TaalaShadows.soft(brightness),
+                  ),
+                  child: Text(
+                    AppStrings.guestMapHint.tr(),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: tokens.textSecondary,
+                          height: 1.35,
+                        ),
                   ),
                 ),
               ],
