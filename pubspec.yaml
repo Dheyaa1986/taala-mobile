@@ -7,7 +7,8 @@ publish_to: 'none'
 
 
 
-version: 1.0.19+36
+version: 1.0.19+37
+
 
 environment:
   sdk: ^3.5.4
