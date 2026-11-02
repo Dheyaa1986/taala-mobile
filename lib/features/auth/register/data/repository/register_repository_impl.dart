@@ -21,7 +21,9 @@ class RegisterRepositoryImpl extends RegisterRepository {
               method: RequestMethod.post,
               isFormData: true,
               formDataBody: formData,
-              requestWithOutToken: true),
+              requestWithOutToken: true,
+              connectTimeout: const Duration(seconds: 120),
+              receiveTimeout: const Duration(seconds: 120)),
           mapper: (json) => BaseResponseModel.fromJson(json),
         );
         await SecureLocalStorage.write(

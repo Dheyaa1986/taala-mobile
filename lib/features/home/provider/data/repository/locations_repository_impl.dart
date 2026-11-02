@@ -79,6 +79,7 @@ class LocationsRepositoryImpl extends Repository implements LocationsRepository 
         NetworkRequest(
           AppUrls.serviceTypesCatalogFor(audience),
           method: RequestMethod.get,
+          requestWithOutToken: audience == ServiceTypesAudience.guest,
         ),
       );
       return _parseList(json, ServiceCategoryCatalogModel.fromJson);

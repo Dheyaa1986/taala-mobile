@@ -34,8 +34,9 @@ import 'package:taal/features/service_orders/presentation/utils/order_location_p
 import 'package:taal/features/service_orders/presentation/utils/service_order_navigation.dart';
 import 'package:taal/features/service_orders/presentation/widgets/order_destination_picker_section.dart';
 
+import 'package:taal/config/routes/app_router.dart';
+
 import '../../../../core/helpers/auth_session_helper.dart';
-import '../../../auth/login/presentation/biometric_enrollment.dart';
 
 Future<bool?> showGuestHelpRequestSheet(
   BuildContext context, {
@@ -348,13 +349,11 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     await result.fold(
       (error) async => _showGuestHelpError(error.displayMessage),
       (response) async {
+        final orderId = response.order.id;
         await AuthSessionHelper.establishClientSession(
           token: response.token,
           refreshToken: response.refreshToken,
         );
-        if (mounted) {
-          await BiometricEnrollment.handleAfterPasswordLogin(context);
-        }
 
         final prefs = getIt<SharedPref>();
         await prefs.set(
@@ -372,22 +371,24 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           );
         }
 
-        await getIt<ProfileCubit>().loadProfile();
-        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
-        getIt<AppAlertMonitor>().start();
-        await AlertDeliveryBootstrap.ensureReady();
-        getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+        try {
+          await getIt<ProfileCubit>().loadProfile();
+          await getIt<NotificationCubit>().refreshInbox(reloadList: true);
+          getIt<AppAlertMonitor>().start();
+          await AlertDeliveryBootstrap.ensureReady();
+          getIt<ActiveOrderRefreshNotifier>().notifyChanged();
+        } catch (_) {}
 
         if (!mounted) return;
         Navigator.of(context).pop(true);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.guestHelpOrderSent.tr())),
-        );
-
-        final orderId = response.order.id;
+        final navContext = AppRouter.appNavigatorKey.currentContext;
+        if (navContext != null && navContext.mounted) {
+          navContext.goNamed(Routes.home);
+        }
         if (orderId != null && orderId.isNotEmpty) {
-          ServiceOrderNavigation.openDetail(orderId, openChat: true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ServiceOrderNavigation.openDetail(orderId, openChat: true);
+          });
         }
       },
     );

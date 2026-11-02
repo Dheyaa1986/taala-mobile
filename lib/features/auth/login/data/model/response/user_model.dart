@@ -13,11 +13,19 @@ class LoginResponseModel extends BaseResponseModel {
   });
 
   factory LoginResponseModel.fromJson({required Map<String, dynamic> json}) {
+    final payload = json['response'];
+    final map = payload is Map<String, dynamic> ? payload : json;
+    final token = map['token']?.toString() ?? '';
+    final refreshToken = map['refreshToken']?.toString() ?? '';
+    if (token.isEmpty || refreshToken.isEmpty) {
+      throw FormatException('invalid login payload');
+    }
     return LoginResponseModel(
-        code: json['code'],
-        message: '',
-        token: json['response']['token'],
-        refreshToken: json['response']['refreshToken']);
+      code: json['code'] is int ? json['code'] as int : int.tryParse('${json['code']}'),
+      message: json['message']?.toString() ?? '',
+      token: token,
+      refreshToken: refreshToken,
+    );
   }
 }
 

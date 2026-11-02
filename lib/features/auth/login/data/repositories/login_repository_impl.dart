@@ -35,21 +35,10 @@ class LoginRepositoryImpl extends LoginRepository {
             ),
           );
 
-          await SecureLocalStorage.write(PrefsKeys.token, user.token);
-          await SecureLocalStorage.write(
-            PrefsKeys.refreshToken,
-            user.refreshToken,
-          );
-          await SecureLocalStorage.write(
-            PrefsKeys.mailOrPhone,
-            model.email,
-          );
-
-          await SecureLocalStorage.write(
-            PrefsKeys.user,
-            jsonEncode(
-              JwtDecoder.decode(user.token),
-            ),
+          await _persistSession(
+            token: user.token,
+            refreshToken: user.refreshToken,
+            identifier: model.email,
           );
           return user;
         } on DioException {
@@ -79,14 +68,10 @@ class LoginRepositoryImpl extends LoginRepository {
         mapper: (json) => LoginResponseModel.fromJson(json: json),
       );
 
-      await SecureLocalStorage.write(PrefsKeys.token, user.token);
-      await SecureLocalStorage.write(PrefsKeys.refreshToken, user.refreshToken);
-      await SecureLocalStorage.write(PrefsKeys.mailOrPhone, normalizedPhone);
-      await SecureLocalStorage.delete(PrefsKeys.password);
-
-      await SecureLocalStorage.write(
-        PrefsKeys.user,
-        jsonEncode(JwtDecoder.decode(user.token)),
+      await _persistSession(
+        token: user.token,
+        refreshToken: user.refreshToken,
+        identifier: normalizedPhone,
       );
       return user;
     });
@@ -129,16 +114,29 @@ class LoginRepositoryImpl extends LoginRepository {
         mapper: (json) => LoginResponseModel.fromJson(json: json),
       );
 
-      await SecureLocalStorage.write(PrefsKeys.token, user.token);
-      await SecureLocalStorage.write(PrefsKeys.refreshToken, user.refreshToken);
-      await SecureLocalStorage.write(PrefsKeys.mailOrPhone, phone.trim());
-      await SecureLocalStorage.delete(PrefsKeys.password);
-
-      await SecureLocalStorage.write(
-        PrefsKeys.user,
-        jsonEncode(JwtDecoder.decode(user.token)),
+      await _persistSession(
+        token: user.token,
+        refreshToken: user.refreshToken,
+        identifier: phone.trim(),
       );
       return user;
     });
+  }
+
+  Future<void> _persistSession({
+    required String token,
+    required String refreshToken,
+    required String identifier,
+  }) async {
+    await SecureLocalStorage.write(PrefsKeys.token, token);
+    await SecureLocalStorage.write(PrefsKeys.refreshToken, refreshToken);
+    await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
+    await SecureLocalStorage.delete(PrefsKeys.password);
+    try {
+      await SecureLocalStorage.write(
+        PrefsKeys.user,
+        jsonEncode(JwtDecoder.decode(token)),
+      );
+    } catch (_) {}
   }
 }

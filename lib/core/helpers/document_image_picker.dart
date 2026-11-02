@@ -4,9 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
+import 'package:taal/core/helpers/camera_permission.dart';
 import 'package:taal/core/widgets/bottom_sheets/custom_bottom_sheet.dart';
 
 class DocumentImagePicker {
@@ -56,7 +56,7 @@ class DocumentImagePicker {
     if (source == null || !context.mounted) return null;
 
     if (source == ImageSource.camera) {
-      final granted = await _ensureCameraPermission();
+      final granted = await CameraPermission.ensure();
       if (!granted) return null;
     }
 
@@ -74,7 +74,9 @@ class DocumentImagePicker {
         AndroidUiSettings(
           toolbarTitle: AppStrings.cropDocument.tr(),
           toolbarColor: AppColors.primaryColor,
-          toolbarWidgetColor: Colors.white,
+          statusBarLight: false,
+          navBarLight: false,
+          toolbarWidgetColor: Colors.black,
           activeControlsWidgetColor: AppColors.primaryColor,
           initAspectRatio: CropAspectRatioPreset.original,
           lockAspectRatio: false,
@@ -84,19 +86,14 @@ class DocumentImagePicker {
           title: AppStrings.cropDocument.tr(),
           aspectRatioLockEnabled: false,
           resetAspectRatioEnabled: true,
+          hidesNavigationBar: false,
+          doneButtonTitle: AppStrings.continueKey.tr(),
+          cancelButtonTitle: AppStrings.cancel.tr(),
         ),
       ],
     );
 
     if (cropped == null) return null;
     return File(cropped.path);
-  }
-
-  static Future<bool> _ensureCameraPermission() async {
-    var status = await Permission.camera.request();
-    if (status.isDenied) {
-      status = await Permission.camera.request();
-    }
-    return !status.isDenied && !status.isPermanentlyDenied;
   }
 }

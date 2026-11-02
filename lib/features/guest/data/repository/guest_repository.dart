@@ -74,7 +74,7 @@ class GuestRepository extends Repository {
     double? destinationLongitude,
   }) {
     return exceptionHandler(() async {
-      return dioService.callApi(
+      final response = await dioService.callApi(
         NetworkRequest(
           AppUrls.guestHelpRequest,
           method: RequestMethod.post,
@@ -110,6 +110,10 @@ class GuestRepository extends Repository {
         ),
         mapper: (json) => GuestHelpResponseModel.fromJson(json),
       );
+      if (response.token.isEmpty || response.refreshToken.isEmpty) {
+        throw BadRequestException('تعذر إنشاء الجلسة بعد طلب المساعدة');
+      }
+      return response;
     });
   }
 }

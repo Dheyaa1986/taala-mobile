@@ -56,9 +56,15 @@ extension MultiPartFileConverter on File {
 }
 
 Future<MultipartFile> fileToMultipartFile(File file) async {
+  final originalName = p.basename(file.path);
+  final lower = originalName.toLowerCase();
+  final isHeic = lower.endsWith('.heic') || lower.endsWith('.heif');
+  final filename = isHeic
+      ? '${p.basenameWithoutExtension(originalName)}.jpg'
+      : originalName;
   return MultipartFile.fromFile(
     file.path,
-    filename: p.basename(file.path),
+    filename: filename,
   );
 }
 

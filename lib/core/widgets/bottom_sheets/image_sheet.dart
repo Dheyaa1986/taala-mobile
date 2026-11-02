@@ -4,10 +4,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../app_config/app_colors.dart';
 import '../../app_config/app_strings.dart';
+import '../../helpers/camera_permission.dart';
 import 'custom_bottom_sheet.dart';
 
 class ImagePickerHelper {
@@ -66,19 +66,17 @@ class ImagePickerHelper {
     if (source != ImageSource.camera) {
       return true;
     }
-
-    var cameraStatus = await Permission.camera.request();
-    if (cameraStatus.isDenied) {
-      cameraStatus = await Permission.camera.request();
-    }
-    return !cameraStatus.isDenied && !cameraStatus.isPermanentlyDenied;
+    return CameraPermission.ensure();
   }
 
   void _pickImage(ImageSource source, Function(File? image) onPick) async {
     final bool status = await _checkPermissions(source);
     if (!status) return;
     try {
-      final XFile? image = await ImagePicker().pickImage(source: source);
+      final XFile? image = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 85,
+      );
       if (image == null) return;
 
       onPick(File(image.path));

@@ -130,18 +130,19 @@ class _LoginFormState extends State<LoginForm> {
 
         if (_loadingDialogOpen) {
           _loadingDialogOpen = false;
-          AppMessages.hideLoading(context);
+          AppMessages.hideLoading();
         }
 
         if (state is LoginSuccess) {
           final isProvider = _role == UserRole.provider;
           context.read<BottomNavigationCubit>().isProvider = isProvider;
           unawaited(PushNotificationService.instance.syncTokenIfLoggedIn());
+          if (!context.mounted) return;
+          await AuthSessionHelper.openAuthenticatedApp(context);
+          if (!context.mounted) return;
           try {
             await BiometricEnrollment.handleAfterPasswordLogin(context);
           } catch (_) {}
-          if (!context.mounted) return;
-          await AuthSessionHelper.openAuthenticatedApp(context);
         } else if (state is LoginError) {
           AppMessages.showError(context, state.error);
         } else if (state is AccountNotVerified) {

@@ -16,6 +16,7 @@ import '../di/service_locator.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'guest_session_helper.dart';
+import 'messages.dart';
 import 'secure_local_storage.dart';
 import 'shared_pref_local_storage.dart';
 
@@ -155,6 +156,7 @@ class AuthSessionHelper {
   static Future<void> goToLoginAfterRegistration({
     required bool isProvider,
   }) async {
+    AppMessages.hideLoading();
     await clearSession();
     await getIt<SharedPref>().set(
       key: PrefsKeys.isProviderAccount,
@@ -162,22 +164,33 @@ class AuthSessionHelper {
     );
     await GuestSessionHelper.clearGuestBrowsing();
     syncNavigationRole(isProvider);
-    final context = AppRouter.appNavigatorKey.currentContext;
-    if (context != null && context.mounted) {
-      context.goNamed(Routes.login, extra: isProvider);
-    }
+    _goNamed(Routes.login, extra: isProvider);
   }
 
   static Future<void> openAuthenticatedApp(BuildContext context) async {
-    final navContext = AppRouter.appNavigatorKey.currentContext ?? context;
-    if (!navContext.mounted) return;
+    AppMessages.hideLoading();
     final isProviderAccount = await isProviderSession();
-    if (!navContext.mounted) return;
     syncNavigationRole(isProviderAccount);
     if (isProviderAccount) {
-      await ProviderSubscriptionGate.navigateAfterAuth(navContext);
+      try {
+        await ProviderSubscriptionGate.navigateAfterAuth(
+          AppRouter.appNavigatorKey.currentContext ?? context,
+        );
+      } catch (_) {
+        _goNamed(Routes.home);
+      }
       return;
     }
-    navContext.goNamed(Routes.home);
+    _goNamed(Routes.home);
+  }
+
+  static void _goNamed(String name, {Object? extra}) {
+    void go() {
+      final navContext = AppRouter.appNavigatorKey.currentContext;
+      if (navContext == null || !navContext.mounted) return;
+      navContext.goNamed(name, extra: extra);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => go());
   }
 }

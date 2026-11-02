@@ -62,6 +62,10 @@
 	<string>نحتاج الوصول للكاميرا لالتقاط صور للملف الشخصي أو الطلب.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>نحتاج الوصول للصور لاختيار صورة للملف الشخصي أو الطلب.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>نحتاج حفظ الصورة بعد قصّها لاستخدامها في الملف الشخصي أو المستندات.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>قد يُطلب الميكروفون عند استخدام الكاميرا لالتقاط صورة أو فيديو.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:taal/config/routes/app_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/features/subscriptions/data/repository/subscription_repository.dart';
@@ -40,15 +41,20 @@ class ProviderSubscriptionGate {
   }
 
   static Future<void> navigateAfterAuth(BuildContext context) async {
-    if (!context.mounted) return;
-
     invalidate();
-    if (await providerNeedsSubscription()) {
-      context.goNamed(Routes.providerSubscriptionRequired);
-      return;
+    var needsSubscription = false;
+    try {
+      needsSubscription = await providerNeedsSubscription();
+    } catch (_) {
+      needsSubscription = false;
     }
-
-    context.goNamed(Routes.home);
+    final navContext = context.mounted
+        ? context
+        : AppRouter.appNavigatorKey.currentContext;
+    if (navContext == null || !navContext.mounted) return;
+    navContext.goNamed(
+      needsSubscription ? Routes.providerSubscriptionRequired : Routes.home,
+    );
   }
 
   static bool isPublicRoute(String location) {

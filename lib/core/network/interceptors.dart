@@ -39,7 +39,11 @@ class CustomInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      if (GuestSessionHelper.suppressAuthRefresh) {
+      final authHeader = err.requestOptions.headers[HttpHeaders.authorizationHeader] ??
+          err.requestOptions.headers['Authorization'];
+      if (GuestSessionHelper.suppressAuthRefresh ||
+          authHeader == null ||
+          authHeader.toString().trim().isEmpty) {
         handler.next(err);
         return;
       }
