@@ -68,7 +68,6 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   UserRole? _role;
   bool _showDeviceKey = false;
-  bool _loadingDialogOpen = false;
 
   @override
   void initState() {
@@ -117,22 +116,10 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LoginCubit, LoginState>(
+    return BlocConsumer<LoginCubit, LoginState>(
       listener: (context, state) async {
-        if (state is LoginLoading) {
-          if (!_loadingDialogOpen) {
-            _loadingDialogOpen = true;
-            AppMessages.showLoading(context);
-          }
-          return;
-        }
-
-        if (_loadingDialogOpen) {
-          _loadingDialogOpen = false;
-          AppMessages.hideLoading();
-        }
-
         if (state is LoginSuccess) {
+          FocusManager.instance.primaryFocus?.unfocus();
           final isProvider = _role == UserRole.provider;
           if (context.mounted) {
             context.read<BottomNavigationCubit>().setIsProvider(isProvider);
@@ -145,7 +132,10 @@ class _LoginFormState extends State<LoginForm> {
           AppMessages.showError(context, state.error);
         }
       },
-      child: Padding(
+      builder: (context, state) {
+        return Stack(
+          children: [
+            Padding(
         padding: EdgeInsetsDirectional.symmetric(horizontal: 16.w),
         child: Form(
           key: _formKey,
@@ -298,7 +288,19 @@ class _LoginFormState extends State<LoginForm> {
             ],
           ),
         ),
-      ),
+            ),
+            if (state is LoginLoading) ...[
+              const Positioned.fill(
+                child: ModalBarrier(
+                  dismissible: false,
+                  color: Color(0x66000000),
+                ),
+              ),
+              const Center(child: CircularProgressIndicator.adaptive()),
+            ],
+          ],
+        );
+      },
     );
   }
 

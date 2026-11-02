@@ -154,16 +154,23 @@ class AuthSessionHelper {
     }
   }
 
+  static void _prepareNavigation() {
+    AppMessages.hideLoading();
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   static Future<void> goToLoginAfterRegistration({
     required bool isProvider,
   }) async {
-    AppMessages.hideLoading();
+    _prepareNavigation();
     await getIt<SharedPref>().set(
       key: PrefsKeys.isProviderAccount,
       value: isProvider,
     );
     syncNavigationRole(isProvider);
-    AppRouter.router.go(Routes.login, extra: isProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppRouter.router.go(Routes.login, extra: isProvider);
+    });
     unawaited(_clearLeftoverSession());
   }
 
@@ -175,14 +182,16 @@ class AuthSessionHelper {
   }
 
   static Future<void> openAuthenticatedApp(BuildContext context) async {
-    AppMessages.hideLoading();
+    _prepareNavigation();
     final isProviderAccount =
         getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
     syncNavigationRole(isProviderAccount);
-    AppRouter.router.go(Routes.home);
-    if (isProviderAccount) {
-      unawaited(_openSubscriptionIfNeeded());
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppRouter.router.go(Routes.home);
+      if (isProviderAccount) {
+        unawaited(_openSubscriptionIfNeeded());
+      }
+    });
   }
 
   static Future<void> _openSubscriptionIfNeeded() async {

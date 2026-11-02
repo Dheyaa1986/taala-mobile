@@ -41,9 +41,9 @@ class DioService implements NetworkService {
 
     if (kDebugMode) {
       _dio.interceptors.add(PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
+        requestHeader: false,
+        requestBody: false,
+        responseHeader: false,
         responseBody: true,
       ));
     }
@@ -116,7 +116,6 @@ class DioService implements NetworkService {
               response.statusCode == 204)) {
         return mapper(response.data);
       } else {
-        debugPrint('else: ${response.data}');
         return response.data;
       }
     } on DioException catch (e) {

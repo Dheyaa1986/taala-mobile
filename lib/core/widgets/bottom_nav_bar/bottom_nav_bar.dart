@@ -116,6 +116,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
       },
       child: Scaffold(
         appBar: null,
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Column(
           children: [
             const GuestWelcomeBanner(),

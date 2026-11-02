@@ -177,14 +177,14 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
                       localizationsDelegates: context.localizationDelegates,
                       title: 'taal',
                       builder: (context, child) {
-                        return OccasionBannerShell(
-                          child: child ??
-                              ColoredBox(
-                                color: Theme.of(context).scaffoldBackgroundColor,
-                                child: const Center(
+                        return ColoredBox(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          child: OccasionBannerShell(
+                            child: child ??
+                                const Center(
                                   child: CircularProgressIndicator.adaptive(),
                                 ),
-                              ),
+                          ),
                         );
                       },
                     );
