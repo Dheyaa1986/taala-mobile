@@ -168,9 +168,10 @@ class AuthSessionHelper {
       value: isProvider,
     );
     syncNavigationRole(isProvider);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppRouter.router.go(Routes.login, extra: isProvider);
-    });
+    try {
+      await GuestSessionHelper.clearGuestBrowsing();
+    } catch (_) {}
+    AppRouter.router.go(Routes.login, extra: isProvider);
     unawaited(_clearLeftoverSession());
   }
 
@@ -186,19 +187,21 @@ class AuthSessionHelper {
     final isProviderAccount =
         getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
     syncNavigationRole(isProviderAccount);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!isProviderAccount) {
       AppRouter.router.go(Routes.home);
-      if (isProviderAccount) {
-        unawaited(_openSubscriptionIfNeeded());
-      }
-    });
-  }
-
-  static Future<void> _openSubscriptionIfNeeded() async {
+      return;
+    }
+    var needsSubscription = true;
     try {
-      if (await ProviderSubscriptionGate.providerNeedsSubscription()) {
-        AppRouter.router.go(Routes.providerSubscriptionRequired);
-      }
-    } catch (_) {}
+      needsSubscription = await ProviderSubscriptionGate.providerNeedsSubscription()
+          .timeout(const Duration(seconds: 6), onTimeout: () => true);
+    } catch (_) {
+      needsSubscription = true;
+    }
+    AppRouter.router.go(
+      needsSubscription
+          ? Routes.providerSubscriptionRequired
+          : Routes.home,
+    );
   }
 }

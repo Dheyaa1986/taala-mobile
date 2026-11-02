@@ -68,6 +68,7 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   UserRole? _role;
   bool _showDeviceKey = false;
+  bool _leaving = false;
 
   @override
   void initState() {
@@ -119,6 +120,7 @@ class _LoginFormState extends State<LoginForm> {
     return BlocConsumer<LoginCubit, LoginState>(
       listener: (context, state) async {
         if (state is LoginSuccess) {
+          setState(() => _leaving = true);
           FocusManager.instance.primaryFocus?.unfocus();
           final isProvider = _role == UserRole.provider;
           if (context.mounted) {
@@ -139,11 +141,10 @@ class _LoginFormState extends State<LoginForm> {
         padding: EdgeInsetsDirectional.symmetric(horizontal: 16.w),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
+          child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   child: Column(
                     children: [
                       40.height,
@@ -206,10 +207,6 @@ class _LoginFormState extends State<LoginForm> {
                         value: _role,
                       ),
                       14.height,
-                    ],
-                  ),
-                ),
-              ),
               Row(
                 children: [
                   if (_showDeviceKey) ...[
@@ -285,11 +282,12 @@ class _LoginFormState extends State<LoginForm> {
                 ],
               ],
               SizedBox(height: context.safeBottomInset + 16.h),
-            ],
-          ),
-        ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            if (state is LoginLoading) ...[
+            if (state is LoginLoading || _leaving) ...[
               const Positioned.fill(
                 child: ModalBarrier(
                   dismissible: false,

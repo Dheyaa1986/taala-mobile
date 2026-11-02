@@ -63,39 +63,14 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                 current is RegisterErrorState,
             listener: (context, state) async {
               if (state is RegisterLoadingState) {
-                AppMessages.showLoading(context);
                 return;
               }
 
-              AppMessages.hideLoading(context);
+              AppMessages.hideLoading();
 
               if (state is RegisterSuccessState) {
-                final isProvider = _role == UserRole.provider;
-
-                if (isProvider &&
-                    state.response.requiresApproval &&
-                    context.mounted) {
-                  await showDialog<void>(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title:
-                          Text(AppStrings.providerPendingApprovalTitle.tr()),
-                      content: Text(
-                        state.response.message ??
-                            AppStrings.providerPendingApprovalBody.tr(),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(dialogContext).pop(),
-                          child: Text(AppStrings.continueKey.tr()),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
                 await AuthSessionHelper.goToLoginAfterRegistration(
-                  isProvider: isProvider,
+                  isProvider: _role == UserRole.provider,
                 );
                 return;
               }

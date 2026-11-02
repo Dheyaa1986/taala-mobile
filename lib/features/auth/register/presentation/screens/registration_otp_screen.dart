@@ -121,11 +121,10 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
             current is RegisterErrorState,
         listener: (context, state) async {
           if (state is RegisterLoadingState) {
-            AppMessages.showLoading(context);
             return;
           }
 
-          AppMessages.hideLoading(context);
+          AppMessages.hideLoading();
 
           if (state is RegisterSuccessState) {
             await AuthSessionHelper.goToLoginAfterRegistration(

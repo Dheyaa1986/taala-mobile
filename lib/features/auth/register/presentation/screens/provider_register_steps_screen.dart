@@ -237,11 +237,29 @@ class _ProviderRegisterStepsScreenState
       _submit();
       return;
     }
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
-    setState(() => _step += 1);
+    var next = _step + 1;
+    if (next == 2 && _offeringInputs.isEmpty) {
+      next = 3;
+    }
+    _goToStep(next);
+  }
+
+  void _goToStep(int step) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    _pageController.jumpToPage(step);
+    setState(() => _step = step);
+  }
+
+  void _onBack() {
+    if (_step == 0) {
+      context.pop();
+      return;
+    }
+    var previous = _step - 1;
+    if (previous == 2 && _offeringInputs.isEmpty) {
+      previous = 1;
+    }
+    _goToStep(previous);
   }
 
   void _submit() {
@@ -331,34 +349,12 @@ class _ProviderRegisterStepsScreenState
             current is RegisterErrorState,
         listener: (context, state) async {
           if (state is RegisterLoadingState) {
-            AppMessages.showLoading(context);
             return;
           }
 
-          AppMessages.hideLoading(context);
+          AppMessages.hideLoading();
 
           if (state is RegisterSuccessState) {
-            if (mounted) setState(() => _submitting = false);
-
-            if (state.response.requiresApproval && context.mounted) {
-              await showDialog<void>(
-                context: context,
-                builder: (dialogContext) => AlertDialog(
-                  title: Text(AppStrings.providerPendingApprovalTitle.tr()),
-                  content: Text(
-                    state.response.message ??
-                        AppStrings.providerPendingApprovalBody.tr(),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(AppStrings.continueKey.tr()),
-                    ),
-                  ],
-                ),
-              );
-            }
-
             await AuthSessionHelper.goToLoginAfterRegistration(
               isProvider: true,
             );
@@ -370,7 +366,9 @@ class _ProviderRegisterStepsScreenState
             AppMessages.showError(context, state.error);
           }
         },
-        child: Scaffold(
+        child: Stack(
+          children: [
+            Scaffold(
           body: SafeArea(
             child: Padding(
               padding: REdgeInsets.symmetric(horizontal: 16),
@@ -379,7 +377,7 @@ class _ProviderRegisterStepsScreenState
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: CustomBackButton(
-                      onPressed: () => context.pop(),
+                      onPressed: _onBack,
                     ),
                   ),
                   16.height,
@@ -490,6 +488,17 @@ class _ProviderRegisterStepsScreenState
               ),
             ),
           ),
+            ),
+            if (_submitting) ...[
+              const Positioned.fill(
+                child: ModalBarrier(
+                  dismissible: false,
+                  color: Color(0x66000000),
+                ),
+              ),
+              const Center(child: CircularProgressIndicator.adaptive()),
+            ],
+          ],
         ),
       ),
     );
