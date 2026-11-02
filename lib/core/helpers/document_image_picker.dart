@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:taal/core/app_config/app_colors.dart';
 import 'package:taal/core/app_config/app_strings.dart';
 import 'package:taal/core/helpers/camera_permission.dart';
@@ -94,6 +96,25 @@ class DocumentImagePicker {
     );
 
     if (cropped == null) return null;
-    return File(cropped.path);
+    return _persistForUpload(File(cropped.path));
+  }
+
+  static Future<File> _persistForUpload(File source) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final folder = Directory(p.join(dir.path, 'provider_register_docs'));
+      if (!await folder.exists()) {
+        await folder.create(recursive: true);
+      }
+      final dest = File(
+        p.join(
+          folder.path,
+          '${DateTime.now().microsecondsSinceEpoch}.jpg',
+        ),
+      );
+      return source.copy(dest.path);
+    } catch (_) {
+      return source;
+    }
   }
 }

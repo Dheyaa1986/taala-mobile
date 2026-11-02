@@ -76,6 +76,12 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
               }
 
               if (state is RegisterErrorState) {
+                if (AuthSessionHelper.isExistingAccountError(state.error)) {
+                  await AuthSessionHelper.goToLoginAfterRegistration(
+                    isProvider: _role == UserRole.provider,
+                  );
+                  return;
+                }
                 AppMessages.showError(
                   context,
                   state.error,

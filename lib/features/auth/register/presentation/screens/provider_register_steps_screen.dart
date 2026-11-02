@@ -363,6 +363,12 @@ class _ProviderRegisterStepsScreenState
 
           if (state is RegisterErrorState) {
             if (mounted) setState(() => _submitting = false);
+            if (AuthSessionHelper.isExistingAccountError(state.error)) {
+              await AuthSessionHelper.goToLoginAfterRegistration(
+                isProvider: true,
+              );
+              return;
+            }
             AppMessages.showError(context, state.error);
           }
         },

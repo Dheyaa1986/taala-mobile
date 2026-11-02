@@ -59,12 +59,14 @@ Future<MultipartFile> fileToMultipartFile(File file) async {
   final originalName = p.basename(file.path);
   final lower = originalName.toLowerCase();
   final isHeic = lower.endsWith('.heic') || lower.endsWith('.heif');
-  final filename = isHeic
+  final hasImageExt = RegExp(r'\.(jpe?g|png|webp|gif)$').hasMatch(lower);
+  final filename = isHeic || !hasImageExt
       ? '${p.basenameWithoutExtension(originalName)}.jpg'
       : originalName;
   return MultipartFile.fromFile(
     file.path,
     filename: filename,
+    contentType: DioMediaType('image', 'jpeg'),
   );
 }
 

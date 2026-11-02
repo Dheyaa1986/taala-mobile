@@ -159,6 +159,14 @@ class AuthSessionHelper {
     FocusManager.instance.primaryFocus?.unfocus();
   }
 
+  static bool isExistingAccountError(String message) {
+    final lower = message.toLowerCase();
+    return message.contains('موجود بالفعل') ||
+        message.contains('مستخدم من حساب آخر') ||
+        lower.contains('already exists') ||
+        lower.contains('email or phone');
+  }
+
   static Future<void> goToLoginAfterRegistration({
     required bool isProvider,
   }) async {

@@ -134,6 +134,12 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           }
 
           if (state is RegisterErrorState) {
+            if (AuthSessionHelper.isExistingAccountError(state.error)) {
+              await AuthSessionHelper.goToLoginAfterRegistration(
+                isProvider: _isProvider,
+              );
+              return;
+            }
             AppMessages.showError(context, state.error);
           }
         },
