@@ -176,7 +176,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
   Future<void> _browseAsGuest() async {
     await GuestSessionHelper.startGuestBrowsing();
     if (!mounted) return;
-    context.read<BottomNavigationCubit>().isProvider = false;
+    context.read<BottomNavigationCubit>().setIsProvider(false);
     context.goNamed(Routes.home);
   }
 

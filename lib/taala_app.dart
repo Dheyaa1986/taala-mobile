@@ -116,7 +116,9 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
       designSize: const Size(375, 812),
       minTextAdapt: true,
       fontSizeResolver: (fontSize, screenUtil) {
-        return fontSize * screenUtil.scaleWidth.clamp(.8, 1);
+        final scale = screenUtil.scaleWidth;
+        if (scale <= 0 || scale.isNaN) return fontSize.toDouble();
+        return fontSize * scale.clamp(.8, 1);
       },
       builder: (context, child) {
         return MultiBlocProvider(

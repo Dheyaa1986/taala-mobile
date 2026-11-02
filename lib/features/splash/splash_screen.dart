@@ -94,7 +94,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (!context.mounted) return;
       if (await GuestSessionHelper.isGuestBrowsing()) {
         if (!context.mounted) return;
-        context.read<BottomNavigationCubit>().isProvider = false;
+        context.read<BottomNavigationCubit>().setIsProvider(false);
         context.goNamed(Routes.home);
       } else {
         context.goNamed(Routes.guestMap);

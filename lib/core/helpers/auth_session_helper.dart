@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -112,7 +113,7 @@ class AuthSessionHelper {
   static void syncNavigationRole(bool isProvider) {
     final context = AppRouter.appNavigatorKey.currentContext;
     if (context != null && context.mounted) {
-      context.read<BottomNavigationCubit>().isProvider = isProvider;
+      context.read<BottomNavigationCubit>().setIsProvider(isProvider);
     }
   }
 
@@ -148,7 +149,7 @@ class AuthSessionHelper {
     await GuestSessionHelper.clearGuestBrowsing();
     final context = AppRouter.appNavigatorKey.currentContext;
     if (context != null && context.mounted) {
-      context.read<BottomNavigationCubit>().isProvider = false;
+      context.read<BottomNavigationCubit>().setIsProvider(false);
       context.goNamed(Routes.guestMap);
     }
   }
@@ -157,28 +158,38 @@ class AuthSessionHelper {
     required bool isProvider,
   }) async {
     AppMessages.hideLoading();
-    await clearSession();
     await getIt<SharedPref>().set(
       key: PrefsKeys.isProviderAccount,
       value: isProvider,
     );
-    await GuestSessionHelper.clearGuestBrowsing();
     syncNavigationRole(isProvider);
     AppRouter.router.go(Routes.login, extra: isProvider);
+    unawaited(_clearLeftoverSession());
+  }
+
+  static Future<void> _clearLeftoverSession() async {
+    try {
+      await clearSession();
+      await GuestSessionHelper.clearGuestBrowsing();
+    } catch (_) {}
   }
 
   static Future<void> openAuthenticatedApp(BuildContext context) async {
     AppMessages.hideLoading();
-    final isProviderAccount = await isProviderSession();
+    final isProviderAccount =
+        getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
     syncNavigationRole(isProviderAccount);
-    if (isProviderAccount) {
-      try {
-        await ProviderSubscriptionGate.navigateAfterAuth(context);
-      } catch (_) {
-        AppRouter.router.go(Routes.home);
-      }
-      return;
-    }
     AppRouter.router.go(Routes.home);
+    if (isProviderAccount) {
+      unawaited(_openSubscriptionIfNeeded());
+    }
+  }
+
+  static Future<void> _openSubscriptionIfNeeded() async {
+    try {
+      if (await ProviderSubscriptionGate.providerNeedsSubscription()) {
+        AppRouter.router.go(Routes.providerSubscriptionRequired);
+      }
+    } catch (_) {}
   }
 }

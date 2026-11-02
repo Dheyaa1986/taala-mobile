@@ -2,7 +2,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureLocalStorage {
   static const AndroidOptions _android = AndroidOptions(
-    encryptedSharedPreferences: true,
+    encryptedSharedPreferences: false,
+    sharedPreferencesName: 'taala_secure_prefs',
   );
 
   static const IOSOptions _ios = IOSOptions(

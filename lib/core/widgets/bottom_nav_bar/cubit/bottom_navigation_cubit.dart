@@ -18,4 +18,9 @@ class BottomNavigationCubit extends Cubit<BottomNavigationState> {
   }
 
   bool isProvider = false;
+
+  void setIsProvider(bool value) {
+    isProvider = value;
+    emit(ChangeBottomNavigationBranch(navigationShell?.currentIndex ?? 0));
+  }
 }

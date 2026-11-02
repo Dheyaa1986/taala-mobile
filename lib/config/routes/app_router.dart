@@ -474,21 +474,13 @@ class AppRouter {
       ];
 }
 
-CustomTransitionPage screenWithFadeTransition<T>({
+Page<T> screenWithFadeTransition<T>({
   required BuildContext context,
   required GoRouterState state,
   required Widget child,
 }) {
-  return CustomTransitionPage<T>(
-    transitionDuration: const Duration(milliseconds: 200),
+  return MaterialPage<T>(
     key: state.pageKey,
-    opaque: true,
     child: child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return ColoredBox(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: FadeTransition(opacity: animation, child: child),
-      );
-    },
   );
 }

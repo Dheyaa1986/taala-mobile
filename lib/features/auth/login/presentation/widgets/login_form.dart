@@ -135,7 +135,7 @@ class _LoginFormState extends State<LoginForm> {
         if (state is LoginSuccess) {
           final isProvider = _role == UserRole.provider;
           if (context.mounted) {
-            context.read<BottomNavigationCubit>().isProvider = isProvider;
+            context.read<BottomNavigationCubit>().setIsProvider(isProvider);
           }
           unawaited(PushNotificationService.instance.syncTokenIfLoggedIn());
           await AuthSessionHelper.openAuthenticatedApp(context);
@@ -317,7 +317,7 @@ class _LoginFormState extends State<LoginForm> {
   Future<void> _browseAsGuest() async {
     await GuestSessionHelper.startGuestBrowsing();
     if (!mounted) return;
-    context.read<BottomNavigationCubit>().isProvider = false;
+    context.read<BottomNavigationCubit>().setIsProvider(false);
     context.pushNamedAndRemoveUntil(
       Routes.home,
       predicate: (_) => false,
@@ -335,7 +335,7 @@ class _LoginFormState extends State<LoginForm> {
     FocusManager.instance.primaryFocus?.unfocus();
 
     final isProvider = _role == UserRole.provider;
-    context.read<BottomNavigationCubit>().isProvider = isProvider;
+    context.read<BottomNavigationCubit>().setIsProvider(isProvider);
 
     context.read<LoginCubit>().login(
           email: _normalizeLoginIdentifier(_identifierController.text),
