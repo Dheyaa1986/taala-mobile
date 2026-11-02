@@ -9,6 +9,7 @@ class AppMessages {
   static Future<dynamic> showLoading(BuildContext context) =>
       showDialog<dynamic>(
         context: context,
+        useRootNavigator: true,
         barrierDismissible: false,
         builder: (_) => const PopScope(
           canPop: false,
@@ -17,6 +18,13 @@ class AppMessages {
           ),
         ),
       );
+
+  static void hideLoading(BuildContext context) {
+    if (!context.mounted) return;
+    final route = ModalRoute.of(context);
+    if (route == null || route.isCurrent) return;
+    Navigator.of(context, rootNavigator: true).pop();
+  }
 
   static void showError(BuildContext context, String error,
       [SnackBarAction? action]) {

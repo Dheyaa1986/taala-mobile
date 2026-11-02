@@ -223,7 +223,7 @@ class AppRouter {
             context: context,
             state: state,
             child: SplashScreen(
-              isProvider: state.extra as bool?,
+              isProvider: state.extra is bool ? state.extra as bool : null,
             ),
           ),
           routes: const [],
@@ -265,7 +265,10 @@ class AppRouter {
           pageBuilder: (context, state) => screenWithFadeTransition(
             context: context,
             state: state,
-            child: LoginScreen(initialIsProvider: state.extra as bool?),
+            child: LoginScreen(
+              initialIsProvider:
+                  state.extra is bool ? state.extra as bool : null,
+            ),
           ),
           routes: const [],
         ),

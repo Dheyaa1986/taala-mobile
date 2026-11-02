@@ -11,11 +11,9 @@ import 'package:taal/features/auth/register/presentation/cubit/register_cubit.da
 
 import '../../../../core/app_config/app_icons.dart';
 import '../../../../core/app_config/app_strings.dart';
-import '../../../../core/app_config/prefs_keys.dart';
 import '../../../../core/di/service_locator.dart';
+import '../../../../core/helpers/auth_session_helper.dart';
 import '../../../../core/helpers/messages.dart';
-import '../../../../core/helpers/shared_pref_local_storage.dart';
-import '../../../../core/widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import '../../../../core/widgets/buttons/back_button.dart';
 import '../../../../design_system/components/taala_button.dart';
 import '../../../../design_system/theme/taala_tokens.dart';
@@ -69,20 +67,10 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                 return;
               }
 
-              if (Navigator.of(context, rootNavigator: true).canPop()) {
-                Navigator.of(context, rootNavigator: true).pop();
-              }
+              AppMessages.hideLoading(context);
 
               if (state is RegisterSuccessState) {
                 final isProvider = _role == UserRole.provider;
-                await getIt<SharedPref>().set(
-                  key: PrefsKeys.isProviderAccount,
-                  value: isProvider,
-                );
-                if (!state.response.requiresApproval) {
-                  context.read<BottomNavigationCubit>().isProvider =
-                      isProvider;
-                }
 
                 if (isProvider &&
                     state.response.requiresApproval &&
@@ -104,19 +92,16 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                       ],
                     ),
                   );
-                } else {
+                } else if (context.mounted) {
                   AppMessages.showSuccess(
                     context,
                     state.response.message ?? AppStrings.signUp.tr(),
                   );
                 }
 
-                if (context.mounted) {
-                  context.goNamed(
-                    Routes.login,
-                    extra: isProvider,
-                  );
-                }
+                await AuthSessionHelper.goToLoginAfterRegistration(
+                  isProvider: isProvider,
+                );
                 return;
               }
 

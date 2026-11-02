@@ -10,6 +10,7 @@ import '../../config/routes/app_router.dart';
 import '../../config/routes/routes.dart';
 import '../app_config/app_urls.dart';
 import '../app_config/prefs_keys.dart';
+import '../alerts/app_alert_monitor.dart';
 import '../alerts/app_icon_badge_service.dart';
 import '../di/service_locator.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
@@ -86,15 +87,25 @@ class AuthSessionHelper {
       try {
         final payload = JwtDecoder.decode(token!);
         final role = payload['role'];
-        if (role is int) {
-          return role == providerRole;
-        }
-        return int.tryParse(role?.toString() ?? '') == providerRole;
+        final isProvider = role is int
+            ? role == providerRole
+            : int.tryParse(role?.toString() ?? '') == providerRole;
+        await _persistAccountType(isProvider);
+        return isProvider;
       } catch (_) {
         // Fall back to persisted account type.
       }
     }
     return getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount) == true;
+  }
+
+  static Future<void> _persistAccountType(bool isProvider) async {
+    final current = getIt<SharedPref>().get(key: PrefsKeys.isProviderAccount);
+    if (current == isProvider) return;
+    await getIt<SharedPref>().set(
+      key: PrefsKeys.isProviderAccount,
+      value: isProvider,
+    );
   }
 
   static void syncNavigationRole(bool isProvider) {
@@ -121,13 +132,15 @@ class AuthSessionHelper {
   static Future<void> clearSession({bool clearRememberedCredentials = false}) async {
     await SecureLocalStorage.delete(PrefsKeys.token);
     await SecureLocalStorage.delete(PrefsKeys.refreshToken);
+    await SecureLocalStorage.delete(PrefsKeys.user);
+    await SecureLocalStorage.delete(PrefsKeys.password);
     if (clearRememberedCredentials) {
       await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
-      await SecureLocalStorage.delete(PrefsKeys.password);
     }
   }
 
   static Future<void> logout() async {
+    getIt<AppAlertMonitor>().stop();
     await getIt<AppIconBadgeService>().updateCount(0);
     ProviderSubscriptionGate.invalidate();
     await clearSession();
@@ -139,15 +152,32 @@ class AuthSessionHelper {
     }
   }
 
+  static Future<void> goToLoginAfterRegistration({
+    required bool isProvider,
+  }) async {
+    await clearSession();
+    await getIt<SharedPref>().set(
+      key: PrefsKeys.isProviderAccount,
+      value: isProvider,
+    );
+    await GuestSessionHelper.clearGuestBrowsing();
+    syncNavigationRole(isProvider);
+    final context = AppRouter.appNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      context.goNamed(Routes.login, extra: isProvider);
+    }
+  }
+
   static Future<void> openAuthenticatedApp(BuildContext context) async {
-    if (!context.mounted) return;
+    final navContext = AppRouter.appNavigatorKey.currentContext ?? context;
+    if (!navContext.mounted) return;
     final isProviderAccount = await isProviderSession();
-    if (!context.mounted) return;
+    if (!navContext.mounted) return;
     syncNavigationRole(isProviderAccount);
     if (isProviderAccount) {
-      await ProviderSubscriptionGate.navigateAfterAuth(context);
+      await ProviderSubscriptionGate.navigateAfterAuth(navContext);
       return;
     }
-    context.goNamed(Routes.home);
+    navContext.goNamed(Routes.home);
   }
 }

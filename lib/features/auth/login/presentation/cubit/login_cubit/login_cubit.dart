@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -34,40 +36,20 @@ class LoginCubit extends Cubit<LoginState> {
       isProvider: isProvider,
     );
 
-    result.fold(
-      (failure) {
-        final isRoleMismatch =
-            failure.message.contains('للدخول كـ');
+    await result.fold<Future<void>>(
+      (failure) async {
+        final isRoleMismatch = failure.message.contains('للدخول كـ');
         if (failure.code == 403 && !isRoleMismatch) {
           emit(AccountNotVerified(mailOrPhone: email, error: failure.message));
         } else {
           emit(LoginError(failure.message));
         }
       },
-      (response) async {
-        try {
-          await getIt<SharedPref>().set(
-            key: PrefsKeys.isProviderAccount,
-            value: isProvider,
-          );
-          await SecureLocalStorage.write(PrefsKeys.token, response.token);
-          await SecureLocalStorage.write(
-              PrefsKeys.refreshToken, response.refreshToken);
-          await SecureLocalStorage.write(PrefsKeys.mailOrPhone, email);
-          await SecureLocalStorage.delete(PrefsKeys.password);
-          await GuestSessionHelper.clearGuestBrowsing();
-          await getIt<ProfileCubit>().loadProfile();
-          await getIt<NotificationCubit>().refreshInbox(reloadList: true);
-          getIt<AppAlertMonitor>().start();
-          await AlertDeliveryBootstrap.ensureReady();
-          await PushNotificationService.instance.processLaunchNotifications();
-          await NotificationRouter.processPendingIfAny();
-
-          emit(LoginSuccess(response: response));
-        } catch (_) {
-          emit(LoginError('حدث خطأ، يرجى المحاولة لاحقاً'));
-        }
-      },
+      (response) => _establishSession(
+        response: response,
+        isProvider: isProvider,
+        identifier: email,
+      ),
     );
   }
 
@@ -76,28 +58,13 @@ class LoginCubit extends Cubit<LoginState> {
 
     final result = await loginRepository.loginClientByPhone(phone);
 
-    result.fold(
-      (failure) => emit(LoginError(failure.message)),
-      (response) async {
-        await getIt<SharedPref>().set(
-          key: PrefsKeys.isProviderAccount,
-          value: false,
-        );
-        await SecureLocalStorage.write(PrefsKeys.token, response.token);
-        await SecureLocalStorage.write(
-          PrefsKeys.refreshToken,
-          response.refreshToken,
-        );
-        await GuestSessionHelper.clearGuestBrowsing();
-        await getIt<ProfileCubit>().loadProfile();
-        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
-        getIt<AppAlertMonitor>().start();
-        await AlertDeliveryBootstrap.ensureReady();
-        await PushNotificationService.instance.processLaunchNotifications();
-        await NotificationRouter.processPendingIfAny();
-
-        emit(LoginSuccess(response: response));
-      },
+    await result.fold<Future<void>>(
+      (failure) async => emit(LoginError(failure.message)),
+      (response) => _establishSession(
+        response: response,
+        isProvider: false,
+        identifier: phone,
+      ),
     );
   }
 
@@ -112,28 +79,48 @@ class LoginCubit extends Cubit<LoginState> {
       otp: otp,
     );
 
-    result.fold(
-      (failure) => emit(LoginError(failure.message)),
-      (response) async {
-        await getIt<SharedPref>().set(
-          key: PrefsKeys.isProviderAccount,
-          value: false,
-        );
-        await SecureLocalStorage.write(PrefsKeys.token, response.token);
-        await SecureLocalStorage.write(
-          PrefsKeys.refreshToken,
-          response.refreshToken,
-        );
-        await GuestSessionHelper.clearGuestBrowsing();
-        await getIt<ProfileCubit>().loadProfile();
-        await getIt<NotificationCubit>().refreshInbox(reloadList: true);
-        getIt<AppAlertMonitor>().start();
-        await AlertDeliveryBootstrap.ensureReady();
-        await PushNotificationService.instance.processLaunchNotifications();
-        await NotificationRouter.processPendingIfAny();
-        emit(LoginSuccess(response: response));
-      },
+    await result.fold<Future<void>>(
+      (failure) async => emit(LoginError(failure.message)),
+      (response) => _establishSession(
+        response: response,
+        isProvider: false,
+        identifier: phone,
+      ),
     );
+  }
+
+  Future<void> _establishSession({
+    required LoginResponseModel response,
+    required bool isProvider,
+    required String identifier,
+  }) async {
+    await getIt<SharedPref>().set(
+      key: PrefsKeys.isProviderAccount,
+      value: isProvider,
+    );
+    await SecureLocalStorage.write(PrefsKeys.token, response.token);
+    await SecureLocalStorage.write(
+      PrefsKeys.refreshToken,
+      response.refreshToken,
+    );
+    await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
+    await SecureLocalStorage.delete(PrefsKeys.password);
+    await GuestSessionHelper.clearGuestBrowsing();
+    if (!isClosed) {
+      emit(LoginSuccess(response: response));
+    }
+    unawaited(_runPostLoginSideEffects());
+  }
+
+  Future<void> _runPostLoginSideEffects() async {
+    try {
+      await getIt<ProfileCubit>().loadProfile();
+      await getIt<NotificationCubit>().refreshInbox(reloadList: true);
+      getIt<AppAlertMonitor>().start();
+      await AlertDeliveryBootstrap.ensureReady();
+      await PushNotificationService.instance.processLaunchNotifications();
+      await NotificationRouter.processPendingIfAny();
+    } catch (_) {}
   }
 
   Future<({String? debugOtp, String? error})> sendClientOtp(String phone) async {

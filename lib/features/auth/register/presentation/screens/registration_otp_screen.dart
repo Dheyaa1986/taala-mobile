@@ -5,11 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/app_config/app_strings.dart';
-import 'package:taal/core/app_config/prefs_keys.dart';
 import 'package:taal/core/di/service_locator.dart';
 import 'package:taal/core/extensions/space_extension.dart';
+import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/core/helpers/messages.dart';
-import 'package:taal/core/helpers/shared_pref_local_storage.dart';
 import 'package:taal/design_system/components/taala_button.dart';
 import 'package:taal/core/widgets/otp/phone_otp_verification_section.dart';
 import 'package:taal/features/auth/register/data/model/register_options.dart';
@@ -126,22 +125,16 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
             return;
           }
 
-          if (Navigator.of(context, rootNavigator: true).canPop()) {
-            Navigator.of(context, rootNavigator: true).pop();
-          }
+          AppMessages.hideLoading(context);
 
           if (state is RegisterSuccessState) {
-            await getIt<SharedPref>().set(
-              key: PrefsKeys.isProviderAccount,
-              value: false,
-            );
             AppMessages.showSuccess(
               context,
               state.response.message ?? AppStrings.signUp.tr(),
             );
-            if (context.mounted) {
-              context.goNamed(Routes.login, extra: false);
-            }
+            await AuthSessionHelper.goToLoginAfterRegistration(
+              isProvider: false,
+            );
             return;
           }
 

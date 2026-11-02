@@ -157,12 +157,16 @@ class PushNotificationService {
   }
 
   Future<void> _registerCurrentToken(FirebaseMessaging messaging) async {
-    final token = await messaging.getToken();
-    if (token == null || token.isEmpty) {
-      debugPrint('FCM token is empty');
-      return;
+    try {
+      final token = await messaging.getToken();
+      if (token == null || token.isEmpty) {
+        debugPrint('FCM token is empty');
+        return;
+      }
+      await _registerTokenWithBackend(token);
+    } catch (error) {
+      debugPrint('FCM getToken failed: $error');
     }
-    await _registerTokenWithBackend(token);
   }
 
   Future<void> syncTokenIfLoggedIn() async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:flutter/material.dart';
@@ -128,17 +130,16 @@ class _LoginFormState extends State<LoginForm> {
 
         if (_loadingDialogOpen) {
           _loadingDialogOpen = false;
-          final navigator = Navigator.of(context, rootNavigator: true);
-          if (navigator.canPop()) {
-            navigator.pop();
-          }
+          AppMessages.hideLoading(context);
         }
 
         if (state is LoginSuccess) {
           final isProvider = _role == UserRole.provider;
           context.read<BottomNavigationCubit>().isProvider = isProvider;
-          PushNotificationService.instance.syncTokenIfLoggedIn();
-          await BiometricEnrollment.handleAfterPasswordLogin(context);
+          unawaited(PushNotificationService.instance.syncTokenIfLoggedIn());
+          try {
+            await BiometricEnrollment.handleAfterPasswordLogin(context);
+          } catch (_) {}
           if (!context.mounted) return;
           await AuthSessionHelper.openAuthenticatedApp(context);
         } else if (state is LoginError) {

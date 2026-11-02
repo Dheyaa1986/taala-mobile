@@ -7,6 +7,7 @@ import '../../config/routes/app_router.dart';
 import '../app_config/app_urls.dart';
 import '../app_config/prefs_keys.dart';
 import '../helpers/auth_session_helper.dart';
+import '../helpers/guest_session_helper.dart';
 import '../helpers/secure_local_storage.dart';
 
 class CustomInterceptor extends Interceptor {
@@ -38,6 +39,10 @@ class CustomInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
+      if (GuestSessionHelper.suppressAuthRefresh) {
+        handler.next(err);
+        return;
+      }
       _failedRequests.add({'err': err, 'handler': handler});
 
       if (!isRefreshing) {

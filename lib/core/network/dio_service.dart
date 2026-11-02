@@ -52,7 +52,9 @@ class DioService implements NetworkService {
 
   Future<void> logout() async {
     getIt<AppAlertMonitor>().stop();
-    await PushNotificationService.instance.clearTokenFromBackend();
+    try {
+      await PushNotificationService.instance.clearTokenFromBackend();
+    } catch (_) {}
     _dio.options.headers.clear();
     await AuthSessionHelper.logout();
   }

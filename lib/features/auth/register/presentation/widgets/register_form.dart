@@ -120,9 +120,7 @@ class _RegisterFormState extends State<RegisterForm> {
           return;
         }
 
-        if (Navigator.of(context, rootNavigator: true).canPop()) {
-          Navigator.of(context, rootNavigator: true).pop();
-        }
+        AppMessages.hideLoading(context);
 
         if (state is RegisterSuccessState) {
           AppMessages.showSuccess(context, state.response.message ?? '');
