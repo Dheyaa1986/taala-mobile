@@ -306,6 +306,10 @@ class AppStrings {
   static const String guestHelpContactStepHint = 'guestHelpContactStepHint';
   static const String guestHelpVerifyStepHint = 'guestHelpVerifyStepHint';
   static const String guestHelpServiceStepHint = 'guestHelpServiceStepHint';
+  static const String guestHelpStepAccount = 'guestHelpStepAccount';
+  static const String guestHelpStepVerify = 'guestHelpStepVerify';
+  static const String guestHelpStepRequest = 'guestHelpStepRequest';
+  static const String guestHelpRetryTypes = 'guestHelpRetryTypes';
   static const String guestOtpResendHint = 'guestOtpResendHint';
   static const String guestOtpInlineHint = 'guestOtpInlineHint';
   static const String sendOtpFirst = 'sendOtpFirst';

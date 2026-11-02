@@ -45,7 +45,7 @@ Future<bool?> showGuestHelpRequestSheet(
 }) {
   // Full-screen route (not bottom sheet) avoids keyboard inset bugs on Oppo/MIUI.
   // Slide-from-bottom keeps the same feel as the old sheet.
-  return Navigator.of(context).push<bool>(
+  return Navigator.of(context, rootNavigator: true).push<bool>(
     PageRouteBuilder(
       fullscreenDialog: true,
       opaque: true,
@@ -164,7 +164,10 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
     );
     if (!mounted) return;
     result.fold(
-      (_) => setState(() => _loadingTypes = false),
+      (_) => setState(() {
+        _serviceCatalog = [];
+        _loadingTypes = false;
+      }),
       (data) => setState(() {
         _serviceCatalog = data;
         _loadingTypes = false;
@@ -249,8 +252,22 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   }
 
   Future<void> _continueContact() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (!_contactFormKey.currentState!.validate()) return;
     _goToStep(1);
+  }
+
+  void _continueOtp() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (!_otpSendSucceeded) {
+      _showError(AppStrings.sendOtpFirst.tr());
+      return;
+    }
+    if (_otpController.text.trim().length < 6) {
+      _showError(AppStrings.otpCode.tr());
+      return;
+    }
+    _goToStep(2);
   }
 
   Future<({String? debugOtp, String? error})> _sendGuestOtp(String phone) async {
@@ -397,11 +414,26 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
   Widget _buildStepIndicator() {
     return Row(
       children: [
-        _StepDot(active: _step >= 0, label: '1'),
+        _StepDot(
+          active: _step >= 0,
+          current: _step == 0,
+          number: '1',
+          label: AppStrings.guestHelpStepAccount.tr(),
+        ),
         Expanded(child: Divider(color: Colors.grey.shade300)),
-        _StepDot(active: _step >= 1, label: '2'),
+        _StepDot(
+          active: _step >= 1,
+          current: _step == 1,
+          number: '2',
+          label: AppStrings.guestHelpStepVerify.tr(),
+        ),
         Expanded(child: Divider(color: Colors.grey.shade300)),
-        _StepDot(active: _step >= 2, label: '3'),
+        _StepDot(
+          active: _step >= 2,
+          current: _step == 2,
+          number: '3',
+          label: AppStrings.guestHelpStepRequest.tr(),
+        ),
       ],
     );
   }
@@ -418,6 +450,11 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
             otpFocusNode: _otpFocusNode,
             onSendOtp: _sendGuestOtp,
             autoSendOnMount: true,
+            onCompleted: (code) {
+              if (code.length == 6 && _otpSendSucceeded) {
+                _continueOtp();
+              }
+            },
           ),
           16.height,
         ],
@@ -545,6 +582,28 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             )
+          else if (_serviceCatalog.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  Text(
+                    AppStrings.noServiceTypesAvailable.tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade700),
+                  ),
+                  12.height,
+                  TaalaButton(
+                    label: AppStrings.guestHelpRetryTypes.tr(),
+                    variant: TaalaButtonVariant.secondary,
+                    onPressed: () {
+                      setState(() => _loadingTypes = true);
+                      _loadServiceTypes();
+                    },
+                  ),
+                ],
+              ),
+            )
           else
             ServiceTypeCatalogSections(
               categories: _serviceCatalog,
@@ -615,17 +674,7 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
         children: [
           TaalaButton(
             label: AppStrings.continueKey.tr(),
-            onPressed: () {
-              if (!_otpSendSucceeded) {
-                _showError(AppStrings.sendOtpFirst.tr());
-                return;
-              }
-              if (_otpController.text.trim().length < 6) {
-                _showError(AppStrings.otpCode.tr());
-                return;
-              }
-              _goToStep(2);
-            },
+            onPressed: _continueOtp,
           ),
           8.height,
           TaalaButton(
@@ -668,8 +717,8 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
           padding: EdgeInsets.only(
             left: 16.w,
             right: 16.w,
-            top: 20.h,
-            bottom: 12.h,
+            top: 12.h,
+            bottom: 8.h,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -682,6 +731,9 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
                 child: SingleChildScrollView(
                   controller: _scrollController,
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.viewInsetsOf(context).bottom,
+                  ),
                   child: _step == 0
                       ? _buildContactStep()
                       : _step == 1
@@ -700,29 +752,57 @@ class _GuestHelpRequestSheetState extends State<GuestHelpRequestSheet> {
 }
 
 class _StepDot extends StatelessWidget {
-  const _StepDot({required this.active, required this.label});
+  const _StepDot({
+    required this.active,
+    required this.current,
+    required this.number,
+    required this.label,
+  });
 
   final bool active;
+  final bool current;
+  final String number;
   final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 28.w,
-      height: 28.w,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: active ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: active ? Colors.white : Colors.black54,
-          fontWeight: FontWeight.bold,
-          fontSize: 12.sp,
+    final color = active
+        ? Theme.of(context).colorScheme.primary
+        : Colors.grey.shade300;
+    return Column(
+      children: [
+        Container(
+          width: 28.w,
+          height: 28.w,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: current
+                ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
+                : null,
+          ),
+          child: Text(
+            number,
+            style: TextStyle(
+              color: active ? Colors.white : Colors.black54,
+              fontWeight: FontWeight.bold,
+              fontSize: 12.sp,
+            ),
+          ),
         ),
-      ),
+        4.height,
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.sp,
+            fontWeight: current ? FontWeight.w700 : FontWeight.w500,
+            color: current
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey.shade600,
+          ),
+        ),
+      ],
     );
   }
 }

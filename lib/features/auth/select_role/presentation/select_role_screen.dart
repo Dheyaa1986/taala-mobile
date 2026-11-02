@@ -92,11 +92,6 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                       ],
                     ),
                   );
-                } else if (context.mounted) {
-                  AppMessages.showSuccess(
-                    context,
-                    state.response.message ?? AppStrings.signUp.tr(),
-                  );
                 }
 
                 await AuthSessionHelper.goToLoginAfterRegistration(

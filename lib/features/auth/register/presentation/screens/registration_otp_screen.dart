@@ -128,10 +128,6 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           AppMessages.hideLoading(context);
 
           if (state is RegisterSuccessState) {
-            AppMessages.showSuccess(
-              context,
-              state.response.message ?? AppStrings.signUp.tr(),
-            );
             await AuthSessionHelper.goToLoginAfterRegistration(
               isProvider: false,
             );

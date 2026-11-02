@@ -60,8 +60,9 @@ class AppMessages {
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
+    try {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -92,5 +93,6 @@ class AppMessages {
         action: action,
       ),
     );
+    } catch (_) {}
   }
 }

@@ -30,7 +30,6 @@ import '../../../../../core/helpers/messages.dart';
 import '../../../../../core/helpers/auth_session_helper.dart';
 import '../../../../../core/helpers/biometric_auth.dart';
 import '../../../../../core/helpers/guest_session_helper.dart';
-import '../biometric_enrollment.dart';
 import 'device_key_button.dart';
 import '../../../../../core/helpers/secure_local_storage.dart';
 
@@ -135,14 +134,11 @@ class _LoginFormState extends State<LoginForm> {
 
         if (state is LoginSuccess) {
           final isProvider = _role == UserRole.provider;
-          context.read<BottomNavigationCubit>().isProvider = isProvider;
+          if (context.mounted) {
+            context.read<BottomNavigationCubit>().isProvider = isProvider;
+          }
           unawaited(PushNotificationService.instance.syncTokenIfLoggedIn());
-          if (!context.mounted) return;
           await AuthSessionHelper.openAuthenticatedApp(context);
-          if (!context.mounted) return;
-          try {
-            await BiometricEnrollment.handleAfterPasswordLogin(context);
-          } catch (_) {}
         } else if (state is LoginError) {
           AppMessages.showError(context, state.error);
         } else if (state is AccountNotVerified) {
