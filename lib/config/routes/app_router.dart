@@ -11,7 +11,6 @@ import 'package:taal/features/home/home_screen.dart';
 import 'package:taal/features/profile/client/presentation/screens/client_settings_screen.dart';
 import 'package:taal/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:taal/features/profile/presentation/screens/provider_profile_screen.dart';
-import 'package:taal/core/helpers/auth_session_helper.dart';
 import 'package:taal/features/subscriptions/presentation/screens/provider_subscription_screen.dart';
 import 'package:taal/features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import 'package:taal/features/profile/settings_screen.dart';
@@ -165,32 +164,15 @@ class AppRouter {
       ],
       navigatorKey: appNavigatorKey,
       initialLocation: Routes.splashScreen,
-      redirect: (context, state) async {
+      redirect: (context, state) {
         final location = state.matchedLocation;
         if (ProviderSubscriptionGate.isPublicRoute(location)) {
           return null;
         }
-
-        if (!await AuthSessionHelper.hasActiveSession()) {
-          return null;
-        }
-
-        if (!await AuthSessionHelper.isProviderSession()) {
-          return null;
-        }
-
-        final needsSubscription =
-            await ProviderSubscriptionGate.providerNeedsSubscription();
-        if (needsSubscription &&
+        if (ProviderSubscriptionGate.cachedNeedsSubscription &&
             location != Routes.providerSubscriptionRequired) {
           return Routes.providerSubscriptionRequired;
         }
-
-        if (!needsSubscription &&
-            location == Routes.providerSubscriptionRequired) {
-          return Routes.home;
-        }
-
         return null;
       },
       routes: <RouteBase>[
@@ -498,10 +480,15 @@ CustomTransitionPage screenWithFadeTransition<T>({
   required Widget child,
 }) {
   return CustomTransitionPage<T>(
-    transitionDuration: const Duration(milliseconds: 300),
+    transitionDuration: const Duration(milliseconds: 200),
     key: state.pageKey,
+    opaque: true,
     child: child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-        FadeTransition(opacity: animation, child: child),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: FadeTransition(opacity: animation, child: child),
+      );
+    },
   );
 }

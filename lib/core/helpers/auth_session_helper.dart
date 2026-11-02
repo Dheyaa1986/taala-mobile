@@ -164,7 +164,7 @@ class AuthSessionHelper {
     );
     await GuestSessionHelper.clearGuestBrowsing();
     syncNavigationRole(isProvider);
-    _goNamed(Routes.login, extra: isProvider);
+    AppRouter.router.go(Routes.login, extra: isProvider);
   }
 
   static Future<void> openAuthenticatedApp(BuildContext context) async {
@@ -173,24 +173,12 @@ class AuthSessionHelper {
     syncNavigationRole(isProviderAccount);
     if (isProviderAccount) {
       try {
-        await ProviderSubscriptionGate.navigateAfterAuth(
-          AppRouter.appNavigatorKey.currentContext ?? context,
-        );
+        await ProviderSubscriptionGate.navigateAfterAuth(context);
       } catch (_) {
-        _goNamed(Routes.home);
+        AppRouter.router.go(Routes.home);
       }
       return;
     }
-    _goNamed(Routes.home);
-  }
-
-  static void _goNamed(String name, {Object? extra}) {
-    void go() {
-      final navContext = AppRouter.appNavigatorKey.currentContext;
-      if (navContext == null || !navContext.mounted) return;
-      navContext.goNamed(name, extra: extra);
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => go());
+    AppRouter.router.go(Routes.home);
   }
 }

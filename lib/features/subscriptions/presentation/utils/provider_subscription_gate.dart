@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taal/config/routes/app_router.dart';
 import 'package:taal/config/routes/routes.dart';
 import 'package:taal/core/helpers/auth_session_helper.dart';
@@ -13,6 +12,8 @@ class ProviderSubscriptionGate {
   static void invalidate() {
     _canReceiveOrders = null;
   }
+
+  static bool get cachedNeedsSubscription => _canReceiveOrders == false;
 
   static void syncCanReceiveOrders(bool canReceiveOrders) {
     _canReceiveOrders = canReceiveOrders;
@@ -48,11 +49,7 @@ class ProviderSubscriptionGate {
     } catch (_) {
       needsSubscription = false;
     }
-    final navContext = context.mounted
-        ? context
-        : AppRouter.appNavigatorKey.currentContext;
-    if (navContext == null || !navContext.mounted) return;
-    navContext.goNamed(
+    AppRouter.router.go(
       needsSubscription ? Routes.providerSubscriptionRequired : Routes.home,
     );
   }
