@@ -100,8 +100,13 @@ class ApiErrorMessage {
         }
         if (text.contains('invalid_otp') ||
             text.contains('Invalid or expired verification code') ||
-            text.contains('OTP is required')) {
+            text.contains('OTP is required') ||
+            text.contains('otp_required')) {
           return AppStrings.invalidOtp.tr();
+        }
+        if (text.contains('provider_pending_approval') ||
+            text.contains('pending approval')) {
+          return AppStrings.providerPendingApprovalBody.tr();
         }
         if (text.contains('must be a UUID') ||
             text.contains('must be longer than or equal to 6') ||

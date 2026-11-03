@@ -149,7 +149,14 @@ class _LoginFormState extends State<LoginForm> {
             AppMessages.showError(context, state.error);
           }
         } else if (state is AccountNotVerified) {
-          AppMessages.showError(context, state.error);
+          if (AuthSessionHelper.isPendingApprovalError(state.error)) {
+            AppMessages.showSuccess(
+              context,
+              AppStrings.providerPendingApprovalBody.tr(),
+            );
+          } else {
+            AppMessages.showError(context, state.error);
+          }
         }
       },
       builder: (context, state) {

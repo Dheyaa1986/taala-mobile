@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -114,12 +116,35 @@ class DioService implements NetworkService {
           (response.statusCode == 200 ||
               response.statusCode == 201 ||
               response.statusCode == 204)) {
-        return mapper(response.data);
+        return mapper(_asJsonMap(response.data, response.statusCode));
       } else {
         return response.data;
       }
     } on DioException catch (e) {
       return ErrorsExceptionsHandler.handleError(e);
     }
+  }
+
+  Map<String, dynamic> _asJsonMap(dynamic data, int? statusCode) {
+    if (data == null || data == '') {
+      return {'code': statusCode};
+    }
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) {
+      return data.map((key, value) => MapEntry(key.toString(), value));
+    }
+    if (data is String) {
+      final trimmed = data.trim();
+      if (trimmed.isEmpty) return {'code': statusCode};
+      try {
+        final decoded = jsonDecode(trimmed);
+        if (decoded is Map) {
+          return decoded.map(
+            (key, value) => MapEntry(key.toString(), value),
+          );
+        }
+      } catch (_) {}
+    }
+    return {'code': statusCode, 'response': data};
   }
 }

@@ -110,7 +110,10 @@ class ErrorsExceptionsHandler {
           case 401:
             throw UnauthorizedException(_resolveMessage(errorMessage));
           case 404:
-            throw NotFoundException(_resolveMessage(errorMessage));
+            throw CustomException(
+              _resolveMessage(errorMessage),
+              code: 404,
+            );
           case 409:
             throw ConflictException(_resolveMessage(errorMessage));
           case 429:

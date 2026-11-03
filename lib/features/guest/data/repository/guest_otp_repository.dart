@@ -52,6 +52,28 @@ class GuestOtpRepository extends Repository {
     });
   }
 
+  Future<Either<CustomException, bool>> checkRegistrationOtp({
+    required String phone,
+    required String otp,
+  }) {
+    return exceptionHandler(() async {
+      await dioService.callApi(
+        NetworkRequest(
+          AppUrls.registerCheckOtp,
+          method: RequestMethod.post,
+          requestWithOutToken: true,
+          connectTimeout: NetworkRequest.otpRequestTimeout,
+          receiveTimeout: NetworkRequest.otpRequestTimeout,
+          body: {
+            'phone': PhoneFormatterHelper.normalizeForApi(phone.trim()),
+            'otp': otp.trim(),
+          },
+        ),
+      );
+      return true;
+    });
+  }
+
   GuestOtpSendResult _toSendResult(dynamic raw) {
     final payload = _extractPayload(raw);
     return GuestOtpSendResult(

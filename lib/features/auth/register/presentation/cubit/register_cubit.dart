@@ -16,7 +16,7 @@ class RegisterCubit extends Cubit<RegisterState> {
   RegisterCubit(this.signupRepository) : super(RegisterInitialState());
 
   Future<void> registerClient({required RegisterOptions options}) async {
-    if (state is RegisterLoadingState || state is RegisterSuccessState) {
+    if (state is RegisterLoadingState) {
       return;
     }
     emit(RegisterLoadingState());

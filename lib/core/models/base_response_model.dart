@@ -12,17 +12,25 @@ class BaseResponseModel {
   factory BaseResponseModel.fromJson(Map<String, dynamic> json) {
     final response = json['response'];
     var message = json['message']?.toString();
-    var requiresApproval = false;
-
+    var requiresApproval = json['requiresApproval'] == true;
+    Map<String, dynamic>? responseMap;
     if (response is Map<String, dynamic>) {
-      if (response.containsKey('message')) {
-        message = response['message']?.toString();
+      responseMap = response;
+    } else if (response is Map) {
+      responseMap = response.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+    }
+
+    if (responseMap != null) {
+      if (responseMap.containsKey('message')) {
+        message = responseMap['message']?.toString();
       }
-      requiresApproval = response['requiresApproval'] == true;
+      requiresApproval =
+          requiresApproval || responseMap['requiresApproval'] == true;
     } else if (json.containsKey('additionalProp1') &&
-        json['additionalProp1'] is Map<String, dynamic> &&
-        (json['additionalProp1'] as Map<String, dynamic>)
-            .containsKey('message')) {
+        json['additionalProp1'] is Map &&
+        (json['additionalProp1'] as Map).containsKey('message')) {
       message = json['additionalProp1']['message']?.toString();
     } else if (response != null) {
       message = response.toString();

@@ -262,6 +262,41 @@ class _ProviderRegisterStepsScreenState
     _goToStep(previous);
   }
 
+  Future<void> _finishProviderRegistration({
+    required bool requiresApproval,
+  }) async {
+    if (requiresApproval) {
+      if (mounted) {
+        AppMessages.showSuccess(
+          context,
+          AppStrings.providerPendingApprovalBody.tr(),
+        );
+      }
+      await AuthSessionHelper.goToLoginAfterRegistration(
+        isProvider: true,
+        loginIdentifier: widget.options.phone,
+      );
+      return;
+    }
+
+    final result = await AuthSessionHelper.completeRegistrationSignIn(
+      identifier: widget.options.phone,
+      password: widget.options.password,
+      isProvider: true,
+    );
+    if (result == RegistrationSignInResult.entered) return;
+    if (result == RegistrationSignInResult.pendingApproval && mounted) {
+      AppMessages.showSuccess(
+        context,
+        AppStrings.providerPendingApprovalBody.tr(),
+      );
+    }
+    await AuthSessionHelper.goToLoginAfterRegistration(
+      isProvider: true,
+      loginIdentifier: widget.options.phone,
+    );
+  }
+
   void _submit() {
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -355,22 +390,33 @@ class _ProviderRegisterStepsScreenState
           AppMessages.hideLoading();
 
           if (state is RegisterSuccessState) {
-            await AuthSessionHelper.goToLoginAfterRegistration(
-              isProvider: true,
-              loginIdentifier: widget.options.phone,
+            await _finishProviderRegistration(
+              requiresApproval: state.response.requiresApproval,
             );
             return;
           }
 
           if (state is RegisterErrorState) {
             if (mounted) setState(() => _submitting = false);
-            if (AuthSessionHelper.isExistingAccountError(state.error)) {
-              await AuthSessionHelper.goToLoginAfterRegistration(
-                isProvider: true,
-                loginIdentifier: widget.options.phone,
+            if (AuthSessionHelper.isExistingAccountError(state.error) ||
+                AuthSessionHelper.isPendingApprovalError(state.error)) {
+              await _finishProviderRegistration(
+                requiresApproval:
+                    AuthSessionHelper.isPendingApprovalError(state.error),
               );
               return;
             }
+            final recovered = await AuthSessionHelper.completeRegistrationSignIn(
+              identifier: widget.options.phone,
+              password: widget.options.password,
+              isProvider: true,
+            );
+            if (recovered == RegistrationSignInResult.entered) return;
+            if (recovered == RegistrationSignInResult.pendingApproval) {
+              await _finishProviderRegistration(requiresApproval: true);
+              return;
+            }
+            if (!mounted) return;
             AppMessages.showError(context, state.error);
           }
         },

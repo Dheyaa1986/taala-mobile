@@ -23,6 +23,8 @@ import 'phone_helper.dart';
 import 'secure_local_storage.dart';
 import 'shared_pref_local_storage.dart';
 
+enum RegistrationSignInResult { entered, pendingApproval, failed }
+
 class AuthSessionHelper {
   const AuthSessionHelper._();
 
@@ -187,7 +189,28 @@ class AuthSessionHelper {
         lower.contains('email or phone');
   }
 
+  static bool isPendingApprovalError(String message) {
+    final lower = message.toLowerCase();
+    return message.contains('قيد المراجعة') ||
+        message.contains('موافقة الإدارة') ||
+        lower.contains('pending approval') ||
+        lower.contains('after admin approval');
+  }
+
   static Future<bool> signInAndEnter({
+    required String identifier,
+    required String password,
+    required bool isProvider,
+  }) async {
+    final result = await completeRegistrationSignIn(
+      identifier: identifier,
+      password: password,
+      isProvider: isProvider,
+    );
+    return result == RegistrationSignInResult.entered;
+  }
+
+  static Future<RegistrationSignInResult> completeRegistrationSignIn({
     required String identifier,
     required String password,
     required bool isProvider,
@@ -206,7 +229,9 @@ class AuthSessionHelper {
     } catch (_) {}
 
     final trimmedId = identifier.trim();
-    if (trimmedId.isEmpty || password.isEmpty) return false;
+    if (trimmedId.isEmpty || password.isEmpty) {
+      return RegistrationSignInResult.failed;
+    }
 
     final loginIdentifier = trimmedId.contains('@')
         ? trimmedId.toLowerCase()
@@ -221,8 +246,14 @@ class AuthSessionHelper {
       );
     } catch (_) {}
 
-    if (loginCubit.state is! LoginSuccess && !await hasActiveSession()) {
-      return false;
+    final state = loginCubit.state;
+    if (state is AccountNotVerified ||
+        (state is LoginError && isPendingApprovalError(state.error))) {
+      return RegistrationSignInResult.pendingApproval;
+    }
+
+    if (state is! LoginSuccess && !await hasActiveSession()) {
+      return RegistrationSignInResult.failed;
     }
 
     final context = AppRouter.appNavigatorKey.currentContext;
@@ -231,7 +262,7 @@ class AuthSessionHelper {
     } else {
       AppRouter.router.go(Routes.home);
     }
-    return true;
+    return RegistrationSignInResult.entered;
   }
 
   static Future<void> goToLoginAfterRegistration({

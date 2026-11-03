@@ -70,7 +70,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     );
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     if (!_otpSent) {
       AppMessages.showError(context, AppStrings.sendOtpFirst.tr());
       return;
@@ -82,14 +82,12 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
       return;
     }
 
-    _submitWithSecret(otp);
+    await _submitWithSecret(otp);
   }
 
-  void _submitWithSecret(String secret) {
+  Future<void> _submitWithSecret(String secret) async {
     if (_submitting) return;
-    if (!_isProvider) {
-      setState(() => _submitting = true);
-    }
+    setState(() => _submitting = true);
     final optionsWithOtp = RegisterOptions(
       countryImageSvg: widget.options.countryImageSvg,
       confirmPassword: widget.options.confirmPassword,
@@ -105,6 +103,21 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     );
 
     if (_isProvider) {
+      final check = await _otpRepository.checkRegistrationOtp(
+        phone: widget.options.phone,
+        otp: secret,
+      );
+      if (!mounted) return;
+      final blocked = check.fold<String?>((error) {
+        if (error.code == 404) return null;
+        return error.displayMessage;
+      }, (_) => null);
+      if (blocked != null) {
+        setState(() => _submitting = false);
+        AppMessages.showError(context, blocked);
+        return;
+      }
+      setState(() => _submitting = false);
       GoRouter.of(context).pushNamed(
         Routes.providerRegisterSteps,
         extra: optionsWithOtp,
@@ -119,12 +132,19 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     final phone = widget.options.phone.trim();
     final email = widget.options.email.trim();
     final identifier = phone.isNotEmpty ? phone : email;
-    final entered = await AuthSessionHelper.signInAndEnter(
+    final result = await AuthSessionHelper.completeRegistrationSignIn(
       identifier: identifier,
       password: widget.options.password,
       isProvider: _isProvider,
     );
-    if (entered) return true;
+    if (result == RegistrationSignInResult.entered) return true;
+    if (result == RegistrationSignInResult.pendingApproval) {
+      await AuthSessionHelper.goToLoginAfterRegistration(
+        isProvider: _isProvider,
+        loginIdentifier: identifier,
+      );
+      return true;
+    }
     if (await AuthSessionHelper.hasActiveSession()) {
       if (!mounted) return true;
       await AuthSessionHelper.openAuthenticatedApp(context);
@@ -153,6 +173,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
             current is RegisterSuccessState ||
             current is RegisterErrorState,
         listener: (context, state) async {
+          if (_isProvider) return;
           if (state is RegisterLoadingState) {
             return;
           }
@@ -165,8 +186,15 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           }
 
           if (state is RegisterErrorState) {
+            if (AuthSessionHelper.isExistingAccountError(state.error) ||
+                AuthSessionHelper.isPendingApprovalError(state.error)) {
+              if (await _tryEnterAfterRegistration()) return;
+              await _enterAfterRegistration();
+              return;
+            }
             if (await _tryEnterAfterRegistration()) return;
-            if (mounted) setState(() => _submitting = false);
+            if (!mounted) return;
+            setState(() => _submitting = false);
             AppMessages.showError(context, state.error);
           }
         },

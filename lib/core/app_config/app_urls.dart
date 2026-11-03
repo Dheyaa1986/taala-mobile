@@ -22,6 +22,7 @@ class AppUrls {
   static String get providerLogin => '$base/auth/provider/login';
   static String get login => clientLogin;
   static String get registerClient => '$base/auth/register';
+  static String get registerCheckOtp => '$base/auth/register/check-otp';
   static String get registerCompany => '$base/auth/company-register';
   static String get logout => '$base/logout';
   static String get emailVerify => '$base/email/verify';

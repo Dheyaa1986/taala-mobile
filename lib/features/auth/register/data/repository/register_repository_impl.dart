@@ -24,11 +24,19 @@ class RegisterRepositoryImpl extends RegisterRepository {
               requestWithOutToken: true,
               connectTimeout: const Duration(seconds: 120),
               receiveTimeout: const Duration(seconds: 120)),
-          mapper: (json) => BaseResponseModel.fromJson(json),
+          mapper: (json) {
+            try {
+              return BaseResponseModel.fromJson(json);
+            } catch (_) {
+              return BaseResponseModel(code: 201, message: '');
+            }
+          },
         );
         final identifier =
             model.phone.trim().isNotEmpty ? model.phone.trim() : model.email;
-        await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
+        try {
+          await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
+        } catch (_) {}
         return response;
       },
     );
