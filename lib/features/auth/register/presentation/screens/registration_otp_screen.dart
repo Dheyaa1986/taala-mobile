@@ -31,6 +31,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
   final _otpRepository = GuestOtpRepository();
   late final RegisterCubit _registerCubit = getIt<RegisterCubit>();
   bool _otpSent = false;
+  bool _submitting = false;
 
   bool get _isProvider => widget.options.type == 'provider';
   bool get _canSubmit =>
@@ -85,6 +86,10 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
   }
 
   void _submitWithSecret(String secret) {
+    if (_submitting) return;
+    if (!_isProvider) {
+      setState(() => _submitting = true);
+    }
     final optionsWithOtp = RegisterOptions(
       countryImageSvg: widget.options.countryImageSvg,
       confirmPassword: widget.options.confirmPassword,
@@ -135,6 +140,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           }
 
           if (state is RegisterErrorState) {
+            if (mounted) setState(() => _submitting = false);
             if (AuthSessionHelper.isExistingAccountError(state.error)) {
               await AuthSessionHelper.goToLoginAfterRegistration(
                 isProvider: _isProvider,
@@ -170,7 +176,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
                       autoSendOnMount: true,
                       showIntroHint: false,
                       onCompleted: (code) {
-                        if (_otpSent) {
+                        if (_otpSent && !_submitting) {
                           _submitWithSecret(code);
                         }
                       },
@@ -180,7 +186,8 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
                       label: _isProvider
                           ? AppStrings.next.tr()
                           : AppStrings.signUp.tr(),
-                      onPressed: _canSubmit ? _continue : null,
+                      onPressed:
+                          _canSubmit && !_submitting ? _continue : null,
                     ),
                     24.height,
                   ],

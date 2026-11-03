@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:easy_localization/easy_localization.dart';
 
+import '../../../../../../core/app_config/app_strings.dart';
+import '../../../../../../core/error/exceptions.dart';
 import '../../../../../../core/models/base_response_model.dart';
 
 class LoginResponseModel extends BaseResponseModel {
@@ -14,11 +17,20 @@ class LoginResponseModel extends BaseResponseModel {
 
   factory LoginResponseModel.fromJson({required Map<String, dynamic> json}) {
     final payload = json['response'];
-    final map = payload is Map<String, dynamic> ? payload : json;
-    final token = map['token']?.toString() ?? '';
-    final refreshToken = map['refreshToken']?.toString() ?? '';
+    final nested = payload is Map<String, dynamic>
+        ? (payload['response'] is Map<String, dynamic>
+            ? payload['response'] as Map<String, dynamic>
+            : payload)
+        : json;
+    final map = nested;
+    final token = map['token']?.toString() ??
+        json['token']?.toString() ??
+        '';
+    final refreshToken = map['refreshToken']?.toString() ??
+        json['refreshToken']?.toString() ??
+        '';
     if (token.isEmpty || refreshToken.isEmpty) {
-      throw FormatException('invalid login payload');
+      throw CustomException(AppStrings.genericError.tr());
     }
     return LoginResponseModel(
       code: json['code'] is int ? json['code'] as int : int.tryParse('${json['code']}'),

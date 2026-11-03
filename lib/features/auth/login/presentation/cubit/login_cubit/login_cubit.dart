@@ -29,6 +29,7 @@ class LoginCubit extends Cubit<LoginState> {
     required String password,
     bool isProvider = false,
   }) async {
+    if (state is LoginLoading) return;
     emit(LoginLoading());
 
     final result = await loginRepository.login(
@@ -54,6 +55,7 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   Future<void> loginClientByPhone({required String phone}) async {
+    if (state is LoginLoading) return;
     emit(LoginLoading());
 
     final result = await loginRepository.loginClientByPhone(phone);
@@ -72,6 +74,7 @@ class LoginCubit extends Cubit<LoginState> {
     required String phone,
     String? otp,
   }) async {
+    if (state is LoginLoading) return;
     emit(LoginLoading());
 
     final result = await loginRepository.verifyClientOtp(

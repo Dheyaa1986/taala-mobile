@@ -163,7 +163,9 @@ class AuthSessionHelper {
     final lower = message.toLowerCase();
     return message.contains('موجود بالفعل') ||
         message.contains('مستخدم من حساب آخر') ||
+        message.contains('مسجّلة مسبقاً') ||
         lower.contains('already exists') ||
+        lower.contains('duplicate') ||
         lower.contains('email or phone');
   }
 
