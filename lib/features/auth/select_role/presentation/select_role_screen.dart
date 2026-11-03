@@ -71,6 +71,7 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
               if (state is RegisterSuccessState) {
                 await AuthSessionHelper.goToLoginAfterRegistration(
                   isProvider: _role == UserRole.provider,
+                  loginIdentifier: widget.options?.phone,
                 );
                 return;
               }
@@ -79,6 +80,7 @@ class _SelectRoleScreenState extends State<SelectRoleScreen> {
                 if (AuthSessionHelper.isExistingAccountError(state.error)) {
                   await AuthSessionHelper.goToLoginAfterRegistration(
                     isProvider: _role == UserRole.provider,
+                    loginIdentifier: widget.options?.phone,
                   );
                   return;
                 }

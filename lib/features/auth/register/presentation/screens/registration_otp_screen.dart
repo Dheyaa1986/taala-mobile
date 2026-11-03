@@ -129,6 +129,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           if (state is RegisterSuccessState) {
             await AuthSessionHelper.goToLoginAfterRegistration(
               isProvider: false,
+              loginIdentifier: widget.options.phone,
             );
             return;
           }
@@ -137,6 +138,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
             if (AuthSessionHelper.isExistingAccountError(state.error)) {
               await AuthSessionHelper.goToLoginAfterRegistration(
                 isProvider: _isProvider,
+                loginIdentifier: widget.options.phone,
               );
               return;
             }

@@ -357,6 +357,7 @@ class _ProviderRegisterStepsScreenState
           if (state is RegisterSuccessState) {
             await AuthSessionHelper.goToLoginAfterRegistration(
               isProvider: true,
+              loginIdentifier: widget.options.phone,
             );
             return;
           }
@@ -366,6 +367,7 @@ class _ProviderRegisterStepsScreenState
             if (AuthSessionHelper.isExistingAccountError(state.error)) {
               await AuthSessionHelper.goToLoginAfterRegistration(
                 isProvider: true,
+                loginIdentifier: widget.options.phone,
               );
               return;
             }

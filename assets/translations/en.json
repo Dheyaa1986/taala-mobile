@@ -463,6 +463,8 @@
   "navigationBuildingRoute": "Calculating route...",
   "navigationRouteReady": "Route ready — start driving",
   "navigationRouteFailed": "Could not build route — check GPS and internet",
+  "navigationOfflineRoute": "Offline mode — approximate path to destination",
+  "navigationFollowDestination": "Head to the destination",
   "navigationGpsRequired": "Enable GPS to start navigation",
   "navigationYourLocation": "Your location",
   "navigationArrived": "You have arrived",

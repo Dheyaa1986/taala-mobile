@@ -499,6 +499,8 @@
   "navigationBuildingRoute": "جاري حساب المسار...",
   "navigationRouteReady": "المسار جاهز — ابدأ القيادة",
   "navigationRouteFailed": "تعذّر حساب المسار — تحقق من GPS والإنترنت",
+  "navigationOfflineRoute": "وضع بدون إنترنت — مسار تقريبي إلى الوجهة",
+  "navigationFollowDestination": "توجه إلى الوجهة",
   "navigationGpsRequired": "فعّل GPS لبدء الملاحة",
   "navigationYourLocation": "موقعك",
   "navigationArrived": "وصلت إلى الوجهة",

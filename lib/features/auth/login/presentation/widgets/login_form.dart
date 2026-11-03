@@ -98,8 +98,14 @@ class _LoginFormState extends State<LoginForm> {
 
   void addPostFrameCallBack() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _identifierController.text =
+      var identifier =
           await SecureLocalStorage.read(PrefsKeys.mailOrPhone) ?? '';
+      if (identifier.isEmpty) {
+        identifier =
+            getIt<SharedPref>().get(key: PrefsKeys.mailOrPhone)?.toString() ??
+                '';
+      }
+      _identifierController.text = identifier;
       await SecureLocalStorage.delete(PrefsKeys.password);
       final showKey = await BiometricAuth.isEnabled() &&
           await BiometricAuth.canUseDeviceKey() &&

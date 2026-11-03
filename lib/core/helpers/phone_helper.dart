@@ -1,25 +1,40 @@
 import '../countries/data/model/country_model.dart';
 
 class PhoneFormatterHelper {
+  static String toAsciiDigits(String value) {
+    const eastern = '٠١٢٣٤٥٦٧٨٩';
+    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    final buffer = StringBuffer();
+    for (final rune in value.runes) {
+      final ch = String.fromCharCode(rune);
+      var index = eastern.indexOf(ch);
+      if (index >= 0) {
+        buffer.write(index);
+        continue;
+      }
+      index = persian.indexOf(ch);
+      if (index >= 0) {
+        buffer.write(index);
+        continue;
+      }
+      buffer.write(ch);
+    }
+    return buffer.toString();
+  }
+
   /// Matches backend `PhoneOtpService.normalizePhone` for API requests.
   static String normalizeForApi(String phone) {
-    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    var digits = toAsciiDigits(phone).replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return '';
-
     if (digits.startsWith('964')) {
-      return '+$digits';
+      digits = digits.substring(3);
     }
-    if (digits.startsWith('0')) {
-      return '+964${digits.substring(1)}';
-    }
-    if (digits.length >= 9 && digits.length <= 11) {
-      return '+964${digits.replaceFirst(RegExp(r'^0+'), '')}';
-    }
-    return '+$digits';
+    digits = digits.replaceFirst(RegExp(r'^0+'), '');
+    return '+964$digits';
   }
 
   static String formatPhone(String phone, CountryModel? country) {
-    final trimmed = phone.trim();
+    final trimmed = toAsciiDigits(phone).trim();
     if (trimmed.isEmpty) return '';
 
     final digits = trimmed.replaceAll(RegExp(r'\s+'), '');

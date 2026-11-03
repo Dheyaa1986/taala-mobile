@@ -26,10 +26,9 @@ class RegisterRepositoryImpl extends RegisterRepository {
               receiveTimeout: const Duration(seconds: 120)),
           mapper: (json) => BaseResponseModel.fromJson(json),
         );
-        await SecureLocalStorage.write(
-          PrefsKeys.mailOrPhone,
-          model.email,
-        );
+        final identifier =
+            model.phone.trim().isNotEmpty ? model.phone.trim() : model.email;
+        await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
         return response;
       },
     );

@@ -169,12 +169,23 @@ class AuthSessionHelper {
 
   static Future<void> goToLoginAfterRegistration({
     required bool isProvider,
+    String? loginIdentifier,
   }) async {
     _prepareNavigation();
     await getIt<SharedPref>().set(
       key: PrefsKeys.isProviderAccount,
       value: isProvider,
     );
+    final identifier = loginIdentifier?.trim() ?? '';
+    if (identifier.isNotEmpty) {
+      await getIt<SharedPref>().set(
+        key: PrefsKeys.mailOrPhone,
+        value: identifier,
+      );
+      try {
+        await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
+      } catch (_) {}
+    }
     syncNavigationRole(isProvider);
     try {
       await GuestSessionHelper.clearGuestBrowsing();

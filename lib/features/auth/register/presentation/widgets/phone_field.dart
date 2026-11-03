@@ -10,6 +10,7 @@ import '../../../../../core/app_config/font_styles.dart';
 import '../../../../../core/countries/data/model/country_model.dart';
 import '../../../../../core/countries/presentation/cubit/countries_cubit.dart';
 import '../../../../../core/countries/presentation/widgets/countries_widget.dart';
+import '../../../../../core/helpers/phone_helper.dart';
 import '../../../../../core/widgets/fields/custom_text_field.dart';
 
 class PhoneField extends StatelessWidget {
@@ -59,7 +60,14 @@ class PhoneField extends StatelessWidget {
           hint: AppStrings.enterPhone.tr(),
           keyboardType: TextInputType.phone,
           inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
+            TextInputFormatter.withFunction((oldValue, newValue) {
+              final ascii = PhoneFormatterHelper.toAsciiDigits(newValue.text)
+                  .replaceAll(RegExp(r'\D'), '');
+              return TextEditingValue(
+                text: ascii,
+                selection: TextSelection.collapsed(offset: ascii.length),
+              );
+            }),
             LengthLimitingTextInputFormatter(11)
           ],
           validator: (value) {

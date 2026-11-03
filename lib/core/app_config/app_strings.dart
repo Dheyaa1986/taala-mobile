@@ -531,6 +531,9 @@ class AppStrings {
   static const String navigationBuildingRoute = 'navigationBuildingRoute';
   static const String navigationRouteReady = 'navigationRouteReady';
   static const String navigationRouteFailed = 'navigationRouteFailed';
+  static const String navigationOfflineRoute = 'navigationOfflineRoute';
+  static const String navigationFollowDestination =
+      'navigationFollowDestination';
   static const String navigationGpsRequired = 'navigationGpsRequired';
   static const String navigationYourLocation = 'navigationYourLocation';
   static const String navigationArrived = 'navigationArrived';

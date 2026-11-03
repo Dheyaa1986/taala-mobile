@@ -13,6 +13,7 @@ import 'package:taal/features/my_places/data/my_place_item.dart';
 import 'package:taal/features/my_places/data/my_places_repository.dart';
 import 'package:taal/features/my_places/presentation/my_place_ui.dart';
 import 'package:taal/core/extensions/device_insets_extension.dart';
+import 'package:taal/core/helpers/connectivity_helper.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/google/google_maps_config.dart';
 import 'package:taal/core/maps/map_style_config.dart';
@@ -230,13 +231,19 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   Future<void> _refreshBestRoute() async {
     final from = _providerPoint;
     if (from == null || _loadingRoute || _refreshingBestRoute) return;
+    if (_route?.isApproximate == true &&
+        !await ConnectivityHelper.connected) {
+      return;
+    }
     _refreshingBestRoute = true;
     _lastBestRouteAt = DateTime.now();
     final route = await _routing.fetchNavigationRoute(from, _targetPoint);
     _refreshingBestRoute = false;
     if (!mounted || route == null || !route.isValid) return;
     final current = _route;
+    if (route.isApproximate && (current?.isApproximate ?? false)) return;
     if (current != null &&
+        !current.isApproximate &&
         route.totalDurationSeconds >= current.totalDurationSeconds - 8) {
       return;
     }
@@ -341,6 +348,9 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
 
   String _statusText() {
     if (_loadingRoute) return AppStrings.navigationBuildingRoute.tr();
+    if (_route?.isApproximate == true) {
+      return AppStrings.navigationOfflineRoute.tr();
+    }
     if (_routeFailed) return AppStrings.navigationRouteFailed.tr();
     if (_guidanceSnapshot.arrived) return AppStrings.navigationArrived.tr();
     if (_navigationActive) return AppStrings.navigationActive.tr();

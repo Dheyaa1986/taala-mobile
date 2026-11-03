@@ -22,12 +22,14 @@ class TaalaNavigationRoute {
     required this.steps,
     required this.totalDistanceMeters,
     required this.totalDurationSeconds,
+    this.isApproximate = false,
   });
 
   final List<LatLng> points;
   final List<TaalaNavigationStep> steps;
   final double totalDistanceMeters;
   final double totalDurationSeconds;
+  final bool isApproximate;
 
   bool get isValid => points.length >= 2 && steps.isNotEmpty;
 }

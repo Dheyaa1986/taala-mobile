@@ -85,7 +85,9 @@ class RouteGuidanceController {
 
   bool shouldReroute(LatLng position) {
     final route = _route;
-    if (route == null || route.points.length < 2) return false;
+    if (route == null || route.isApproximate || route.points.length < 2) {
+      return false;
+    }
     return distanceToPolylineMeters(position, route.points) > 35;
   }
 
@@ -96,7 +98,8 @@ class RouteGuidanceController {
       return _snapshot;
     }
 
-    _offRoute = distanceToPolylineMeters(position, route.points) > 50;
+    _offRoute = !route.isApproximate &&
+        distanceToPolylineMeters(position, route.points) > 50;
     if (_offRoute) {
       _refreshSnapshot();
       return _snapshot;
