@@ -9,6 +9,7 @@ import '../../../../../../core/alerts/push_notification_service.dart';
 import '../../../../../../core/app_config/prefs_keys.dart';
 import '../../../../../../core/alerts/app_alert_monitor.dart';
 import '../../../../../../core/di/service_locator.dart';
+import '../../../../../../core/helpers/auth_session_helper.dart';
 import '../../../../../../core/helpers/guest_session_helper.dart';
 import '../../../../../../core/helpers/shared_pref_local_storage.dart';
 import '../../../../../../core/helpers/secure_local_storage.dart';
@@ -101,10 +102,9 @@ class LoginCubit extends Cubit<LoginState> {
       key: PrefsKeys.isProviderAccount,
       value: isProvider,
     );
-    await SecureLocalStorage.write(PrefsKeys.token, response.token);
-    await SecureLocalStorage.write(
-      PrefsKeys.refreshToken,
-      response.refreshToken,
+    await AuthSessionHelper.persistVerifiedTokens(
+      token: response.token,
+      refreshToken: response.refreshToken,
     );
     await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
     await SecureLocalStorage.delete(PrefsKeys.password);

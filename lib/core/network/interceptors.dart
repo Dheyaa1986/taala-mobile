@@ -47,11 +47,12 @@ class CustomInterceptor extends Interceptor {
         handler.next(err);
         return;
       }
+      final generation = AuthSessionHelper.authGeneration;
       _failedRequests.add({'err': err, 'handler': handler});
 
       if (!isRefreshing) {
         isRefreshing = true;
-        final refreshSuccess = await _refreshToken(err, handler);
+        final refreshSuccess = await _refreshToken(err, handler, generation);
         if (!refreshSuccess) {
           for (final failed in _failedRequests) {
             failed['handler'].reject(err);
@@ -83,12 +84,18 @@ class CustomInterceptor extends Interceptor {
   }
 
   Future<bool> _refreshToken(
-      DioException err, ErrorInterceptorHandler handler) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+    int generation,
+  ) async {
     try {
+      if (generation != AuthSessionHelper.authGeneration) {
+        return false;
+      }
       final refreshToken =
           await SecureLocalStorage.read(PrefsKeys.refreshToken);
       if (refreshToken == null || refreshToken.isEmpty) {
-        _logout();
+        await _logout(generation);
         return false;
       }
       dio.options.headers = {};
@@ -106,7 +113,7 @@ class CustomInterceptor extends Interceptor {
         final refresh = payload['refreshToken']?.toString() ?? '';
 
         if (access.isEmpty || refresh.isEmpty) {
-          _logout();
+          await _logout(generation);
           return false;
         }
 
@@ -115,11 +122,11 @@ class CustomInterceptor extends Interceptor {
         await _retryFailedRequests(access);
         return true;
       } else {
-        _logout();
+        await _logout(generation);
         return false;
       }
     } catch (e) {
-      _logout();
+      await _logout(generation);
       return false;
     }
   }
@@ -129,7 +136,8 @@ class CustomInterceptor extends Interceptor {
     await SecureLocalStorage.write(PrefsKeys.refreshToken, refresh);
   }
 
-  Future<void> _logout() async {
+  Future<void> _logout(int generation) async {
+    if (generation != AuthSessionHelper.authGeneration) return;
     dio.options.headers.clear();
     await AuthSessionHelper.logout();
   }

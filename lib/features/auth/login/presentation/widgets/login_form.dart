@@ -133,9 +133,21 @@ class _LoginFormState extends State<LoginForm> {
             context.read<BottomNavigationCubit>().setIsProvider(isProvider);
           }
           unawaited(PushNotificationService.instance.syncTokenIfLoggedIn());
-          await AuthSessionHelper.openAuthenticatedApp(context);
+          try {
+            await AuthSessionHelper.openAuthenticatedApp(context);
+          } catch (_) {
+            if (context.mounted) context.go(Routes.home);
+          }
         } else if (state is LoginError) {
-          AppMessages.showError(context, state.error);
+          if (await AuthSessionHelper.hasActiveSession()) {
+            if (context.mounted) {
+              await AuthSessionHelper.openAuthenticatedApp(context);
+            }
+            return;
+          }
+          if (context.mounted) {
+            AppMessages.showError(context, state.error);
+          }
         } else if (state is AccountNotVerified) {
           AppMessages.showError(context, state.error);
         }

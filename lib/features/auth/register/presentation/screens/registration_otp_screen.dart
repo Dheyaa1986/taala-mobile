@@ -115,6 +115,27 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     _registerCubit.registerClient(options: optionsWithOtp);
   }
 
+  Future<void> _enterAfterRegistration() async {
+    final phone = widget.options.phone.trim();
+    final email = widget.options.email.trim();
+    final identifier = phone.isNotEmpty ? phone : email;
+    final entered = await AuthSessionHelper.signInAndEnter(
+      identifier: identifier,
+      password: widget.options.password,
+      isProvider: _isProvider,
+    );
+    if (entered) return;
+    if (await AuthSessionHelper.hasActiveSession()) {
+      if (!mounted) return;
+      await AuthSessionHelper.openAuthenticatedApp(context);
+      return;
+    }
+    await AuthSessionHelper.goToLoginAfterRegistration(
+      isProvider: _isProvider,
+      loginIdentifier: identifier,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
@@ -132,20 +153,14 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           AppMessages.hideLoading();
 
           if (state is RegisterSuccessState) {
-            await AuthSessionHelper.goToLoginAfterRegistration(
-              isProvider: false,
-              loginIdentifier: widget.options.phone,
-            );
+            await _enterAfterRegistration();
             return;
           }
 
           if (state is RegisterErrorState) {
             if (mounted) setState(() => _submitting = false);
             if (AuthSessionHelper.isExistingAccountError(state.error)) {
-              await AuthSessionHelper.goToLoginAfterRegistration(
-                isProvider: _isProvider,
-                loginIdentifier: widget.options.phone,
-              );
+              await _enterAfterRegistration();
               return;
             }
             AppMessages.showError(context, state.error);
@@ -175,11 +190,6 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
                       onSendOtp: _sendOtp,
                       autoSendOnMount: true,
                       showIntroHint: false,
-                      onCompleted: (code) {
-                        if (_otpSent && !_submitting) {
-                          _submitWithSecret(code);
-                        }
-                      },
                     ),
                     32.height,
                     TaalaButton(

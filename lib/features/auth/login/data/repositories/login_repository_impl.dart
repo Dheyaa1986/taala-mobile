@@ -7,6 +7,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../../../../core/app_config/app_urls.dart';
 import '../../../../../core/app_config/prefs_keys.dart';
 import '../../../../../core/error/exceptions.dart';
+import '../../../../../core/helpers/auth_session_helper.dart';
 import '../../../../../core/helpers/secure_local_storage.dart';
 import '../../../../../core/helpers/phone_helper.dart';
 import '../../../../../core/network/network_request.dart';
@@ -128,8 +129,10 @@ class LoginRepositoryImpl extends LoginRepository {
     required String refreshToken,
     required String identifier,
   }) async {
-    await SecureLocalStorage.write(PrefsKeys.token, token);
-    await SecureLocalStorage.write(PrefsKeys.refreshToken, refreshToken);
+    await AuthSessionHelper.persistVerifiedTokens(
+      token: token,
+      refreshToken: refreshToken,
+    );
     await SecureLocalStorage.write(PrefsKeys.mailOrPhone, identifier);
     await SecureLocalStorage.delete(PrefsKeys.password);
     try {

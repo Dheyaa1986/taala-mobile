@@ -14,10 +14,12 @@ import '../app_config/prefs_keys.dart';
 import '../alerts/app_alert_monitor.dart';
 import '../alerts/app_icon_badge_service.dart';
 import '../di/service_locator.dart';
+import '../../features/auth/login/presentation/cubit/login_cubit/login_cubit.dart';
 import '../../features/subscriptions/presentation/utils/provider_subscription_gate.dart';
 import '../widgets/bottom_nav_bar/cubit/bottom_navigation_cubit.dart';
 import 'guest_session_helper.dart';
 import 'messages.dart';
+import 'phone_helper.dart';
 import 'secure_local_storage.dart';
 import 'shared_pref_local_storage.dart';
 
@@ -25,6 +27,7 @@ class AuthSessionHelper {
   const AuthSessionHelper._();
 
   static const int providerRole = 3;
+  static int authGeneration = 0;
 
   static bool isAccessTokenValid(String? token) {
     if (token == null || token.isEmpty) return false;
@@ -132,12 +135,27 @@ class AuthSessionHelper {
   }
 
   static Future<void> clearSession({bool clearRememberedCredentials = false}) async {
+    authGeneration++;
     await SecureLocalStorage.delete(PrefsKeys.token);
     await SecureLocalStorage.delete(PrefsKeys.refreshToken);
     await SecureLocalStorage.delete(PrefsKeys.user);
     await SecureLocalStorage.delete(PrefsKeys.password);
     if (clearRememberedCredentials) {
       await SecureLocalStorage.delete(PrefsKeys.mailOrPhone);
+    }
+  }
+
+  static Future<void> persistVerifiedTokens({
+    required String token,
+    required String refreshToken,
+  }) async {
+    authGeneration++;
+    await SecureLocalStorage.write(PrefsKeys.token, token);
+    await SecureLocalStorage.write(PrefsKeys.refreshToken, refreshToken);
+    for (var i = 0; i < 8; i++) {
+      final stored = await SecureLocalStorage.read(PrefsKeys.token);
+      if (stored == token) return;
+      await Future<void>.delayed(const Duration(milliseconds: 40));
     }
   }
 
@@ -169,11 +187,61 @@ class AuthSessionHelper {
         lower.contains('email or phone');
   }
 
+  static Future<bool> signInAndEnter({
+    required String identifier,
+    required String password,
+    required bool isProvider,
+  }) async {
+    _prepareNavigation();
+    try {
+      await clearSession();
+    } catch (_) {}
+    await getIt<SharedPref>().set(
+      key: PrefsKeys.isProviderAccount,
+      value: isProvider,
+    );
+    syncNavigationRole(isProvider);
+    try {
+      await GuestSessionHelper.clearGuestBrowsing();
+    } catch (_) {}
+
+    final trimmedId = identifier.trim();
+    if (trimmedId.isEmpty || password.isEmpty) return false;
+
+    final loginIdentifier = trimmedId.contains('@')
+        ? trimmedId.toLowerCase()
+        : PhoneFormatterHelper.normalizeForApi(trimmedId);
+
+    final loginCubit = getIt<LoginCubit>();
+    try {
+      await loginCubit.login(
+        email: loginIdentifier,
+        password: password,
+        isProvider: isProvider,
+      );
+    } catch (_) {}
+
+    if (loginCubit.state is! LoginSuccess && !await hasActiveSession()) {
+      return false;
+    }
+
+    final context = AppRouter.appNavigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      await openAuthenticatedApp(context);
+    } else {
+      AppRouter.router.go(Routes.home);
+    }
+    return true;
+  }
+
   static Future<void> goToLoginAfterRegistration({
     required bool isProvider,
     String? loginIdentifier,
   }) async {
     _prepareNavigation();
+    try {
+      await clearSession();
+    } catch (_) {}
     await getIt<SharedPref>().set(
       key: PrefsKeys.isProviderAccount,
       value: isProvider,
@@ -193,14 +261,6 @@ class AuthSessionHelper {
       await GuestSessionHelper.clearGuestBrowsing();
     } catch (_) {}
     AppRouter.router.go(Routes.login, extra: isProvider);
-    unawaited(_clearLeftoverSession());
-  }
-
-  static Future<void> _clearLeftoverSession() async {
-    try {
-      await clearSession();
-      await GuestSessionHelper.clearGuestBrowsing();
-    } catch (_) {}
   }
 
   static Future<void> openAuthenticatedApp(BuildContext context) async {
