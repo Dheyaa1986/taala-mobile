@@ -66,6 +66,8 @@ class _TaalaMapViewState extends State<TaalaMapView> {
   bool _googleReadyNotified = false;
   gmaps.CameraPosition? _lastGoogleCamera;
   bool _applyingGoogleCamera = false;
+  bool _userHold = false;
+  double? _userZoom;
   gmaps.BitmapDescriptor? _vehicleIcon;
   final Map<String, gmaps.BitmapDescriptor> _labeledIcons = {};
   StreamSubscription<bool>? _connectivitySub;
@@ -135,6 +137,9 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         oldWidget.markers != widget.markers ||
         oldWidget.polylines != widget.polylines ||
         oldWidget.cameraRevision != widget.cameraRevision) {
+      if (oldWidget.cameraRevision != widget.cameraRevision) {
+        _userHold = false;
+      }
       _applyCamera();
       unawaited(_loadLabeledIcons());
     }
@@ -157,13 +162,17 @@ class _TaalaMapViewState extends State<TaalaMapView> {
 
     final follow = widget.followPoint;
     if (widget.navigationFollow && follow != null) {
-      final zoom = _mapController.camera.zoom.clamp(15.0, 17.5);
+      final zoom = _userHold
+          ? (_userZoom ?? _mapController.camera.zoom)
+          : _mapController.camera.zoom.clamp(15.0, 17.5);
       _safeMap.move(follow, zoom, bearing: widget.followBearing);
       return;
     }
 
     if (follow != null) {
-      final zoom = _mapController.camera.zoom.clamp(13.0, 17.0);
+      final zoom = _userHold
+          ? (_userZoom ?? _mapController.camera.zoom)
+          : _mapController.camera.zoom.clamp(13.0, 17.0);
       _safeMap.move(follow, zoom);
       return;
     }
@@ -190,15 +199,17 @@ class _TaalaMapViewState extends State<TaalaMapView> {
     try {
       final follow = widget.followPoint;
       if (follow != null) {
-        final zoom = widget.navigationFollow
-            ? widget.initialZoom.clamp(15.0, 17.8)
-            : widget.initialZoom.clamp(13.0, 17.5);
+        final zoom = _userHold
+            ? (_userZoom ?? widget.initialZoom)
+            : (widget.navigationFollow
+                ? widget.initialZoom.clamp(15.0, 17.8)
+                : widget.initialZoom.clamp(13.0, 17.5));
         await controller.animateCamera(
           gmaps.CameraUpdate.newCameraPosition(
             gmaps.CameraPosition(
               target: _toGoogle(follow),
               zoom: zoom,
-              tilt: _tilt,
+              tilt: _userHold ? 0 : _tilt,
               bearing: widget.followBearing ?? 0,
             ),
           ),
@@ -237,22 +248,7 @@ class _TaalaMapViewState extends State<TaalaMapView> {
             southwest: gmaps.LatLng(minLat, minLng),
             northeast: gmaps.LatLng(maxLat, maxLng),
           ),
-          56,
-        ),
-      );
-      final zoom = await controller.getZoomLevel();
-      final region = await controller.getVisibleRegion();
-      await controller.animateCamera(
-        gmaps.CameraUpdate.newCameraPosition(
-          gmaps.CameraPosition(
-            target: gmaps.LatLng(
-              (region.northeast.latitude + region.southwest.latitude) / 2,
-              (region.northeast.longitude + region.southwest.longitude) / 2,
-            ),
-            zoom: zoom < 15.5 ? 15.5 : zoom,
-            tilt: _tilt,
-            bearing: widget.followBearing ?? 0,
-          ),
+          72,
         ),
       );
     } finally {
@@ -332,10 +328,12 @@ class _TaalaMapViewState extends State<TaalaMapView> {
       style: MapStyleConfig.googleNavigationMapStyle,
       buildingsEnabled: true,
       tiltGesturesEnabled: true,
+      zoomGesturesEnabled: true,
+      scrollGesturesEnabled: true,
       rotateGesturesEnabled: widget.allowRotate || widget.navigationFollow,
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
+      zoomControlsEnabled: widget.navigationFollow,
       compassEnabled: false,
       mapToolbarEnabled: false,
       trafficEnabled: false,
@@ -349,7 +347,12 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         TapPosition(Offset.zero, Offset.zero),
         LatLng(point.latitude, point.longitude),
       ),
-      onCameraMove: (position) => _lastGoogleCamera = position,
+      onCameraMove: (position) {
+        _lastGoogleCamera = position;
+        if (_applyingGoogleCamera) return;
+        _userHold = true;
+        _userZoom = position.zoom;
+      },
       onCameraIdle: () {
         if (_applyingGoogleCamera) return;
         final position = _lastGoogleCamera;
@@ -383,7 +386,11 @@ class _TaalaMapViewState extends State<TaalaMapView> {
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
         onPositionChanged: (camera, hasGesture) {
-          if (hasGesture) widget.onMoved?.call(camera.center);
+          if (hasGesture) {
+            _userHold = true;
+            _userZoom = camera.zoom;
+            widget.onMoved?.call(camera.center);
+          }
         },
         interactionOptions: InteractionOptions(flags: flags),
       ),

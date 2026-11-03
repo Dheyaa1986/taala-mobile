@@ -88,6 +88,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   bool _breakdownLegComplete = false;
   bool _transitioningToDestination = false;
   bool _overlayActionsEnabled = false;
+  bool _showFullRoute = false;
 
   @override
   void initState() {
@@ -98,6 +99,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
     );
     _targetTitle = widget.args.targetTitle;
     unawaited(GoogleMapsConfig.hydrateNativeKey());
+    _deviceLocation.startHeadingUpdates();
     unawaited(_tts.initialize());
     _locationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       unawaited(_refreshLocation());
@@ -110,6 +112,7 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
   @override
   void dispose() {
     _locationTimer?.cancel();
+    _deviceLocation.stopHeadingUpdates();
     _guidance.stop();
     unawaited(_tts.stop());
     super.dispose();
@@ -167,7 +170,6 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
       }
       if (!mounted) return;
       setState(() => _guidanceSnapshot = snapshot);
-      setState(() => _cameraRevision++);
       if (updateRoute && _canRefreshBestRoute()) {
         unawaited(_refreshBestRoute());
       }
@@ -388,7 +390,8 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                     target: _targetPoint,
                     provider: provider,
                     routePoints: routePolyline,
-                    followNavigation: _navigationActive,
+                    followNavigation: _navigationActive && !_showFullRoute,
+                    fitFullRoute: _showFullRoute,
                     bearing: _heading,
                     cameraRevision: _cameraRevision,
                     onMapReady: _onMapReady,
@@ -418,9 +421,16 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
                           width: MapStyleConfig.routeWidth,
                         ),
                     ],
-                    followPoint: provider,
+                    followPoint: _showFullRoute ? null : provider,
                     followBearing: _heading,
-                    navigationFollow: _navigationActive,
+                    navigationFollow: _navigationActive && !_showFullRoute,
+                    fitPoints: _showFullRoute
+                        ? [
+                            if (provider != null) provider,
+                            _targetPoint,
+                            ...routePolyline,
+                          ]
+                        : null,
                     allowRotate: true,
                     cameraRevision: _cameraRevision,
                     onMapReady: _onMapReady,
@@ -475,16 +485,35 @@ class _ProviderInAppNavigationScreenState extends State<ProviderInAppNavigationS
           Positioned(
             right: 12.w,
             bottom: 128.h + context.safeBottomInset,
-            child: FloatingActionButton.small(
-              heroTag: 'provider_nav_gps',
-              backgroundColor: tokens.surface,
-              foregroundColor: MapStyleConfig.routeCasingColor,
-              onPressed: () {
-                if (_providerPoint != null) {
-                  setState(() => _cameraRevision++);
-                }
-              },
-              child: const Icon(Icons.navigation),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton.small(
+                  heroTag: 'provider_nav_fit',
+                  backgroundColor: tokens.surface,
+                  foregroundColor: MapStyleConfig.routeCasingColor,
+                  onPressed: () {
+                    setState(() {
+                      _showFullRoute = true;
+                      _cameraRevision++;
+                    });
+                  },
+                  child: const Icon(Icons.zoom_out_map),
+                ),
+                SizedBox(height: 10.h),
+                FloatingActionButton.small(
+                  heroTag: 'provider_nav_gps',
+                  backgroundColor: tokens.surface,
+                  foregroundColor: MapStyleConfig.routeCasingColor,
+                  onPressed: () {
+                    setState(() {
+                      _showFullRoute = false;
+                      _cameraRevision++;
+                    });
+                  },
+                  child: const Icon(Icons.navigation),
+                ),
+              ],
             ),
           ),
           if (!_navigationActive && _route != null)

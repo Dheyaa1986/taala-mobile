@@ -52,6 +52,8 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+	<key>NSMotionUsageDescription</key>
+	<string>نستخدم اتجاه الجهاز لتدوير الخريطة مع حركة الموبايل أثناء الملاحة.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>نحتاج موقعك لتحديد مكانك على الخريطة وطلب المساعدة بسرعة.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

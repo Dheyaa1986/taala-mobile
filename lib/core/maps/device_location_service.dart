@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 
@@ -8,6 +11,25 @@ import 'picked_location.dart';
 class DeviceLocationService {
   final Location _location = Location();
   LatLng? _previousPoint;
+  double? _compassHeading;
+  double? _smoothedHeading;
+  StreamSubscription<CompassEvent>? _compassSub;
+
+  void startHeadingUpdates() {
+    if (_compassSub != null) return;
+    _compassSub = FlutterCompass.events?.listen((event) {
+      final heading = event.heading;
+      if (heading == null || heading.isNaN) return;
+      var normalized = heading % 360;
+      if (normalized < 0) normalized += 360;
+      _compassHeading = normalized;
+    });
+  }
+
+  void stopHeadingUpdates() {
+    _compassSub?.cancel();
+    _compassSub = null;
+  }
 
   Future<PickedLocation?> getCurrentLocation() async {
     final reading = await getNavigationReading();
@@ -19,6 +41,7 @@ class DeviceLocationService {
   }
 
   Future<DeviceLocationReading?> getNavigationReading() async {
+    startHeadingUpdates();
     var serviceEnabled = await _location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await _location.requestService();
@@ -40,8 +63,9 @@ class DeviceLocationService {
     if (lat == null || lng == null) return null;
 
     final current = LatLng(lat, lng);
+    final speed = data.speed ?? 0;
     var heading = data.heading;
-    if (heading == null || heading < 0) {
+    if (heading == null || heading < 0 || heading.isNaN) {
       final previous = _previousPoint;
       if (previous != null) {
         final moved = navigationDistanceMeters(previous, current);
@@ -49,6 +73,19 @@ class DeviceLocationService {
           heading = navigationBearingDegrees(previous, current);
         }
       }
+    }
+
+    if (speed < 2.5 && _compassHeading != null) {
+      heading = _compassHeading;
+    } else if ((heading == null || heading < 0) && _compassHeading != null) {
+      heading = _compassHeading;
+    }
+
+    if (heading != null && heading >= 0) {
+      _smoothedHeading = _smoothedHeading == null
+          ? heading
+          : _lerpHeading(_smoothedHeading!, heading, speed >= 2.5 ? 0.35 : 0.22);
+      heading = _smoothedHeading;
     }
 
     _previousPoint = current;
@@ -59,5 +96,19 @@ class DeviceLocationService {
       heading: heading,
       speedMps: data.speed,
     );
+  }
+
+  double _lerpHeading(double from, double to, double t) {
+    var delta = to - from;
+    while (delta > 180) {
+      delta -= 360;
+    }
+    while (delta < -180) {
+      delta += 360;
+    }
+    var next = from + delta * t;
+    next %= 360;
+    if (next < 0) next += 360;
+    return next;
   }
 }

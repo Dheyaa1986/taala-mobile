@@ -46,59 +46,69 @@ class WazeNavOverlay extends StatelessWidget {
     final etaLabel =
         '${eta.hour.toString().padLeft(2, '0')}:${eta.minute.toString().padLeft(2, '0')}';
 
-    return Column(
+    return MetaData(
+      behavior: HitTestBehavior.deferToChild,
+      child: Stack(
       children: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _RoundIconButton(
-                  icon: Icons.close,
-                  onPressed: onClose ?? () => Navigator.of(context).maybePop(),
-                ),
-                8.width,
-                Expanded(
-                  child: Column(
-                    children: [
-                      _TurnBanner(
-                        instruction: arrived
-                            ? 'وصلت'
-                            : offRoute
-                                ? 'خرجت عن المسار'
-                                : instruction,
-                        distance: arrived
-                            ? '0 م'
-                            : offRoute
-                                ? '…'
-                                : formatNavigationDistance(
-                                    maneuverDistanceMeters,
-                                  ),
-                        icon: _iconFor(
-                          instruction,
-                          arrived: arrived,
-                          offRoute: offRoute,
-                        ),
-                        alert: offRoute,
-                      ),
-                      if (!arrived &&
-                          !offRoute &&
-                          (nextInstruction ?? '').isNotEmpty) ...[
-                        6.height,
-                        _NextTurnChip(text: nextInstruction!),
-                      ],
-                    ],
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _RoundIconButton(
+                    icon: Icons.close,
+                    onPressed: onClose ?? () => Navigator.of(context).maybePop(),
                   ),
-                ),
-              ],
+                  8.width,
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _TurnBanner(
+                          instruction: arrived
+                              ? 'وصلت'
+                              : offRoute
+                                  ? 'خرجت عن المسار'
+                                  : instruction,
+                          distance: arrived
+                              ? '0 م'
+                              : offRoute
+                                  ? '…'
+                                  : formatNavigationDistance(
+                                      maneuverDistanceMeters,
+                                    ),
+                          icon: _iconFor(
+                            instruction,
+                            arrived: arrived,
+                            offRoute: offRoute,
+                          ),
+                          alert: offRoute,
+                        ),
+                        if (!arrived &&
+                            !offRoute &&
+                            (nextInstruction ?? '').isNotEmpty) ...[
+                          6.height,
+                          _NextTurnChip(text: nextInstruction!),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        const Spacer(),
-        Padding(
-          padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 8.h),
+        Positioned(
+          left: 12.w,
+          right: 12.w,
+          bottom: active
+              ? 92.h + MediaQuery.paddingOf(context).bottom
+              : 88.h + MediaQuery.paddingOf(context).bottom,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -110,7 +120,7 @@ class WazeNavOverlay extends StatelessWidget {
                     icon: voiceOn ? Icons.volume_up : Icons.volume_off,
                     onPressed: onToggleVoice ?? () {},
                   ),
-                  8.height,
+                  10.height,
                   _RoundIconButton(
                     icon: Icons.warning_amber_rounded,
                     label: AppStrings.navAddNote.tr(),
@@ -129,31 +139,37 @@ class WazeNavOverlay extends StatelessWidget {
           ),
         ),
         if (active)
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.fromLTRB(
-              20.w,
-              14.h,
-              20.w,
-              14.h + MediaQuery.paddingOf(context).bottom,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _EtaCell(value: etaLabel, label: 'الوصول'),
-                _EtaCell(value: '$remainingMinutes د', label: 'المدة'),
-                _EtaCell(
-                  value: formatNavigationDistance(remainingDistanceMeters),
-                  label: 'المتبقي',
-                ),
-              ],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(
+                20.w,
+                14.h,
+                20.w,
+                14.h + MediaQuery.paddingOf(context).bottom,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _EtaCell(value: etaLabel, label: 'الوصول'),
+                  _EtaCell(value: '$remainingMinutes د', label: 'المدة'),
+                  _EtaCell(
+                    value: formatNavigationDistance(remainingDistanceMeters),
+                    label: 'المتبقي',
+                  ),
+                ],
+              ),
             ),
           ),
       ],
+    ),
     );
   }
 

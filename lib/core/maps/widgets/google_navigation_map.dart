@@ -14,6 +14,7 @@ class GoogleNavigationMap extends StatefulWidget {
     this.provider,
     this.routePoints = const [],
     this.followNavigation = false,
+    this.fitFullRoute = false,
     this.bearing,
     this.cameraRevision = 0,
     this.onMapReady,
@@ -23,6 +24,7 @@ class GoogleNavigationMap extends StatefulWidget {
   final LatLng? provider;
   final List<LatLng> routePoints;
   final bool followNavigation;
+  final bool fitFullRoute;
   final double? bearing;
   final int cameraRevision;
   final VoidCallback? onMapReady;
@@ -35,6 +37,9 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
   gmaps.GoogleMapController? _controller;
   bool _readyNotified = false;
   gmaps.BitmapDescriptor? _vehicleIcon;
+  bool _applyingCamera = false;
+  double? _userZoom;
+  bool _userHold = false;
 
   @override
   void initState() {
@@ -51,8 +56,15 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
   @override
   void didUpdateWidget(covariant GoogleNavigationMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.cameraRevision != oldWidget.cameraRevision ||
-        widget.followNavigation != oldWidget.followNavigation) {
+    if (widget.cameraRevision != oldWidget.cameraRevision) {
+      _userHold = false;
+      unawaited(_updateCamera());
+      return;
+    }
+    if (widget.followNavigation != oldWidget.followNavigation ||
+        widget.fitFullRoute != oldWidget.fitFullRoute ||
+        widget.provider != oldWidget.provider ||
+        widget.bearing != oldWidget.bearing) {
       unawaited(_updateCamera());
     }
   }
@@ -113,51 +125,50 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
   Future<void> _updateCamera() async {
     final controller = _controller;
     if (controller == null) return;
+    _applyingCamera = true;
+    try {
+      final provider = widget.provider;
+      if (widget.fitFullRoute ||
+          (!widget.followNavigation && widget.routePoints.length >= 2)) {
+        final bounds = _boundsFor([
+          if (provider != null) provider,
+          widget.target,
+          ...widget.routePoints,
+        ]);
+        await controller.animateCamera(
+          gmaps.CameraUpdate.newLatLngBounds(bounds, 72),
+        );
+        return;
+      }
 
-    final provider = widget.provider;
-    if (widget.followNavigation && provider != null) {
-      await controller.animateCamera(
-        gmaps.CameraUpdate.newCameraPosition(
-          gmaps.CameraPosition(
-            target: _toGoogle(provider),
-            zoom: 17.6,
-            bearing: widget.bearing ?? 0,
-            tilt: 58,
+      if (widget.followNavigation && provider != null) {
+        var zoom = _userZoom ?? 16.4;
+        try {
+          zoom = _userHold ? (_userZoom ?? await controller.getZoomLevel()) : 16.4;
+        } catch (_) {}
+        await controller.animateCamera(
+          gmaps.CameraUpdate.newCameraPosition(
+            gmaps.CameraPosition(
+              target: _toGoogle(provider),
+              zoom: zoom.clamp(4.0, 20.0),
+              bearing: widget.bearing ?? 0,
+              tilt: _userHold ? 0 : 58,
+            ),
           ),
-        ),
-      );
-      return;
-    }
+        );
+        return;
+      }
 
-    if (provider == null) {
-      await controller.animateCamera(
-        gmaps.CameraUpdate.newLatLngZoom(_toGoogle(widget.target), 14),
-      );
-      return;
+      if (provider == null) {
+        await controller.animateCamera(
+          gmaps.CameraUpdate.newLatLngZoom(_toGoogle(widget.target), 14),
+        );
+      }
+    } finally {
+      Future<void>.delayed(const Duration(milliseconds: 280), () {
+        _applyingCamera = false;
+      });
     }
-
-    final bounds = _boundsFor([
-      provider,
-      widget.target,
-      ...widget.routePoints,
-    ]);
-    await controller.animateCamera(
-      gmaps.CameraUpdate.newLatLngBounds(bounds, 64),
-    );
-    final zoom = await controller.getZoomLevel();
-    final region = await controller.getVisibleRegion();
-    await controller.animateCamera(
-      gmaps.CameraUpdate.newCameraPosition(
-        gmaps.CameraPosition(
-          target: gmaps.LatLng(
-            (region.northeast.latitude + region.southwest.latitude) / 2,
-            (region.northeast.longitude + region.southwest.longitude) / 2,
-          ),
-          zoom: zoom < 15.5 ? 15.5 : zoom,
-          tilt: 58,
-        ),
-      ),
-    );
   }
 
   gmaps.LatLngBounds _boundsFor(List<LatLng> points) {
@@ -195,15 +206,23 @@ class _GoogleNavigationMapState extends State<GoogleNavigationMap> {
       style: MapStyleConfig.googleNavigationMapStyle,
       buildingsEnabled: true,
       tiltGesturesEnabled: true,
+      zoomGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      rotateGesturesEnabled: true,
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
+      zoomControlsEnabled: true,
       compassEnabled: false,
       mapToolbarEnabled: false,
       trafficEnabled: true,
       padding: const EdgeInsets.only(top: 118, bottom: 118),
       markers: _buildMarkers(),
       polylines: _buildPolylines(),
+      onCameraMove: (position) {
+        if (_applyingCamera) return;
+        _userHold = true;
+        _userZoom = position.zoom;
+      },
       onMapCreated: (controller) async {
         _controller = controller;
         if (!_readyNotified) {
