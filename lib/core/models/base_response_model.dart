@@ -29,7 +29,9 @@ class BaseResponseModel {
     }
 
     return BaseResponseModel(
-      code: json['code'] as int?,
+      code: json['code'] is int
+          ? json['code'] as int
+          : int.tryParse('${json['code'] ?? ''}'),
       message: message,
       requiresApproval: requiresApproval,
     );

@@ -115,7 +115,7 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
     _registerCubit.registerClient(options: optionsWithOtp);
   }
 
-  Future<void> _enterAfterRegistration() async {
+  Future<bool> _tryEnterAfterRegistration() async {
     final phone = widget.options.phone.trim();
     final email = widget.options.email.trim();
     final identifier = phone.isNotEmpty ? phone : email;
@@ -124,15 +124,22 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
       password: widget.options.password,
       isProvider: _isProvider,
     );
-    if (entered) return;
+    if (entered) return true;
     if (await AuthSessionHelper.hasActiveSession()) {
-      if (!mounted) return;
+      if (!mounted) return true;
       await AuthSessionHelper.openAuthenticatedApp(context);
-      return;
+      return true;
     }
+    return false;
+  }
+
+  Future<void> _enterAfterRegistration() async {
+    if (await _tryEnterAfterRegistration()) return;
+    final phone = widget.options.phone.trim();
+    final email = widget.options.email.trim();
     await AuthSessionHelper.goToLoginAfterRegistration(
       isProvider: _isProvider,
-      loginIdentifier: identifier,
+      loginIdentifier: phone.isNotEmpty ? phone : email,
     );
   }
 
@@ -158,11 +165,8 @@ class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
           }
 
           if (state is RegisterErrorState) {
+            if (await _tryEnterAfterRegistration()) return;
             if (mounted) setState(() => _submitting = false);
-            if (AuthSessionHelper.isExistingAccountError(state.error)) {
-              await _enterAfterRegistration();
-              return;
-            }
             AppMessages.showError(context, state.error);
           }
         },
