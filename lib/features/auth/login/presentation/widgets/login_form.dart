@@ -309,9 +309,9 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   String _normalizeLoginIdentifier(String raw) {
-    final trimmed = raw.trim();
+    final trimmed = PhoneFormatterHelper.toAsciiDigits(raw).trim();
     if (trimmed.contains('@')) {
-      return trimmed;
+      return trimmed.toLowerCase();
     }
     return PhoneFormatterHelper.normalizeForApi(trimmed);
   }

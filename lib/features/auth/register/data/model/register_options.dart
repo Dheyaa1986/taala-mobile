@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:taal/core/helpers/phone_helper.dart';
 import 'package:taal/core/network/extensions.dart';
 import 'package:taal/core/provider_offering/provider_service_offering_model.dart';
 import 'package:taal/features/auth/register/utils/provider_registration_documents.dart';
@@ -50,7 +51,7 @@ class RegisterOptions {
 
     final trimmedPhone = phone.trim();
     if (trimmedPhone.isNotEmpty) {
-      map['phone'] = trimmedPhone;
+      map['phone'] = PhoneFormatterHelper.normalizeForApi(trimmedPhone);
     }
 
     final trimmedAddress = address.trim();

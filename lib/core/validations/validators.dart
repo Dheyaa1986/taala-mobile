@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../app_config/app_strings.dart';
 import '../countries/data/model/country_model.dart';
+import '../helpers/phone_helper.dart';
 
 class CustomValidators {
   static String? validateEmpty(String? value, {String? message}) {
@@ -114,7 +115,7 @@ class CustomValidators {
       return message ?? AppStrings.requiredField.tr();
     }
 
-    final trimmed = value!.trim();
+    final trimmed = PhoneFormatterHelper.toAsciiDigits(value!.trim());
     if (trimmed.contains('@')) {
       return validateEmail(trimmed, message: message);
     }
