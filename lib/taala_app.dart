@@ -78,8 +78,13 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
   }
 
   Future<void> _checkAuthStatus() async {
-    final token = await SecureLocalStorage.read(PrefsKeys.token);
+    String? token;
+    try {
+      token = await SecureLocalStorage.read(PrefsKeys.token)
+          .timeout(const Duration(seconds: 2));
+    } catch (_) {}
 
+    if (!mounted) return;
     setState(() {
       _isCheckingAuth = false;
       if (token != null && token.isNotEmpty) {
@@ -91,6 +96,9 @@ class _TaalaAppState extends State<TaalaApp> with WidgetsBindingObserver {
     _scheduleThemeLoad();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AlertDeliveryBootstrap.ensureReady();
+      unawaited(
+        PushNotificationService.instance.initialize(requestPermissions: true),
+      );
       SecureLocalStorage.read(PrefsKeys.token).then((token) async {
         if (token != null && token.isNotEmpty) {
           await PushNotificationService.instance.processLaunchNotifications();

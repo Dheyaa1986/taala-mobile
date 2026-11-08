@@ -28,10 +28,12 @@ class PushNotificationService {
   bool _firebaseReady = false;
   bool _launchHandled = false;
 
-  Future<bool> initialize() async {
+  Future<bool> initialize({bool requestPermissions = false}) async {
     await ensureLocalNotificationsReady();
     if (_firebaseReady) return true;
-    _firebaseReady = await _setupFirebaseMessaging();
+    _firebaseReady = await _setupFirebaseMessaging(
+      requestPermissions: requestPermissions,
+    );
     return _firebaseReady;
   }
 
@@ -41,9 +43,9 @@ class PushNotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     await _plugin.initialize(
@@ -79,7 +81,9 @@ class PushNotificationService {
     _localReady = true;
   }
 
-  Future<bool> _setupFirebaseMessaging() async {
+  Future<bool> _setupFirebaseMessaging({
+    bool requestPermissions = false,
+  }) async {
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(
@@ -94,17 +98,19 @@ class PushNotificationService {
         sound: true,
       );
 
-      final settings = await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        criticalAlert: true,
-        provisional: false,
-      );
+      if (requestPermissions) {
+        final settings = await messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          criticalAlert: false,
+          provisional: false,
+        );
 
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        debugPrint('FCM permission denied');
-        return false;
+        if (settings.authorizationStatus == AuthorizationStatus.denied) {
+          debugPrint('FCM permission denied');
+          return false;
+        }
       }
 
       FirebaseMessaging.onMessage.listen(handleIncomingMessage);

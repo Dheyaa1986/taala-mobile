@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get_it/get_it.dart';
 import 'package:taal/core/maps/device_location_service.dart';
 import 'package:taal/core/maps/emergency/emergency_call_repository.dart';
@@ -53,7 +55,6 @@ import '../countries/data/services/countries_services.dart';
 import '../alerts/app_alert_monitor.dart';
 import '../alerts/app_alert_sound_service.dart';
 import '../alerts/app_icon_badge_service.dart';
-import '../alerts/push_notification_service.dart';
 import '../app_config/prefs_keys.dart';
 import '../helpers/shared_pref_local_storage.dart';
 import '../network/dio_service.dart';
@@ -65,11 +66,6 @@ final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
   await _initExternals();
-  try {
-    await PushNotificationService.instance.initialize();
-  } catch (_) {
-    // Push setup must not block app startup on sideload/release builds.
-  }
 
   getIt.registerLazySingleton<RemoteConfigHelper>(() => RemoteConfigHelper());
   getIt.registerLazySingleton<AppVersionConfigProvider>(
@@ -86,11 +82,11 @@ Future<void> setupServiceLocator() async {
 
 Future<void> _initExternals() async {
   await SharedPref.init();
-  await GoogleMapsConfig.hydrateNativeKey();
+  unawaited(GoogleMapsConfig.hydrateNativeKey());
   final savedLang = SharedPref.sharedPreferences.getString(
     PrefsKeys.selectedLanguage,
   );
-  await GoogleMapsConfig.setNativeMapLanguage(savedLang ?? 'ar');
+  unawaited(GoogleMapsConfig.setNativeMapLanguage(savedLang ?? 'ar'));
 
   getIt.registerLazySingleton<SharedPref>(() => SharedPref());
   getIt.registerLazySingleton<CustomLauncher>(() => CustomLauncher());

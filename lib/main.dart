@@ -22,17 +22,22 @@ import 'core/package_info_helper/package_info_helper.dart';
 import 'core/remote_config_helper/remote_config_helper.dart';
 
 void _applyPreferredOrientations() {
-  final view = WidgetsBinding.instance.platformDispatcher.views.first;
-  final shortestSide =
-      view.physicalSize.shortestSide / view.devicePixelRatio;
-  if (shortestSide >= 600) {
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-    return;
-  }
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  try {
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) return;
+    final view = views.first;
+    final pixelRatio = view.devicePixelRatio;
+    if (pixelRatio <= 0) return;
+    final shortestSide = view.physicalSize.shortestSide / pixelRatio;
+    if (shortestSide >= 600) {
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      return;
+    }
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  } catch (_) {}
 }
 
 void main() async {
@@ -45,13 +50,16 @@ void main() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
+    ).timeout(const Duration(seconds: 5));
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     unawaited(RemoteConfigHelper.initialize());
   } catch (error) {
     debugPrint('Firebase init failed: $error');
   }
-  await PackageInfoHelper.initialize();
+  try {
+    await PackageInfoHelper.initialize()
+        .timeout(const Duration(seconds: 3));
+  } catch (_) {}
 
   await setupServiceLocator();
   unawaited(getIt<MapOfflineManager>().syncWhenOnline());

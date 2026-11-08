@@ -59,7 +59,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
-    final gateResult = await handleAppUpdateCheck(presentBlockingUi: false);
+    final gateResult = await handleAppUpdateCheck(presentBlockingUi: false)
+        .timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => AppUpdateGateResult.proceed,
+    );
     if (gateResult == AppUpdateGateResult.blocked) {
       if (mounted) {
         setState(() => _forceUpdateRequired = true);
@@ -68,17 +72,29 @@ class _SplashScreenState extends State<SplashScreen>
     }
     if (!context.mounted) return;
 
-    final hasSession = await AuthSessionHelper.hasActiveSession();
+    final hasSession = await AuthSessionHelper.hasActiveSession().timeout(
+      const Duration(seconds: 4),
+      onTimeout: () => false,
+    );
     if (!hasSession) {
       await Future.delayed(const Duration(milliseconds: 800));
     }
 
     if (!context.mounted) return;
 
-    final hadStoredToken =
-        (await SecureLocalStorage.read(PrefsKeys.token))?.isNotEmpty == true;
+    var hadStoredToken = false;
+    try {
+      hadStoredToken = (await SecureLocalStorage.read(PrefsKeys.token)
+              .timeout(const Duration(seconds: 2)))
+          ?.isNotEmpty ==
+          true;
+    } catch (_) {}
 
-    if (await AuthSessionHelper.hasActiveSession()) {
+    final liveSession = await AuthSessionHelper.hasActiveSession().timeout(
+      const Duration(seconds: 4),
+      onTimeout: () => false,
+    );
+    if (liveSession) {
       if (await BiometricAuth.isEnabled() &&
           await BiometricAuth.canUseDeviceKey()) {
         if (!context.mounted) return;

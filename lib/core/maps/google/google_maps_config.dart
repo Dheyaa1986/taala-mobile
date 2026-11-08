@@ -25,7 +25,9 @@ class GoogleMapsConfig {
   static Future<void> hydrateNativeKey() async {
     if (kIsWeb) return;
     try {
-      final key = await _channel.invokeMethod<String>('googleMapsApiKey');
+      final key = await _channel
+          .invokeMethod<String>('googleMapsApiKey')
+          .timeout(const Duration(milliseconds: 1200));
       final trimmed = key?.trim() ?? '';
       if (trimmed.isNotEmpty) {
         _nativeKey = trimmed;
@@ -33,8 +35,10 @@ class GoogleMapsConfig {
     } catch (_) {}
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       try {
-        _iosSdkReady =
-            await _channel.invokeMethod<bool>('mapsSdkReady') ?? false;
+        _iosSdkReady = await _channel
+                .invokeMethod<bool>('mapsSdkReady')
+                .timeout(const Duration(milliseconds: 800)) ??
+            false;
       } catch (_) {
         _iosSdkReady = _nativeKey != null && _nativeKey!.isNotEmpty;
       }

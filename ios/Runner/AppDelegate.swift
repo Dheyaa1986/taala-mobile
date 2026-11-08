@@ -6,6 +6,7 @@ import UserNotifications
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var mapsSdkReady = false
+  private var mapsChannelRetries = 0
 
   override func application(
     _ application: UIApplication,
@@ -24,12 +25,26 @@ import UserNotifications
     }
 
     application.registerForRemoteNotifications()
+    let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     setupMapsChannel()
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    return launched
+  }
+
+  private func mapsMessenger() -> FlutterBinaryMessenger? {
+    if let controller = window?.rootViewController as? FlutterViewController {
+      return controller.binaryMessenger
+    }
+    return registrar(forPlugin: "TaalaMapsChannel")?.messenger()
   }
 
   private func setupMapsChannel() {
-    guard let messenger = registrar(forPlugin: "TaalaMapsChannel")?.messenger() else {
+    guard let messenger = mapsMessenger() else {
+      if mapsChannelRetries < 20 {
+        mapsChannelRetries += 1
+        DispatchQueue.main.async { [weak self] in
+          self?.setupMapsChannel()
+        }
+      }
       return
     }
 
